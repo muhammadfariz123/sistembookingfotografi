@@ -1,0 +1,550 @@
+<!-- resources/views/components/dashboard/booking-modal.blade.php -->
+<div x-show="showBookingModal" x-cloak x-transition.opacity class="fixed inset-0 z-50">
+    <!-- BACKDROP -->
+    <div @click="closeBookingModal()" class="absolute inset-0 bg-black/35 backdrop-blur-sm"></div>
+    <!-- WRAPPER -->
+    <div class="relative min-h-screen flex items-center justify-center p-4">
+        <!-- MODAL -->
+        <div @click.stop class="bg-white w-full max-w-[680px] rounded-[22px] shadow-2xl overflow-hidden">
+            <!-- HEADER -->
+            <div class="px-6 py-5 border-b border-gray-200 flex items-center justify-between">
+                <h2 class="text-[20px] font-bold text-gray-900" id="booking-modal-title">
+                    Tambah Booking Baru
+                </h2>
+                <button @click="closeBookingModal()" class="text-gray-500 hover:text-gray-700 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- BODY FORM -->
+            <form id="booking-form" x-data="bookingForm()"
+                @open-edit-booking.window="openEditBooking($event.detail)"
+                @submit.prevent="submitBooking()"
+                class="max-h-[70vh] overflow-y-auto no-scrollbar px-6 py-6">
+
+                <!-- ERROR VALIDASI GLOBAL -->
+                <div x-show="Object.keys(submitErrors).length > 0" x-cloak
+                    class="mb-5 bg-red-50 border border-red-200 rounded-2xl px-4 py-3">
+                    <p class="text-[13px] font-semibold text-red-600 mb-1">Mohon periksa kembali:</p>
+                    <ul class="space-y-1">
+                        <template x-for="(msgs, field) in submitErrors" :key="field">
+                            <template x-for="msg in msgs" :key="msg">
+                                <li class="text-[12px] text-red-600 flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 shrink-0" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    <span x-text="msg"></span>
+                                </li>
+                            </template>
+                        </template>
+                    </ul>
+                </div>
+
+                <!-- NAMA KLIEN -->
+                <div>
+                    <label class="block text-[14px] font-semibold text-gray-800 mb-2">
+                        Nama Klien <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" x-model="clientName"
+                        :class="submitErrors.client_name ? 'border-red-400 ring-1 ring-red-400' : 'border-gray-300'"
+                        placeholder="Masukkan nama klien"
+                        class="w-full h-[44px] rounded-2xl border px-4 text-[14px] focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <p x-show="submitErrors.client_name" class="text-[11px] text-red-500 mt-1"
+                        x-text="submitErrors.client_name?.[0]"></p>
+                </div>
+
+                <!-- KONTAK -->
+                <div class="mt-5">
+                    <label class="block text-[14px] font-semibold text-gray-800 mb-2">Kontak Klien</label>
+                    <input type="text" x-model="clientContact" placeholder="Nomor telepon atau email"
+                        class="w-full h-[44px] rounded-2xl border border-gray-300 px-4 text-[14px]">
+                </div>
+
+                <!-- ALAMAT -->
+                <div class="mt-5">
+                    <label class="block text-[14px] font-semibold text-gray-800 mb-2">Alamat Klien</label>
+                    <input type="text" x-model="clientAddress" placeholder="Alamat klien"
+                        class="w-full h-[44px] rounded-2xl border border-gray-300 px-4 text-[14px]">
+                </div>
+
+                <!-- JENIS LAYANAN -->
+                <div class="mt-5 relative">
+                    <label class="block text-[14px] font-semibold text-gray-800 mb-2">
+                        Jenis Layanan <span class="text-red-500">*</span>
+                    </label>
+
+                    <!-- TRIGGER BUTTON -->
+                    <button type="button" @click="toggleServiceDropdown()"
+                        :class="submitErrors.service_type_id
+                            ? 'border-red-400 ring-1 ring-red-400'
+                            : 'border-gray-300'"
+                        class="w-full h-[44px] rounded-2xl border px-4 text-left text-[14px] flex items-center justify-between bg-white">
+                        <span :class="selectedService ? 'text-gray-900' : 'text-gray-400'"
+                            x-text="selectedService || 'Pilih atau tambah jenis layanan'"></span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400 transition-transform duration-200"
+                            :class="showServiceDropdown ? 'rotate-0' : 'rotate-180'"
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/>
+                        </svg>
+                    </button>
+                    <p x-show="submitErrors.service_type_id" class="text-[11px] text-red-500 mt-1"
+                        x-text="submitErrors.service_type_id?.[0]"></p>
+
+                    <!-- DROPDOWN -->
+                    <div x-show="showServiceDropdown" x-transition
+                        @click.away="showServiceDropdown = false"
+                        class="mt-2 bg-white border border-gray-200 rounded-2xl shadow-lg p-3 z-10 relative">
+
+                        <!-- SEARCH INPUT -->
+                        <div class="mb-3">
+                            <div class="relative">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                    class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2"
+                                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                                <input type="text" x-model="serviceSearch"
+                                    placeholder="Cari layanan..."
+                                    class="w-full h-[38px] rounded-xl border border-gray-300 pl-9 pr-4 text-[14px] focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <!-- CLEAR SEARCH -->
+                                <button x-show="serviceSearch.trim()" type="button"
+                                    @click="serviceSearch = ''"
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M6 18L18 6M6 6l12 12"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- LIST LAYANAN -->
+                        <div class="space-y-0.5 max-h-[200px] overflow-y-auto no-scrollbar">
+
+                            <!-- KONDISI 1: Belum ada layanan sama sekali -->
+                            <template x-if="services.length === 0">
+                                <div class="py-8 text-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-gray-300 mx-auto mb-3"
+                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                                    </svg>
+                                    <p class="text-[13px] font-semibold text-gray-500">Belum ada layanan</p>
+                                    <p class="text-[12px] text-gray-400 mt-1">
+                                        Klik "Tambah Layanan" di bawah untuk membuat layanan pertama.
+                                    </p>
+                                </div>
+                            </template>
+
+                            <!-- KONDISI 2: Ada layanan tapi hasil pencarian kosong -->
+                            <template x-if="services.length > 0 && serviceSearch.trim() && filteredServices.length === 0">
+                                <div class="py-8 text-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-gray-300 mx-auto mb-3"
+                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                    </svg>
+                                    <p class="text-[13px] font-semibold text-gray-500">Tidak ditemukan</p>
+                                    <p class="text-[12px] text-gray-400 mt-1">
+                                        Tidak ada layanan dengan kata kunci
+                                        "<span class="font-medium text-gray-600" x-text="serviceSearch"></span>".
+                                    </p>
+                                    <button type="button" @click="serviceSearch = ''"
+                                        class="mt-2 text-[12px] text-blue-600 hover:underline">
+                                        Hapus pencarian
+                                    </button>
+                                </div>
+                            </template>
+
+                            <!-- KONDISI 3: Ada data & ada hasil — tampilkan list -->
+                            <template x-if="filteredServices.length > 0">
+                                <template x-for="service in filteredServices" :key="service.id">
+                                    <div
+                                        :class="selectedServiceId === service.id
+                                            ? 'bg-blue-50 border border-blue-100'
+                                            : 'hover:bg-gray-50 border border-transparent'"
+                                        class="flex items-center justify-between px-2 py-3 rounded-xl transition">
+
+                                        <!-- INFO LAYANAN -->
+                                        <button type="button" @click="selectService(service)" class="flex-1 text-left min-w-0">
+                                            <div class="flex items-center gap-2">
+                                                <!-- Centang jika dipilih -->
+                                                <template x-if="selectedServiceId === service.id">
+                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                        class="w-3.5 h-3.5 text-blue-600 shrink-0"
+                                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                                                    </svg>
+                                                </template>
+                                                <span class="text-[14px] font-semibold text-gray-900 truncate"
+                                                    x-text="service.name"></span>
+                                            </div>
+                                            <p class="text-[12px] text-gray-500 mt-0.5"
+                                                x-text="formatCurrency(service.price)"></p>
+                                        </button>
+
+                                        <!-- AKSI — selalu tampil, tidak bergantung pada search -->
+                                        <div class="flex items-center gap-2 ml-3 shrink-0">
+                                            <!-- EDIT -->
+                                            <button type="button" @click.stop="editService(service)"
+                                                title="Edit layanan"
+                                                class="w-7 h-7 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 flex items-center justify-center transition">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5"
+                                                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                                </svg>
+                                            </button>
+                                            <!-- HAPUS -->
+                                            <button type="button" @click.stop="deleteService(service)"
+                                                title="Hapus layanan"
+                                                class="w-7 h-7 rounded-lg bg-red-50 hover:bg-red-100 text-red-500 flex items-center justify-center transition">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5"
+                                                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </template>
+                            </template>
+                        </div>
+
+                        <!-- BUTTON TAMBAH LAYANAN — selalu tampil di bawah -->
+                        <div class="mt-3 pt-3 border-t border-gray-100">
+                            <button type="button" @click="openAddServiceModal()"
+                                class="w-full h-[36px] rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[14px] font-medium flex items-center justify-center gap-2 transition">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 4v16m8-8H4"/>
+                                </svg>
+                                Tambah Layanan
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MULTI DAY -->
+                <div class="mt-5">
+                    <label class="inline-flex items-center gap-2 text-[14px] text-gray-700">
+                        <input type="checkbox" x-model="multiDay"
+                            class="rounded border-gray-300 text-purple-600 focus:ring-purple-500">
+                        Booking lebih dari 1 hari
+                    </label>
+                </div>
+
+                <!-- TANGGAL & WAKTU -->
+                <div class="mt-5">
+                    <template x-if="!multiDay">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[14px] font-semibold text-gray-800 mb-2">
+                                    Tanggal <span class="text-red-500">*</span>
+                                </label>
+                                <input type="date" x-model="bookingDate"
+                                    :class="submitErrors.booking_date ? 'border-red-400 ring-1 ring-red-400' : 'border-gray-300'"
+                                    class="w-full h-[44px] rounded-2xl border px-4 text-[14px]">
+                                <p x-show="submitErrors.booking_date" class="text-[11px] text-red-500 mt-1"
+                                    x-text="submitErrors.booking_date?.[0]"></p>
+                            </div>
+                            <div>
+                                <label class="block text-[14px] font-semibold text-gray-800 mb-2">Waktu</label>
+                                <input type="time" x-model="bookingTime"
+                                    class="w-full h-[44px] rounded-2xl border border-gray-300 px-4 text-[14px]">
+                                <p class="text-[11px] text-gray-500 mt-1">Opsional - kosongkan jika tidak diperlukan</p>
+                            </div>
+                        </div>
+                    </template>
+                    <template x-if="multiDay">
+                        <div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-[14px] font-semibold text-gray-800 mb-2">
+                                        Tanggal Mulai <span class="text-red-500">*</span>
+                                    </label>
+                                    <input type="date" x-model="startDate"
+                                        :class="submitErrors.start_date ? 'border-red-400 ring-1 ring-red-400' : 'border-gray-300'"
+                                        class="w-full h-[44px] rounded-2xl border px-4 text-[14px]">
+                                    <p x-show="submitErrors.start_date" class="text-[11px] text-red-500 mt-1"
+                                        x-text="submitErrors.start_date?.[0]"></p>
+                                </div>
+                                <div>
+                                    <label class="block text-[14px] font-semibold text-gray-800 mb-2">
+                                        Tanggal Selesai <span class="text-red-500">*</span>
+                                    </label>
+                                    <input type="date" x-model="endDate"
+                                        :class="submitErrors.end_date ? 'border-red-400 ring-1 ring-red-400' : 'border-gray-300'"
+                                        class="w-full h-[44px] rounded-2xl border px-4 text-[14px]">
+                                    <p x-show="submitErrors.end_date" class="text-[11px] text-red-500 mt-1"
+                                        x-text="submitErrors.end_date?.[0]"></p>
+                                </div>
+                                <div>
+                                    <label class="block text-[14px] font-semibold text-gray-800 mb-2">Waktu</label>
+                                    <input type="time" x-model="bookingTime"
+                                        class="w-full h-[44px] rounded-2xl border border-gray-300 px-4 text-[14px]">
+                                    <p class="text-[11px] text-gray-500 mt-1">Opsional - kosongkan jika tidak diperlukan</p>
+                                </div>
+                            </div>
+                            <div x-show="totalDurasi > 0" x-transition
+                                class="mt-4 bg-blue-50 border border-blue-100 rounded-2xl px-4 py-3">
+                                <span class="text-[14px] font-semibold text-blue-600">
+                                    Total durasi: <span x-text="totalDurasi + ' hari'"></span>
+                                </span>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- STATUS -->
+                <div class="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[14px] font-semibold text-gray-800 mb-2">Status</label>
+                        <select x-model="status"
+                            class="w-full h-[44px] rounded-2xl border border-gray-300 px-4 text-[14px]">
+                            <option>Dijadwalkan</option>
+                            <option>Selesai</option>
+                            <option>Dibatalkan</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[14px] font-semibold text-gray-800 mb-2">Status Pembayaran</label>
+                        <input type="text" :value="paymentStatus" readonly :class="paymentStatusClass"
+                            class="w-full h-[44px] rounded-2xl border px-4 text-[14px] font-medium cursor-default">
+                        <p class="text-[11px] text-blue-600 mt-1">
+                            Status pembayaran tervalidasi otomatis berdasarkan nominal yang dibayarkan.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- QTY & HARGA -->
+                <div class="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[14px] font-semibold text-gray-800 mb-2">
+                            Quantity <span class="text-red-500">*</span>
+                        </label>
+                        <input type="number" min="1" :value="quantity" @input="updateQuantity($event.target)"
+                            :class="submitErrors.quantity ? 'border-red-400 ring-1 ring-red-400' : 'border-gray-300'"
+                            class="w-full h-[44px] rounded-2xl border px-4 text-[14px]">
+                        <p x-show="submitErrors.quantity" class="text-[11px] text-red-500 mt-1"
+                            x-text="submitErrors.quantity?.[0]"></p>
+                    </div>
+                    <div>
+                        <label class="block text-[14px] font-semibold text-gray-800 mb-2">Harga per Unit (Rp)</label>
+                        <input type="text" :value="formatCurrency(unitPrice)" @input="updateUnitPrice($event.target)"
+                            @focus="$event.target.select()"
+                            class="w-full h-[44px] rounded-2xl border border-gray-300 px-4 text-[14px]">
+                    </div>
+                </div>
+
+                <!-- SUDAH DIBAYAR -->
+                <div class="mt-5">
+                    <label class="block text-[14px] font-semibold text-gray-800 mb-2">Sudah Dibayar (Rp)</label>
+                    <input type="text" :value="formatCurrency(paidAmount)" @input="updatePaidAmount($event.target)"
+                        @focus="$event.target.select()"
+                        class="w-full h-[44px] rounded-2xl border border-gray-300 px-4 text-[14px]">
+                </div>
+
+                <!-- DISKON -->
+                <div class="mt-5">
+                    <label class="block text-[14px] font-semibold text-gray-800 mb-2">Diskon</label>
+                    <div class="relative">
+                        <input type="text" x-ref="discountInput" value="Rp 0"
+                            @input="formatDiscount($event.target)"
+                            @focus="$event.target.select()"
+                            class="w-full h-[44px] rounded-2xl border border-gray-300 pl-4 pr-20 text-[14px]">
+                        <div class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center bg-gray-100 rounded-xl p-1 gap-1">
+                            <button type="button" @click="setDiscountType('rupiah')"
+                                :class="discountType === 'rupiah' ? 'bg-blue-100 text-blue-600' : 'text-gray-500'"
+                                class="px-3 h-6 rounded-lg text-[12px] font-semibold transition">Rp</button>
+                            <button type="button" @click="setDiscountType('percent')"
+                                :class="discountType === 'percent' ? 'bg-blue-100 text-blue-600' : 'text-gray-500'"
+                                class="px-3 h-6 rounded-lg text-[12px] font-semibold transition">%</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUMMARY TPS -->
+                <div class="mt-5 border border-gray-200 rounded-2xl p-4 text-[14px]">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="text-[11px] font-bold tracking-widest text-gray-400 uppercase">
+                            Kalkulasi Otomatis TPS
+                        </span>
+                    </div>
+                    <div class="flex justify-between py-2 border-b border-gray-100">
+                        <span class="text-gray-500">Subtotal <span class="text-[11px] text-gray-400">(P × Q)</span> :</span>
+                        <span class="font-medium" x-text="formattedSubtotal"></span>
+                    </div>
+                    <template x-if="discountAmount > 0">
+                        <div class="flex justify-between py-2 border-b border-gray-100">
+                            <span class="text-gray-500">Diskon <span class="text-[11px] text-gray-400">(Nd)</span> :</span>
+                            <span class="font-medium text-red-500" x-text="'- ' + formattedDiscountAmount"></span>
+                        </div>
+                    </template>
+                    <div class="flex justify-between py-2 border-b border-gray-100">
+                        <span class="font-semibold text-gray-800">Total
+                            <span class="text-[11px] font-normal text-gray-400">(Subtotal - Nd)</span> :</span>
+                        <span class="font-bold text-blue-600" x-text="formattedGrandTotal"></span>
+                    </div>
+                    <div class="flex justify-between py-2 border-b border-gray-100">
+                        <span class="text-gray-500">Sudah Dibayar <span class="text-[11px] text-gray-400">(Db)</span> :</span>
+                        <span class="font-medium" x-text="formattedPaidAmount"></span>
+                    </div>
+                    <div class="flex justify-between py-2 border-b border-gray-100">
+                        <span class="text-gray-500">Sisa <span class="text-[11px] text-gray-400">(Total - Db)</span> :</span>
+                        <span class="font-bold text-red-500" x-text="formattedRemaining"></span>
+                    </div>
+                    <div class="flex justify-between pt-2 items-center">
+                        <span class="text-gray-500">Status Pembayaran
+                            <span class="text-[11px] text-gray-400">(otomatis)</span> :</span>
+                        <span :class="paymentStatusClass"
+                            class="px-3 py-1 rounded-xl border text-[12px] font-semibold"
+                            x-text="paymentStatus"></span>
+                    </div>
+                </div>
+
+                <!-- CATATAN -->
+                <div class="mt-5">
+                    <label class="block text-[14px] font-semibold text-gray-800 mb-2">Catatan</label>
+                    <textarea x-model="notes" rows="4" placeholder="Tambahkan catatan..."
+                        class="w-full rounded-2xl border border-gray-300 px-4 py-3 text-[14px] resize-none"></textarea>
+                </div>
+
+                <!-- MODAL TAMBAH / EDIT LAYANAN (nested) -->
+                <div x-show="showServiceModal" x-cloak x-transition.opacity class="fixed inset-0 z-[70]">
+                    <div @click="showServiceModal = false" class="absolute inset-0 bg-black/20"></div>
+                    <div class="relative min-h-screen flex items-center justify-center p-4">
+                        <div @click.stop
+                            class="bg-white w-full max-w-[560px] rounded-2xl shadow-2xl border border-gray-200">
+                            <div class="px-5 pt-5 pb-3">
+                                <h3 class="text-[24px] font-semibold text-gray-900"
+                                    x-text="serviceModalMode === 'add' ? 'Tambah Layanan Baru' : 'Edit Layanan'"></h3>
+                            </div>
+                            <div class="px-5 pb-5">
+                                <!-- ERROR -->
+                                <div x-show="Object.keys(serviceErrors).length > 0" x-cloak
+                                    class="mb-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+                                    <ul class="space-y-1">
+                                        <template x-for="(msgs, field) in serviceErrors" :key="field">
+                                            <template x-for="msg in msgs" :key="msg">
+                                                <li class="text-[12px] text-red-600 flex items-center gap-2">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 shrink-0"
+                                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                    </svg>
+                                                    <span x-text="msg"></span>
+                                                </li>
+                                            </template>
+                                        </template>
+                                    </ul>
+                                </div>
+                                <!-- NAMA -->
+                                <div>
+                                    <label class="block text-[14px] font-semibold text-gray-800 mb-2">
+                                        Nama Layanan <span class="text-red-500">*</span>
+                                    </label>
+                                    <input type="text" x-model="serviceForm.name"
+                                        :class="serviceErrors.name ? 'border-red-400 ring-1 ring-red-400' : 'border-gray-300'"
+                                        placeholder="Masukkan nama layanan..."
+                                        class="w-full h-[38px] rounded-xl border px-4 text-[14px] focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <p x-show="serviceErrors.name" class="text-[11px] text-red-500 mt-1"
+                                        x-text="serviceErrors.name?.[0]"></p>
+                                </div>
+                                <!-- DESKRIPSI -->
+                                <div class="mt-5">
+                                    <label class="block text-[14px] font-semibold text-gray-800 mb-2">
+                                        Deskripsi (opsional)
+                                    </label>
+                                    <textarea rows="3" x-model="serviceForm.description"
+                                        placeholder="Masukkan deskripsi layanan..."
+                                        class="w-full rounded-xl border border-gray-300 px-4 py-3 text-[14px] resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                                </div>
+                                <!-- HARGA -->
+                                <div class="mt-5">
+                                    <label class="block text-[14px] font-semibold text-gray-800 mb-2">
+                                        Harga Default (opsional)
+                                    </label>
+                                    <input type="text" x-model="serviceForm.price"
+                                        @input="formatRupiah($event.target)"
+                                        @focus="$event.target.select()"
+                                        class="w-full h-[38px] rounded-xl border border-gray-300 px-4 text-[14px] focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                                <!-- BUTTONS -->
+                                <div class="mt-6 flex items-center justify-end gap-3">
+                                    <button type="button" @click="showServiceModal = false"
+                                        :disabled="serviceSubmitting"
+                                        class="h-[36px] px-5 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-800 text-[14px] font-medium transition disabled:opacity-50">
+                                        Batal
+                                    </button>
+                                    <button type="button" @click="saveService()" :disabled="serviceSubmitting"
+                                        class="h-[36px] px-6 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[14px] font-medium flex items-center gap-2 transition disabled:opacity-60">
+                                        <template x-if="serviceSubmitting">
+                                            <svg class="animate-spin w-4 h-4" xmlns="http://www.w3.org/2000/svg"
+                                                fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                    stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor"
+                                                    d="M4 12a8 8 0 018-8v8H4z"></path>
+                                            </svg>
+                                        </template>
+                                        <template x-if="!serviceSubmitting && serviceModalMode === 'add'">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                                            </svg>
+                                        </template>
+                                        <template x-if="!serviceSubmitting && serviceModalMode === 'edit'">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    d="M17 21H7a2 2 0 01-2-2V5a2 2 0 012-2h7l5 5v11a2 2 0 01-2 2z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    d="M17 21v-8H7v8M7 3v5h8"/>
+                                            </svg>
+                                        </template>
+                                        <span x-text="serviceModalMode === 'add' ? 'Tambah Layanan' : 'Simpan Perubahan'"></span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+
+            <!-- FOOTER -->
+            <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-end gap-3">
+                <button @click="closeBookingModal()"
+                    class="h-[40px] px-5 rounded-2xl bg-gray-100 text-gray-700 font-medium text-[14px] hover:bg-gray-200 transition">
+                    Batal
+                </button>
+                <button type="button"
+                    @click="document.getElementById('booking-form').dispatchEvent(new Event('submit', {bubbles: true, cancelable: true}))"
+                    class="h-[40px] px-6 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[14px] transition flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M17 21H7a2 2 0 01-2-2V5a2 2 0 012-2h7l5 5v11a2 2 0 01-2 2z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 21v-8H7v8M7 3v5h8"/>
+                    </svg>
+                    <span x-text="document.getElementById('booking-form')?._x_dataStack?.[0]?.editingBookingId
+                        ? 'Simpan Perubahan' : 'Simpan Booking'">
+                        Simpan Booking
+                    </span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
