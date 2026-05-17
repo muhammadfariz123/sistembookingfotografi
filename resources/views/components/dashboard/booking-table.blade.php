@@ -30,7 +30,7 @@
                 </tr>
             </thead>
             <tbody>
-                <!-- DATA ADA — iterasi filteredBookings bukan bookings -->
+                <!-- DATA ADA -->
                 <template x-if="filteredBookings.length > 0">
                     <template x-for="booking in filteredBookings" :key="booking.id">
                         <tr class="border-b border-gray-50 hover:bg-gray-50/50 transition">
@@ -156,17 +156,53 @@
                     </template>
                 </template>
 
-                <!-- KOSONG -->
-                <template x-if="!loading && filteredBookings.length === 0">
+                <!-- KOSONG — tidak ada data sama sekali -->
+                <template x-if="!loading && filteredBookings.length === 0 && bookings.length === 0">
                     <tr>
                         <td colspan="6">
                             <div class="h-[320px] flex flex-col items-center justify-center px-4 text-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-14 h-14 text-gray-300 mb-4"
+                                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                </svg>
                                 <h1 class="text-[20px] sm:text-[24px] font-bold text-gray-400">
                                     Belum ada data booking
                                 </h1>
                                 <p class="text-gray-400 mt-2 text-[13px] sm:text-[14px]">
                                     Klik Tambah Booking untuk memulai
                                 </p>
+                            </div>
+                        </td>
+                    </tr>
+                </template>
+
+                <!-- KOSONG — ada data tapi filter/search tidak cocok -->
+                <template x-if="!loading && filteredBookings.length === 0 && bookings.length > 0">
+                    <tr>
+                        <td colspan="6">
+                            <div class="h-[320px] flex flex-col items-center justify-center px-4 text-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-14 h-14 text-gray-300 mb-4"
+                                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                                <h1 class="text-[18px] sm:text-[20px] font-bold text-gray-400">
+                                    Tidak ada hasil ditemukan
+                                </h1>
+                                <!-- Info spesifik saat ada kata kunci pencarian -->
+                                <template x-if="activeSearch.trim()">
+                                    <p class="text-gray-400 mt-2 text-[13px] sm:text-[14px]">
+                                        Tidak ada booking yang cocok dengan
+                                        "<span class="font-semibold text-gray-600" x-text="activeSearch"></span>"
+                                    </p>
+                                </template>
+                                <!-- Info umum saat filter lain yang aktif -->
+                                <template x-if="!activeSearch.trim()">
+                                    <p class="text-gray-400 mt-2 text-[13px] sm:text-[14px]">
+                                        Coba ubah filter status, pembayaran, atau bulan
+                                    </p>
+                                </template>
                             </div>
                         </td>
                     </tr>
@@ -187,7 +223,6 @@ function bookingTable() {
         activeSortBy:  'newest',
         activeSearch:  '',
 
-        // ── Load semua booking dari backend ─────────────────────────
         async loadBookings() {
             this.loading = true
             try {
@@ -203,7 +238,6 @@ function bookingTable() {
             }
         },
 
-        // ── Terima update filter dari dashboardFilter ────────────────
         applyFilter(detail) {
             if (detail.status  !== undefined) this.activeStatus  = detail.status
             if (detail.payment !== undefined) this.activePayment = detail.payment
@@ -212,7 +246,6 @@ function bookingTable() {
             if (detail.search  !== undefined) this.activeSearch  = detail.search
         },
 
-        // ── Computed: hasil filter + sort ────────────────────────────
         get filteredBookings() {
             let result = [...this.bookings]
 
@@ -250,7 +283,7 @@ function bookingTable() {
                 })
             }
 
-            // Filter search
+            // Filter search — nama klien, kontak, alamat, nama layanan
             if (this.activeSearch.trim()) {
                 const q = this.activeSearch.toLowerCase().trim()
                 result = result.filter(b =>
@@ -296,14 +329,12 @@ function bookingTable() {
             return result
         },
 
-        // ── Edit booking ─────────────────────────────────────────────
         openEditBooking(booking) {
             window.dispatchEvent(
                 new CustomEvent('open-edit-booking', { detail: booking })
             )
         },
 
-        // ── Format tanggal ───────────────────────────────────────────
         formatDate(dateStr) {
             if (!dateStr) return '-'
             const date = new Date(dateStr)
@@ -315,7 +346,6 @@ function bookingTable() {
             }).format(date)
         },
 
-        // ── Format currency ──────────────────────────────────────────
         formatCurrency(value) {
             return new Intl.NumberFormat('id-ID', {
                 style:                 'currency',
@@ -324,7 +354,6 @@ function bookingTable() {
             }).format(value || 0)
         },
 
-        // ── Badge status ─────────────────────────────────────────────
         statusClass(status) {
             switch (status) {
                 case 'Selesai':    return 'bg-green-100 text-green-700'
@@ -332,6 +361,7 @@ function bookingTable() {
                 default:           return 'bg-blue-100 text-blue-700'
             }
         },
+
         paymentClass(status) {
             switch (status) {
                 case 'Lunas':        return 'bg-green-100 text-green-700'
@@ -339,6 +369,7 @@ function bookingTable() {
                 default:             return 'bg-yellow-100 text-yellow-700'
             }
         },
+
         paymentLabel(status) {
             switch (status) {
                 case 'Lunas':        return 'Lunas'
@@ -347,7 +378,6 @@ function bookingTable() {
             }
         },
 
-        // ── Hapus booking ────────────────────────────────────────────
         async deleteBooking(booking) {
             const confirm = await Swal.fire({
                 title:              `Hapus booking "${booking.client_name}"?`,
@@ -365,7 +395,7 @@ function bookingTable() {
             if (!confirm.isConfirmed) return
 
             try {
-                const res  = await fetch(`/bookings/${booking.id}`, {
+                const res = await fetch(`/bookings/${booking.id}`, {
                     method: 'DELETE',
                     headers: {
                         'Accept':       'application/json',
@@ -384,15 +414,20 @@ function bookingTable() {
                     return
                 }
 
+                // Hapus dari array lokal agar tabel update instan
                 this.bookings = this.bookings.filter(b => b.id !== booking.id)
 
                 Swal.fire({
-                    icon: 'success', title: 'Dihapus!',
-                    text: data.message,
+                    icon:              'success',
+                    title:             'Dihapus!',
+                    text:              data.message,
                     confirmButtonColor: '#2563eb',
-                    timer: 2000, timerProgressBar: true,
-                    showConfirmButton: false,
-                    customClass: { popup: 'rounded-[28px]' }
+                    timer:             2000,
+                    timerProgressBar:  true,
+                    showConfirmButton:  false,
+                    customClass:       { popup: 'rounded-[28px]' }
+                }).then(() => {
+                    window.dispatchEvent(new CustomEvent('reload-bookings'))
                 })
 
             } catch (err) {
