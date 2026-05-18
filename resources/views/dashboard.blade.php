@@ -466,7 +466,7 @@
                 async submitBooking() {
                     // Validasi client-side dulu — stop jika gagal
                     if (!this.validateAndScroll()) return
-                    
+
                     this.submitting = true; this.submitErrors = {}
                     const isEdit = this.editingBookingId !== null
                     const url = isEdit ? `/bookings/${this.editingBookingId}` : `/bookings`
@@ -620,7 +620,12 @@
                 openCompanySettingsModal() {
                     this.showCompanySettingsModal = true
                     document.body.classList.add('overflow-hidden')
-                    this.$nextTick(() => { if (window.lucide) lucide.createIcons() })
+                    this.$nextTick(() => {
+                        if (window.lucide) lucide.createIcons()
+
+                        // Trigger reload settings setiap kali modal dibuka
+                        window.dispatchEvent(new CustomEvent('reload-company-settings'))
+                    })
                 },
                 closeCompanySettingsModal() {
                     this.showCompanySettingsModal = false

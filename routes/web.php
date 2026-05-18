@@ -5,6 +5,7 @@ use App\Http\Controllers\FinancialController;
 use App\Http\Controllers\ServiceTypeController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\CompanySettingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -62,6 +63,14 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/bookings/{booking}', [BookingController::class, 'destroy'])
         ->name('bookings.destroy');
 
+    /*
+    |--------------------------------------------------------------------------
+    | Company Settings
+    |--------------------------------------------------------------------------
+    */
+    // Company Setting
+    Route::get('/company-setting', [CompanySettingController::class, 'show'])->name('company-setting.show');
+    Route::post('/company-setting', [CompanySettingController::class, 'store'])->name('company-setting.store');
 });
 
 require __DIR__ . '/auth.php';
