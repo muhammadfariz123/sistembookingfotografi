@@ -61,6 +61,8 @@
         </div>
         <!-- BOOKING MODAL -->
         @include('components.dashboard.booking-modal')
+        <!-- INVOICE MODAL -->
+        <x-dashboard.invoice-modal />
         <!-- COMPANY SETTINGS MODAL -->
         <x-dashboard.company-settings-modal />
     </div>

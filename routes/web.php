@@ -6,6 +6,7 @@ use App\Http\Controllers\ServiceTypeController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CompanySettingController;
+use App\Http\Controllers\InvoiceController;
 
 /*
 |--------------------------------------------------------------------------
@@ -71,6 +72,9 @@ Route::middleware(['auth'])->group(function () {
     // Company Setting
     Route::get('/company-setting', [CompanySettingController::class, 'show'])->name('company-setting.show');
     Route::post('/company-setting', [CompanySettingController::class, 'store'])->name('company-setting.store');
+
+    // invoice
+        Route::get('/invoices/{booking}', [InvoiceController::class, 'show'])->name('invoice.show');
 });
 
 require __DIR__ . '/auth.php';
