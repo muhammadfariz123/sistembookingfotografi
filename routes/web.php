@@ -35,9 +35,11 @@ Route::middleware(['auth'])->group(function () {
     | Financial Dashboard
     |--------------------------------------------------------------------------
     */
-    Route::get('/financial', [FinancialController::class, 'index'])
-        ->name('financial.index');
-
+    Route::get('/financial', [FinancialController::class, 'index'])->name('financial.index');
+    Route::post('/financial/income', [FinancialController::class, 'storeIncome'])->name('financial.income.store');
+    Route::post('/financial/expense', [FinancialController::class, 'storeExpense'])->name('financial.expense.store');
+    Route::delete('/financial/income/{income}', [FinancialController::class, 'destroyIncome'])->name('financial.income.destroy');
+    Route::delete('/financial/expense/{expense}', [FinancialController::class, 'destroyExpense'])->name('financial.expense.destroy');
     /*
     |--------------------------------------------------------------------------
     | Service Types
@@ -51,13 +53,13 @@ Route::middleware(['auth'])->group(function () {
     | Bookings
     |--------------------------------------------------------------------------
     */
-    Route::get('/bookings',                [BookingController::class, 'index'])
+    Route::get('/bookings', [BookingController::class, 'index'])
         ->name('bookings.index');
-    Route::post('/bookings',               [BookingController::class, 'store'])
+    Route::post('/bookings', [BookingController::class, 'store'])
         ->name('bookings.store');
-    Route::put('/bookings/{booking}',      [BookingController::class, 'update'])
+    Route::put('/bookings/{booking}', [BookingController::class, 'update'])
         ->name('bookings.update');
-    Route::delete('/bookings/{booking}',   [BookingController::class, 'destroy'])
+    Route::delete('/bookings/{booking}', [BookingController::class, 'destroy'])
         ->name('bookings.destroy');
 
 });
