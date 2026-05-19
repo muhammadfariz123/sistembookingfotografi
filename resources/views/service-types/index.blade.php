@@ -27,10 +27,11 @@
                     Tambah Layanan
                 </button>
             </div>
-            <!-- TABLE DESKTOP -->
-            <div class="mt-6 sm:mt-8 hidden md:block border border-gray-200 rounded-[22px] overflow-hidden">
-                <div class="overflow-x-auto no-scrollbar">
-                    <table class="w-full">
+
+            {{-- ── TABEL — selalu tampil di semua ukuran layar ── --}}
+            <div class="mt-6 sm:mt-8 border border-gray-200 rounded-[22px] overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full min-w-[500px]">
                         <thead class="bg-[#f8fafc]">
                             <tr class="text-left">
                                 @foreach (['Nama Layanan', 'Deskripsi', 'Harga Default'] as $head)
@@ -87,46 +88,8 @@
                     </table>
                 </div>
             </div>
-            <!-- MOBILE -->
-            <div class="mt-6 md:hidden space-y-3">
-                <template x-if="services.length === 0">
-                    <div class="py-16 text-center text-[14px] text-gray-500">
-                        Belum ada layanan. Klik
-                        <span class="font-semibold text-blue-600">"Tambah Layanan"</span>
-                        untuk membuat layanan baru.
-                    </div>
-                </template>
-                <template x-for="item in services" :key="'mobile-' + item.id">
-                    <div class="border border-gray-200 rounded-2xl p-4 bg-white">
-                        <div class="flex justify-between items-start gap-3">
-                            <div class="flex-1">
-                                <p class="text-[11px] font-semibold tracking-wide text-gray-400 uppercase">Nama Layanan</p>
-                                <p class="mt-1 font-semibold text-[15px] text-[#0f172a]" x-text="item.name"></p>
-                            </div>
-                            <div class="flex gap-2">
-                                <button type="button" @click="openEditModal(item)"
-                                    class="w-9 h-9 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-600 flex items-center justify-center">
-                                    <i data-lucide="pencil" class="w-4 h-4"></i>
-                                </button>
-                                <button type="button" @click="confirmDelete(item)"
-                                    class="w-9 h-9 rounded-xl bg-red-50 hover:bg-red-100 text-red-500 flex items-center justify-center">
-                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="mt-4">
-                            <p class="text-[11px] font-semibold tracking-wide text-gray-400 uppercase">Deskripsi</p>
-                            <p class="mt-1 text-[13px] text-gray-600" x-text="item.description || '-'"></p>
-                        </div>
-                        <div class="mt-4">
-                            <p class="text-[11px] font-semibold tracking-wide text-gray-400 uppercase">Harga Default</p>
-                            <p class="mt-1 text-[14px] font-semibold text-[#0f172a]"
-                                x-text="formatCurrency(item.price)"></p>
-                        </div>
-                    </div>
-                </template>
-            </div>
         </div>
+
         <!-- MODAL -->
         <div x-show="showModal" x-cloak x-transition.opacity class="fixed inset-0 z-50 overflow-y-auto">
             <div @click="closeModal()" class="fixed inset-0 bg-black/35 backdrop-blur-sm"></div>
@@ -244,16 +207,15 @@
             </div>
         </div>
     </div>
+
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             if (window.lucide) lucide.createIcons()
         })
 
-        // ✅ Helper: re-render semua lucide icon di DOM
         function refreshIcons() {
             if (window.lucide) {
-                // Delay kecil agar Alpine selesai update DOM lebih dulu
                 setTimeout(() => lucide.createIcons(), 50)
             }
         }
@@ -272,7 +234,6 @@
                     price:         0,
                     price_display: ''
                 },
-                // ✅ Watch perubahan services → re-render icon
                 init() {
                     this.$watch('services', () => refreshIcons())
                 },
@@ -365,7 +326,6 @@
                         } else {
                             this.services.unshift(result.data)
                         }
-                        // ✅ Re-render icon setelah data ditambah/diedit
                         refreshIcons()
                         this.showModal = false
                         Swal.fire({
@@ -427,7 +387,6 @@
                             return
                         }
                         this.services = this.services.filter(s => s.id !== item.id)
-                        // ✅ Re-render icon setelah hapus (sisa item perlu icon-nya tetap tampil)
                         refreshIcons()
                         Swal.fire({
                             icon:               'success',
