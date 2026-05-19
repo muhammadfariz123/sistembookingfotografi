@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\BookingExport;
 use App\Models\AdditionalIncome;
 use App\Models\Booking;
 use App\Models\Expense;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
+use Maatwebsite\Excel\Facades\Excel;
 
 class FinancialController extends Controller
 {
@@ -15,46 +17,44 @@ class FinancialController extends Controller
     {
         $userId = Auth::id();
 
-        // ── Query dasar ───────────────────────────────────────────
-        $query         = Booking::where('user_id', $userId)->with('serviceType');
-        $incomeQuery   = AdditionalIncome::where('user_id', $userId);
-        $expenseQuery  = Expense::where('user_id', $userId);
+        // ── Handle Export Excel ───────────────────────────────
+        if ($request->has('export')) {
+            $filters  = $request->only(['month', 'year', 'date_from', 'date_to']);
+            $filename = 'booking-data-' . now()->format('Y-m-d') . '.xlsx';
+            return Excel::download(new BookingExport($filters), $filename);
+        }
 
-        // ── Filter: prioritas tanggal custom, lalu bulan ──────────
+        // ── Query dasar ───────────────────────────────────────
+        $query        = Booking::where('user_id', $userId)->with('serviceType');
+        $incomeQuery  = AdditionalIncome::where('user_id', $userId);
+        $expenseQuery = Expense::where('user_id', $userId);
+
+        // ── Filter: prioritas tanggal custom, lalu bulan ──────
         $hasDateRange = $request->filled('date_from') || $request->filled('date_to');
         $hasMonth     = $request->filled('month') && !$hasDateRange;
 
         if ($hasDateRange) {
-            // Filter rentang tanggal custom
             if ($request->filled('date_from')) {
                 $dateFrom = Carbon::parse($request->date_from)->startOfDay();
-
                 $query->where(function ($q) use ($dateFrom) {
                     $q->where('booking_date', '>=', $dateFrom)
                       ->orWhere('start_date', '>=', $dateFrom);
                 });
-
                 $incomeQuery->whereDate('date', '>=', $request->date_from);
                 $expenseQuery->whereDate('date', '>=', $request->date_from);
             }
-
             if ($request->filled('date_to')) {
                 $dateTo = Carbon::parse($request->date_to)->endOfDay();
-
                 $query->where(function ($q) use ($dateTo) {
                     $q->where('booking_date', '<=', $dateTo)
                       ->orWhere('start_date', '<=', $dateTo);
                 });
-
                 $incomeQuery->whereDate('date', '<=', $request->date_to);
                 $expenseQuery->whereDate('date', '<=', $request->date_to);
             }
-
         } elseif ($hasMonth) {
-            // Filter bulan — cek booking_date atau start_date
             $month = (int) $request->month;
             $year  = (int) $request->get('year', now()->year);
-
             $query->where(function ($q) use ($month, $year) {
                 $q->where(function ($q2) use ($month, $year) {
                     $q2->whereNotNull('booking_date')
@@ -66,7 +66,6 @@ class FinancialController extends Controller
                        ->whereYear('start_date', $year);
                 });
             });
-
             $incomeQuery->whereMonth('date', $month)->whereYear('date', $year);
             $expenseQuery->whereMonth('date', $month)->whereYear('date', $year);
         }
@@ -75,13 +74,13 @@ class FinancialController extends Controller
         $additionalIncomes = $incomeQuery->latest()->get();
         $expenses          = $expenseQuery->latest()->get();
 
-        // ── Rumus 3.6 — Revenue = Σ Total_i ──────────────────────
+        // ── Rumus 3.6 — Revenue = Σ Total_i ──────────────────
         $revenue = $bookings->sum('total');
 
-        // ── Rumus 3.7 — Sudah Diterima = Σ Db_i ──────────────────
+        // ── Rumus 3.7 — Sudah Diterima = Σ Db_i ──────────────
         $sudahDiterima = $bookings->sum('paid_amount');
 
-        // ── Rumus 3.8 — Belum Dibayar = Σ Total_i (Belum Bayar) ──
+        // ── Rumus 3.8 — Belum Dibayar = Σ Total_i (Belum Bayar)
         $belumDibayar = $bookings
             ->where('payment_status', 'Belum Bayar')
             ->sum('total');
@@ -94,10 +93,11 @@ class FinancialController extends Controller
         $totalPemasukan   = $additionalIncomes->sum('amount');
         $totalPengeluaran = $expenses->sum('amount');
 
-        // ── Rumus 3.10 — Laba Bersih ──────────────────────────────
+        // ── Rumus 3.10 — Laba Bersih ──────────────────────────
+        // Laba Bersih = Sudah Diterima + Pemasukan Tambahan – Total Pengeluaran
         $labaBersih = $sudahDiterima + $totalPemasukan - $totalPengeluaran;
 
-        // ── Tren revenue per bulan (selalu dari semua data, bukan filter) ──
+        // ── Tren revenue per bulan (selalu dari semua data) ───
         $allBookings = Booking::where('user_id', $userId)->get();
         $trendData   = $allBookings->groupBy(function ($b) {
             $date = $b->booking_date ?? $b->start_date;
@@ -110,7 +110,7 @@ class FinancialController extends Controller
         ])
         ->sortKeys();
 
-        // ── Revenue per layanan ────────────────────────────────────
+        // ── Revenue per layanan ────────────────────────────────
         $revenueByService = $bookings
             ->groupBy(fn($b) => $b->serviceType?->name ?? 'Tidak Diketahui')
             ->map(fn($group) => [
@@ -122,19 +122,19 @@ class FinancialController extends Controller
             ])
             ->sortByDesc('total');
 
-        // ── Status pembayaran count ────────────────────────────────
+        // ── Status pembayaran count ────────────────────────────
         $statusCount = [
             'lunas'       => $bookings->where('payment_status', 'Lunas')->count(),
             'dp'          => $bookings->where('payment_status', 'Down Payment')->count(),
             'belum_bayar' => $bookings->where('payment_status', 'Belum Bayar')->count(),
         ];
 
-        // ── Collection rate ────────────────────────────────────────
+        // ── Collection rate ────────────────────────────────────
         $collectionRate = $revenue > 0
             ? round(($sudahDiterima / $revenue) * 100, 1)
             : 0;
 
-        // ── Rata-rata ──────────────────────────────────────────────
+        // ── Rata-rata ──────────────────────────────────────────
         $uniqueMonths         = $trendData->count() ?: 1;
         $avgRevenuePerMonth   = round($revenue / $uniqueMonths);
         $avgRevenuePerBooking = $bookings->count() > 0
