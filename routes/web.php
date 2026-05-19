@@ -7,6 +7,7 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CompanySettingController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\PublicBookingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,6 +18,15 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+
+// ── Public booking routes (tidak perlu login) ─────────────────
+Route::get('/booking/{ownerId}', [PublicBookingController::class, 'show'])
+    ->name('booking.public.show');
+Route::post('/booking/{ownerId}', [PublicBookingController::class, 'store'])
+    ->name('booking.public.store');
+// ── Ganti {booking} → {bookingId} agar tidak konflik model binding ──
+Route::get('/booking/{ownerId}/invoice/{bookingId}', [PublicBookingController::class, 'invoice'])
+    ->name('booking.public.invoice');
 /*
 |--------------------------------------------------------------------------
 | Protected Routes
@@ -74,7 +84,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/company-setting', [CompanySettingController::class, 'store'])->name('company-setting.store');
 
     // invoice
-        Route::get('/invoices/{booking}', [InvoiceController::class, 'show'])->name('invoice.show');
+    Route::get('/invoices/{booking}', [InvoiceController::class, 'show'])->name('invoice.show');
 });
 
 require __DIR__ . '/auth.php';

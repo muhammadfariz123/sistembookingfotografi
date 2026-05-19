@@ -33,20 +33,20 @@ class Booking extends Model
     ];
 
     protected $casts = [
-        'booking_date'    => 'date',
-        'start_date'      => 'date',
-        'end_date'        => 'date',
-        'quantity'        => 'integer',
-        'unit_price'      => 'integer',
-        'discount_percent'=> 'decimal:2',
-        'paid_amount'     => 'integer',
-        'subtotal'        => 'integer',
-        'discount_amount' => 'integer',
-        'total'           => 'integer',
-        'remaining'       => 'integer',
+        'booking_date'     => 'date',
+        'start_date'       => 'date',
+        'end_date'         => 'date',
+        'quantity'         => 'integer',
+        'unit_price'       => 'integer',
+        'discount_percent' => 'decimal:2',
+        'paid_amount'      => 'integer',
+        'subtotal'         => 'integer',
+        'discount_amount'  => 'integer',
+        'total'            => 'integer',
+        'remaining'        => 'integer',
     ];
 
-    // ── Relasi ──────────────────────────────────────────────
+    // ── Relasi ──────────────────────────────────────────────────
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -57,7 +57,7 @@ class Booking extends Model
         return $this->belongsTo(ServiceType::class);
     }
 
-    // ── TPS Processing — Rumus 3.1 s/d 3.5 ─────────────────
+    // ── TPS Processing — Rumus 3.1 s/d 3.5 ─────────────────────
     /**
      * Jalankan semua kalkulasi TPS dan kembalikan array hasil.
      * Dipanggil di Controller sebelum simpan ke DB.
@@ -87,7 +87,7 @@ class Booking extends Model
         // (3.4) Sisa = Total - Db
         $remaining = max($total - $paidAmount, 0);
 
-        // (3.5) Status pembayaran — otomatis, tanpa pilihan manual
+        // (3.5) Status pembayaran — otomatis
         if ($paidAmount <= 0) {
             $paymentStatus = 'Belum Bayar';
         } elseif ($paidAmount >= $total) {
@@ -97,11 +97,11 @@ class Booking extends Model
         }
 
         return [
-            'subtotal'       => $subtotal,
-            'discount_amount'=> $discountAmount,
-            'total'          => $total,
-            'remaining'      => $remaining,
-            'payment_status' => $paymentStatus,
+            'subtotal'        => $subtotal,
+            'discount_amount' => $discountAmount,
+            'total'           => $total,
+            'remaining'       => $remaining,
+            'payment_status'  => $paymentStatus,
         ];
     }
 }
