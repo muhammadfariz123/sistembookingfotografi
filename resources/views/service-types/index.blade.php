@@ -28,7 +28,7 @@
                 </button>
             </div>
 
-            {{-- ── TABEL — selalu tampil di semua ukuran layar ── --}}
+            {{-- ── TABEL ── --}}
             <div class="mt-6 sm:mt-8 border border-gray-200 rounded-[22px] overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full min-w-[500px]">
@@ -110,7 +110,7 @@
                     </div>
                     <!-- BODY MODAL -->
                     <div class="px-5 sm:px-6 py-5 sm:py-6 space-y-5">
-                        <!-- ERROR VALIDASI -->
+                        <!-- ERROR VALIDASI BACKEND -->
                         <div x-show="Object.keys(errors).length > 0" x-cloak
                             class="bg-red-50 border border-red-200 rounded-2xl px-4 py-3">
                             <ul class="space-y-1">
@@ -128,14 +128,16 @@
                                 </template>
                             </ul>
                         </div>
-                        <!-- NAMA -->
+                        <!-- NAMA — tambah id + required -->
                         <div>
                             <label class="block text-[14px] font-semibold text-gray-700 mb-2">
                                 Nama Layanan <span class="text-red-500">*</span>
                             </label>
                             <input
                                 type="text"
+                                id="field-service-name"
                                 x-model="form.name"
+                                required
                                 :class="errors.name ? 'border-red-400 ring-1 ring-red-400' : 'border-gray-300'"
                                 placeholder="Contoh: Wedding, Prewedding, Wisuda"
                                 class="w-full h-[48px] rounded-2xl border text-[14px] px-4 focus:outline-none focus:ring-2 focus:ring-blue-300 transition">
@@ -285,6 +287,15 @@
                 },
                 async submitForm() {
                     if (this.submitLoading) return
+
+                    // ── Native browser validation — sama seperti booking modal ──
+                    const nameInput = document.getElementById('field-service-name')
+                    if (nameInput && !nameInput.checkValidity()) {
+                        nameInput.focus()
+                        nameInput.reportValidity()
+                        return
+                    }
+
                     this.submitLoading = true
                     this.errors        = {}
                     const url    = this.editing
