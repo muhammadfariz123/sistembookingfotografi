@@ -14,17 +14,19 @@
                 <button @click="closeBookingModal()" class="text-gray-500 hover:text-gray-700 transition">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
                 </button>
             </div>
+
             <!-- BODY FORM -->
-            <form id="booking-form" x-data="bookingForm()"
+            <form id="booking-form"
+                x-data="bookingForm()"
                 @open-edit-booking.window="openEditBooking($event.detail)"
                 @submit.prevent="submitBooking()"
                 class="max-h-[70vh] overflow-y-auto no-scrollbar px-6 py-6">
 
-                <!-- ERROR VALIDASI GLOBAL -->
+                <!-- ERROR VALIDASI BACKEND -->
                 <div x-show="Object.keys(submitErrors).length > 0" x-cloak
                     class="mb-5 bg-red-50 border border-red-200 rounded-2xl px-4 py-3">
                     <p class="text-[13px] font-semibold text-red-600 mb-1">Mohon periksa kembali:</p>
@@ -44,39 +46,17 @@
                     </ul>
                 </div>
 
-                <!-- ERROR VALIDASI CLIENT-SIDE -->
-                <div x-show="Object.keys(clientErrors).length > 0" x-cloak
-                    class="mb-5 bg-orange-50 border border-orange-200 rounded-2xl px-4 py-3">
-                    <p class="text-[13px] font-semibold text-orange-600 mb-1">Field berikut wajib diisi:</p>
-                    <ul class="space-y-1">
-                        <template x-for="msg in Object.values(clientErrors)" :key="msg">
-                            <li class="text-[12px] text-orange-600 flex items-center gap-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 shrink-0" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                                <span x-text="msg"></span>
-                            </li>
-                        </template>
-                    </ul>
-                </div>
-
                 <!-- NAMA KLIEN -->
                 <div>
                     <label class="block text-[14px] font-semibold text-gray-800 mb-2">
                         Nama Klien <span class="text-red-500">*</span>
                     </label>
-                    <input type="text" x-model="clientName"
+                    <input type="text"
+                        x-model="clientName"
                         id="field-client-name"
-                        :class="(submitErrors.client_name || clientErrors.client_name)
-                            ? 'border-red-400 ring-1 ring-red-400'
-                            : 'border-gray-300'"
+                        required
                         placeholder="Masukkan nama klien"
-                        class="w-full h-[44px] rounded-2xl border px-4 text-[14px] focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <p x-show="submitErrors.client_name || clientErrors.client_name"
-                        class="text-[11px] text-red-500 mt-1"
-                        x-text="submitErrors.client_name?.[0] || clientErrors.client_name"></p>
+                        class="w-full h-[44px] rounded-2xl border border-gray-300 px-4 text-[14px] focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
 
                 <!-- KONTAK -->
@@ -84,13 +64,12 @@
                     <label class="block text-[14px] font-semibold text-gray-800 mb-2">
                         Kontak Klien <span class="text-red-500">*</span>
                     </label>
-                    <input type="text" x-model="clientContact"
+                    <input type="text"
+                        x-model="clientContact"
                         id="field-client-contact"
-                        :class="clientErrors.client_contact ? 'border-red-400 ring-1 ring-red-400' : 'border-gray-300'"
+                        required
                         placeholder="Nomor telepon atau email"
-                        class="w-full h-[44px] rounded-2xl border px-4 text-[14px]">
-                    <p x-show="clientErrors.client_contact" class="text-[11px] text-red-500 mt-1"
-                        x-text="clientErrors.client_contact"></p>
+                        class="w-full h-[44px] rounded-2xl border border-gray-300 px-4 text-[14px]">
                 </div>
 
                 <!-- ALAMAT -->
@@ -98,13 +77,12 @@
                     <label class="block text-[14px] font-semibold text-gray-800 mb-2">
                         Alamat Klien <span class="text-red-500">*</span>
                     </label>
-                    <input type="text" x-model="clientAddress"
+                    <input type="text"
+                        x-model="clientAddress"
                         id="field-client-address"
-                        :class="clientErrors.client_address ? 'border-red-400 ring-1 ring-red-400' : 'border-gray-300'"
+                        required
                         placeholder="Alamat klien"
-                        class="w-full h-[44px] rounded-2xl border px-4 text-[14px]">
-                    <p x-show="clientErrors.client_address" class="text-[11px] text-red-500 mt-1"
-                        x-text="clientErrors.client_address"></p>
+                        class="w-full h-[44px] rounded-2xl border border-gray-300 px-4 text-[14px]">
                 </div>
 
                 <!-- JENIS LAYANAN -->
@@ -112,25 +90,27 @@
                     <label class="block text-[14px] font-semibold text-gray-800 mb-2">
                         Jenis Layanan <span class="text-red-500">*</span>
                     </label>
+                    {{-- Input hidden untuk native required validation pada dropdown custom --}}
+                    <input type="text"
+                        :value="selectedService"
+                        required
+                        tabindex="-1"
+                        style="position:absolute;opacity:0;width:1px;height:1px;pointer-events:none;"
+                        aria-hidden="true">
                     <!-- TRIGGER BUTTON -->
-                    <button type="button" @click="toggleServiceDropdown()"
+                    <button type="button"
+                        @click="toggleServiceDropdown()"
                         id="field-service-type"
-                        :class="(submitErrors.service_type_id || clientErrors.service_type_id)
-                            ? 'border-red-400 ring-1 ring-red-400'
-                            : 'border-gray-300'"
-                        class="w-full h-[44px] rounded-2xl border px-4 text-left text-[14px] flex items-center justify-between bg-white">
+                        class="w-full h-[44px] rounded-2xl border border-gray-300 px-4 text-left text-[14px] flex items-center justify-between bg-white">
                         <span :class="selectedService ? 'text-gray-900' : 'text-gray-400'"
                             x-text="selectedService || 'Pilih atau tambah jenis layanan'"></span>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400 transition-transform duration-200"
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                            class="w-4 h-4 text-gray-400 transition-transform duration-200"
                             :class="showServiceDropdown ? 'rotate-0' : 'rotate-180'"
                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/>
                         </svg>
                     </button>
-                    <p x-show="submitErrors.service_type_id || clientErrors.service_type_id"
-                        class="text-[11px] text-red-500 mt-1"
-                        x-text="submitErrors.service_type_id?.[0] || clientErrors.service_type_id"></p>
-
                     <!-- DROPDOWN -->
                     <div x-show="showServiceDropdown" x-transition
                         @click.away="showServiceDropdown = false"
@@ -270,15 +250,11 @@
                                 <label class="block text-[14px] font-semibold text-gray-800 mb-2">
                                     Tanggal <span class="text-red-500">*</span>
                                 </label>
-                                <input type="date" x-model="bookingDate"
+                                <input type="date"
+                                    x-model="bookingDate"
                                     id="field-booking-date"
-                                    :class="(submitErrors.booking_date || clientErrors.booking_date)
-                                        ? 'border-red-400 ring-1 ring-red-400'
-                                        : 'border-gray-300'"
-                                    class="w-full h-[44px] rounded-2xl border px-4 text-[14px]">
-                                <p x-show="submitErrors.booking_date || clientErrors.booking_date"
-                                    class="text-[11px] text-red-500 mt-1"
-                                    x-text="submitErrors.booking_date?.[0] || clientErrors.booking_date"></p>
+                                    required
+                                    class="w-full h-[44px] rounded-2xl border border-gray-300 px-4 text-[14px]">
                             </div>
                             <div>
                                 <label class="block text-[14px] font-semibold text-gray-800 mb-2">Waktu</label>
@@ -295,29 +271,21 @@
                                     <label class="block text-[14px] font-semibold text-gray-800 mb-2">
                                         Tanggal Mulai <span class="text-red-500">*</span>
                                     </label>
-                                    <input type="date" x-model="startDate"
+                                    <input type="date"
+                                        x-model="startDate"
                                         id="field-start-date"
-                                        :class="(submitErrors.start_date || clientErrors.start_date)
-                                            ? 'border-red-400 ring-1 ring-red-400'
-                                            : 'border-gray-300'"
-                                        class="w-full h-[44px] rounded-2xl border px-4 text-[14px]">
-                                    <p x-show="submitErrors.start_date || clientErrors.start_date"
-                                        class="text-[11px] text-red-500 mt-1"
-                                        x-text="submitErrors.start_date?.[0] || clientErrors.start_date"></p>
+                                        required
+                                        class="w-full h-[44px] rounded-2xl border border-gray-300 px-4 text-[14px]">
                                 </div>
                                 <div>
                                     <label class="block text-[14px] font-semibold text-gray-800 mb-2">
                                         Tanggal Selesai <span class="text-red-500">*</span>
                                     </label>
-                                    <input type="date" x-model="endDate"
+                                    <input type="date"
+                                        x-model="endDate"
                                         id="field-end-date"
-                                        :class="(submitErrors.end_date || clientErrors.end_date)
-                                            ? 'border-red-400 ring-1 ring-red-400'
-                                            : 'border-gray-300'"
-                                        class="w-full h-[44px] rounded-2xl border px-4 text-[14px]">
-                                    <p x-show="submitErrors.end_date || clientErrors.end_date"
-                                        class="text-[11px] text-red-500 mt-1"
-                                        x-text="submitErrors.end_date?.[0] || clientErrors.end_date"></p>
+                                        required
+                                        class="w-full h-[44px] rounded-2xl border border-gray-300 px-4 text-[14px]">
                                 </div>
                                 <div>
                                     <label class="block text-[14px] font-semibold text-gray-800 mb-2">Waktu</label>
@@ -363,7 +331,10 @@
                         <label class="block text-[14px] font-semibold text-gray-800 mb-2">
                             Quantity <span class="text-red-500">*</span>
                         </label>
-                        <input type="number" min="1" :value="quantity" @input="updateQuantity($event.target)"
+                        <input type="number" min="1"
+                            :value="quantity"
+                            @input="updateQuantity($event.target)"
+                            required
                             :class="submitErrors.quantity ? 'border-red-400 ring-1 ring-red-400' : 'border-gray-300'"
                             class="w-full h-[44px] rounded-2xl border px-4 text-[14px]">
                         <p x-show="submitErrors.quantity" class="text-[11px] text-red-500 mt-1"
@@ -371,7 +342,9 @@
                     </div>
                     <div>
                         <label class="block text-[14px] font-semibold text-gray-800 mb-2">Harga per Unit (Rp)</label>
-                        <input type="text" :value="formatCurrency(unitPrice)" @input="updateUnitPrice($event.target)"
+                        <input type="text"
+                            :value="formatCurrency(unitPrice)"
+                            @input="updateUnitPrice($event.target)"
                             @focus="$event.target.select()"
                             class="w-full h-[44px] rounded-2xl border border-gray-300 px-4 text-[14px]">
                     </div>
@@ -380,7 +353,9 @@
                 <!-- SUDAH DIBAYAR -->
                 <div class="mt-5">
                     <label class="block text-[14px] font-semibold text-gray-800 mb-2">Sudah Dibayar (Rp)</label>
-                    <input type="text" :value="formatCurrency(paidAmount)" @input="updatePaidAmount($event.target)"
+                    <input type="text"
+                        :value="formatCurrency(paidAmount)"
+                        @input="updatePaidAmount($event.target)"
                         @focus="$event.target.select()"
                         class="w-full h-[44px] rounded-2xl border border-gray-300 px-4 text-[14px]">
                 </div>

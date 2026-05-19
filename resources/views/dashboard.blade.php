@@ -75,7 +75,6 @@
             return {
                 // ── flag edit mode — skip reset saat openBookingModal ──
                 _editMode: false,
-
                 multiDay: false,
                 discountType: 'rupiah',
                 startDate: '',
@@ -105,9 +104,7 @@
                 submitErrors: {},
                 clientErrors: {},
                 editingBookingId: null,
-
                 init() { this.loadServices() },
-
                 async loadServices() {
                     try {
                         const res = await fetch('/service-types', { headers: { 'Accept': 'application/json' } })
@@ -120,19 +117,15 @@
                         }
                     } catch (e) { this.services = [] }
                 },
-
                 formatDateForInput(dateStr) {
                     if (!dateStr) return ''
                     return String(dateStr).substring(0, 10)
                 },
-
                 openEditBooking(booking) {
-                    // ── Isi semua field data edit ──────────────────────
                     this.editingBookingId = booking.id
                     this.clientName = booking.client_name ?? ''
                     this.clientContact = booking.client_contact ?? ''
                     this.clientAddress = booking.client_address ?? ''
-
                     if (booking.start_date) {
                         this.multiDay = true
                         this.startDate = this.formatDateForInput(booking.start_date)
@@ -144,14 +137,12 @@
                         this.startDate = ''
                         this.endDate = ''
                     }
-
                     this.bookingTime = booking.booking_time
                         ? String(booking.booking_time).substring(0, 5) : ''
                     this.status = booking.status ?? 'Dijadwalkan'
                     this.quantity = booking.quantity ?? 1
                     this.unitPrice = parseInt(booking.unit_price) || 0
                     this.paidAmount = parseInt(booking.paid_amount) || 0
-
                     const discPct = parseFloat(booking.discount_percent) || 0
                     if (discPct > 0) {
                         this.discountType = 'percent'
@@ -166,25 +157,17 @@
                             if (this.$refs.discountInput) this.$refs.discountInput.value = 'Rp 0'
                         })
                     }
-
                     if (booking.service_type) {
                         this.selectedService = booking.service_type.name
                         this.selectedServiceId = booking.service_type.id
                     }
-
                     this.notes = booking.notes ?? ''
                     this.submitErrors = {}
                     this.showServiceDropdown = false
                     this.serviceSearch = ''
-
-                    // Update judul modal
                     const titleEl = document.getElementById('booking-modal-title')
                     if (titleEl) titleEl.textContent = 'Edit Booking'
-
-                    // ── Set flag edit agar openBookingModal skip reset ──
                     this._editMode = true
-
-                    // Buka modal via parent dashboardFilter
                     const parentEl = document.querySelector('[x-data^="dashboardFilter"]')
                         ?? document.querySelector('[x-data]')
                     if (parentEl) {
@@ -194,8 +177,6 @@
                         }
                     }
                 },
-
-                // ── Reset ke mode tambah baru — BENAR-BENAR KOSONG ────
                 resetToCreate() {
                     this._editMode = false
                     this.editingBookingId = null
@@ -216,8 +197,6 @@
                     this.submitErrors = {}
                     this.showServiceDropdown = false
                     this.serviceSearch = ''
-
-                    // Set layanan & harga ke default
                     if (this.services.length > 0) {
                         this.selectedService = this.services[0].name
                         this.selectedServiceId = this.services[0].id
@@ -227,7 +206,6 @@
                         this.selectedServiceId = null
                         this.unitPrice = 0
                     }
-
                     this.$nextTick(() => {
                         if (this.$refs.discountInput) {
                             this.$refs.discountInput.value = 'Rp 0'
@@ -236,7 +214,6 @@
                         if (titleEl) titleEl.textContent = 'Tambah Booking Baru'
                     })
                 },
-
                 get totalDurasi() {
                     if (!this.startDate || !this.endDate) return 0
                     const start = new Date(this.startDate), end = new Date(this.endDate)
@@ -245,7 +222,6 @@
                     if (diffMs < 0) return 0
                     return Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1
                 },
-
                 parseRupiah(value) {
                     if (value === null || value === undefined) return 0
                     if (typeof value === 'number') return isNaN(value) ? 0 : value
@@ -371,7 +347,6 @@
                         }
                     } catch (err) { alert('Gagal terhubung ke server.') }
                 },
-
                 get subtotal() { return this.unitPrice * this.quantity },
                 get discountAmount() {
                     if (this.discountType === 'percent')
@@ -402,38 +377,27 @@
                 get formattedGrandTotal() { return this.formatCurrency(this.grandTotal) },
                 get formattedPaidAmount() { return this.formatCurrency(this.paidAmount) },
                 get formattedRemaining() { return this.formatCurrency(this.remaining) },
-
                 // ── Validasi client-side + scroll ke field kosong ──────────
                 validateAndScroll() {
                     this.clientErrors = {}
                     const errors = {}
                     let firstFieldId = null
-
-                    // 1. Nama Klien
                     if (!this.clientName.trim()) {
                         errors.client_name = 'Nama klien wajib diisi.'
                         if (!firstFieldId) firstFieldId = 'field-client-name'
                     }
-
-                    // 2. Kontak Klien
                     if (!this.clientContact.trim()) {
                         errors.client_contact = 'Kontak klien wajib diisi.'
                         if (!firstFieldId) firstFieldId = 'field-client-contact'
                     }
-
-                    // 3. Alamat Klien
                     if (!this.clientAddress.trim()) {
                         errors.client_address = 'Alamat klien wajib diisi.'
                         if (!firstFieldId) firstFieldId = 'field-client-address'
                     }
-
-                    // 4. Jenis Layanan
                     if (!this.selectedServiceId) {
                         errors.service_type_id = 'Jenis layanan wajib dipilih.'
                         if (!firstFieldId) firstFieldId = 'field-service-type'
                     }
-
-                    // 5. Tanggal
                     if (!this.multiDay && !this.bookingDate) {
                         errors.booking_date = 'Tanggal wajib diisi.'
                         if (!firstFieldId) firstFieldId = 'field-booking-date'
@@ -446,55 +410,78 @@
                         errors.end_date = 'Tanggal selesai wajib diisi.'
                         if (!firstFieldId) firstFieldId = 'field-end-date'
                     }
-
                     this.clientErrors = errors
-
-                    // Scroll ke field pertama yang error
                     if (firstFieldId) {
                         this.$nextTick(() => {
                             const el = document.getElementById(firstFieldId)
                             if (el) {
                                 el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-                                // Focus jika bisa (bukan button)
                                 if (el.tagName !== 'BUTTON') el.focus()
                             }
                         })
-                        return false // ada error
+                        return false
                     }
-                    return true // lolos validasi
+                    return true
                 },
 
-
+                // ══════════════════════════════════════════════════════
+                // submitBooking() — DIGANTI: native browser validation
+                // popup "Please fill in this field." via reportValidity()
+                // ══════════════════════════════════════════════════════
                 async submitBooking() {
-                    // Validasi client-side dulu — stop jika gagal
-                    if (!this.validateAndScroll()) return
+                    // ── Native browser validation ──────────────────────
+                    // Cari field required pertama yang kosong/invalid
+                    const form = document.getElementById('booking-form')
+                    if (!form) return
 
-                    this.submitting = true; this.submitErrors = {}
+                    const fields = form.querySelectorAll('input[required], select[required], textarea[required]')
+                    let firstInvalid = null
+                    for (const field of fields) {
+                        if (!field.checkValidity()) {
+                            firstInvalid = field
+                            break
+                        }
+                    }
+
+                    if (firstInvalid) {
+                        // Scroll ke field yang invalid dulu agar masuk viewport
+                        firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                        // Tunggu scroll selesai, baru tampilkan popup native browser
+                        setTimeout(() => {
+                            firstInvalid.focus()
+                            firstInvalid.reportValidity()
+                        }, 300)
+                        return
+                    }
+
+                    // ── Lanjut submit ke backend ───────────────────────
+                    this.submitting = true
+                    this.submitErrors = {}
                     const isEdit = this.editingBookingId !== null
-                    const url = isEdit ? `/bookings/${this.editingBookingId}` : `/bookings`
+                    const url    = isEdit ? `/bookings/${this.editingBookingId}` : `/bookings`
                     const method = isEdit ? 'PUT' : 'POST'
                     const payload = {
-                        client_name: this.clientName,
-                        client_contact: this.clientContact,
-                        client_address: this.clientAddress,
-                        service_type_id: this.selectedServiceId,
-                        booking_date: !this.multiDay ? (this.bookingDate || null) : null,
-                        start_date: this.multiDay ? (this.startDate || null) : null,
-                        end_date: this.multiDay ? (this.endDate || null) : null,
-                        booking_time: this.bookingTime || null,
-                        status: this.status,
-                        quantity: this.quantity,
-                        unit_price: this.unitPrice,
+                        client_name:      this.clientName,
+                        client_contact:   this.clientContact,
+                        client_address:   this.clientAddress,
+                        service_type_id:  this.selectedServiceId,
+                        booking_date:     !this.multiDay ? (this.bookingDate || null) : null,
+                        start_date:       this.multiDay ? (this.startDate || null) : null,
+                        end_date:         this.multiDay ? (this.endDate || null) : null,
+                        booking_time:     this.bookingTime || null,
+                        status:           this.status,
+                        quantity:         this.quantity,
+                        unit_price:       this.unitPrice,
                         discount_percent: this.discountPercentForBackend,
-                        paid_amount: this.paidAmount,
-                        notes: this.notes,
+                        paid_amount:      this.paidAmount,
+                        notes:            this.notes,
                     }
                     try {
                         const res = await fetch(url, {
                             method,
                             headers: {
                                 'Content-Type': 'application/json',
-                                'Accept': 'application/json',
+                                'Accept':       'application/json',
                                 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content
                             },
                             body: JSON.stringify(payload)
@@ -510,7 +497,7 @@
                             })
                             return
                         }
-                        // 1. Tutup modal
+                        // Tutup modal
                         const parentEl = document.querySelector('[x-data^="dashboardFilter"]')
                             ?? document.querySelector('[x-data]')
                         if (parentEl) {
@@ -519,18 +506,18 @@
                                 parent.closeBookingModal()
                             }
                         }
-                        // 2. Reset form (closeBookingModal sudah reset, ini double-safe)
+                        // Reset form
                         this.resetToCreate()
-                        // 3. Notifikasi & reload
+                        // Notifikasi & reload
                         Swal.fire({
-                            icon: 'success',
-                            title: isEdit ? 'Diperbarui!' : 'Tersimpan!',
-                            text: result.message,
+                            icon:             'success',
+                            title:            isEdit ? 'Diperbarui!' : 'Tersimpan!',
+                            text:             result.message,
                             confirmButtonColor: '#2563eb',
-                            timer: 2000,
+                            timer:            2000,
                             timerProgressBar: true,
                             showConfirmButton: false,
-                            customClass: { popup: 'rounded-[28px]' }
+                            customClass:      { popup: 'rounded-[28px]' }
                         }).then(() => {
                             window.dispatchEvent(new CustomEvent('reload-bookings'))
                         })
@@ -547,7 +534,6 @@
                 }
             }
         }
-
         /* ============================================================
          * dashboardFilter()
          * ============================================================ */
@@ -561,7 +547,6 @@
                 sortBy: 'newest',
                 filterInteracted: false,
                 bookings: [],
-
                 summary: {
                     semua: 0,
                     dijadwalkan: 0,
@@ -571,42 +556,28 @@
                     dp: 0,
                     lunas: 0,
                 },
-
                 showBookingModal: false,
-
-                // ── BUKA MODAL ─────────────────────────────────────────
-                // Cek _editMode: jika true (dipanggil dari openEditBooking),
-                // skip reset & hapus flag. Jika false (Tambah Booking), reset form.
                 openBookingModal() {
                     this.showBookingModal = true
                     document.body.classList.add('overflow-hidden')
                     this.$nextTick(() => {
                         if (window.lucide) lucide.createIcons()
-
                         const formEl = document.getElementById('booking-form')
                         if (formEl?._x_dataStack?.[0]) {
                             const fd = formEl._x_dataStack[0]
-
-                            // Edit mode: skip reset, hapus flag
                             if (fd._editMode) {
                                 fd._editMode = false
                                 return
                             }
-
-                            // Tambah baru: reset form
                             if (typeof fd.resetToCreate === 'function') {
                                 fd.resetToCreate()
                             }
                         }
                     })
                 },
-
-                // ── TUTUP MODAL ────────────────────────────────────────
-                // Selalu reset form saat ditutup — membersihkan sisa data edit
                 closeBookingModal() {
                     this.showBookingModal = false
                     document.body.classList.remove('overflow-hidden')
-
                     this.$nextTick(() => {
                         const formEl = document.getElementById('booking-form')
                         if (formEl?._x_dataStack?.[0]) {
@@ -617,15 +588,12 @@
                         }
                     })
                 },
-
                 showCompanySettingsModal: false,
                 openCompanySettingsModal() {
                     this.showCompanySettingsModal = true
                     document.body.classList.add('overflow-hidden')
                     this.$nextTick(() => {
                         if (window.lucide) lucide.createIcons()
-
-                        // Trigger reload settings setiap kali modal dibuka
                         window.dispatchEvent(new CustomEvent('reload-company-settings'))
                     })
                 },
@@ -633,38 +601,32 @@
                     this.showCompanySettingsModal = false
                     document.body.classList.remove('overflow-hidden')
                 },
-
                 days: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
                 monthNames: ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'],
                 currentDate: new Date(),
-
                 bookingCards: [
                     { key: 'semua', title: 'Total Booking', icon: 'users', text: 'text-blue-600', bg: 'bg-blue-100', active: 'border-blue-500' },
                     { key: 'dijadwalkan', title: 'Dijadwalkan', icon: 'calendar-days', text: 'text-blue-600', bg: 'bg-blue-100', active: 'border-blue-500' },
                     { key: 'selesai', title: 'Selesai', icon: 'check-circle-2', text: 'text-green-600', bg: 'bg-green-100', active: 'border-green-500' },
                     { key: 'dibatalkan', title: 'Dibatalkan', icon: 'x-circle', text: 'text-red-600', bg: 'bg-red-100', active: 'border-red-500' }
                 ],
-
                 paymentCards: [
                     { key: 'belum_bayar', title: 'Belum Bayar', icon: 'alert-circle', text: 'text-yellow-500', bg: 'bg-yellow-100', active: 'border-yellow-400' },
                     { key: 'dp', title: 'DP', icon: 'credit-card', text: 'text-orange-500', bg: 'bg-orange-100', active: 'border-orange-500' },
                     { key: 'lunas', title: 'Lunas', icon: 'badge-dollar-sign', text: 'text-green-600', bg: 'bg-green-100', active: 'border-green-500' }
                 ],
-
                 statusButtons: [
                     { key: 'semua', title: 'Semua' },
                     { key: 'dijadwalkan', title: 'Dijadwalkan' },
                     { key: 'selesai', title: 'Selesai' },
                     { key: 'dibatalkan', title: 'Dibatalkan' }
                 ],
-
                 paymentButtons: [
                     { key: 'semua', title: 'Semua' },
                     { key: 'belum_bayar', title: 'Belum Bayar' },
                     { key: 'dp', title: 'DP' },
                     { key: 'lunas', title: 'Lunas' }
                 ],
-
                 init() {
                     this.$nextTick(() => { if (window.lucide) lucide.createIcons() })
                     this.loadSummary()
@@ -675,7 +637,6 @@
                     this.$watch('sortBy', () => this.dispatchFilter())
                     window.addEventListener('reload-bookings', () => this.loadSummary())
                 },
-
                 async loadSummary() {
                     try {
                         const res = await fetch('/bookings', { headers: { 'Accept': 'application/json' } })
@@ -693,7 +654,6 @@
                         }
                     } catch (e) { }
                 },
-
                 dispatchFilter() {
                     window.dispatchEvent(new CustomEvent('filter-changed', {
                         detail: {
@@ -705,7 +665,6 @@
                         }
                     }))
                 },
-
                 get isEmpty() {
                     if (!this.filterInteracted) return false
                     return !this.bookings || this.bookings.length === 0
@@ -725,10 +684,8 @@
                     while (dates.length % 7 !== 0) dates.push(null)
                     return dates
                 },
-
                 setStatus(value) { this.status = value; this.filterInteracted = true },
                 setPayment(value) { this.payment = value; this.filterInteracted = true },
-
                 markFilterInteraction(e) {
                     if (!e || !e.target) return
                     const tag = (e.target.tagName || '').toUpperCase()
@@ -740,7 +697,6 @@
                     if (!btn || btn.hasAttribute('data-no-filter')) return
                     this.filterInteracted = true
                 },
-
                 prevMonth() {
                     this.currentDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() - 1, 1)
                     this.$nextTick(() => { if (window.lucide) lucide.createIcons() })
@@ -751,7 +707,6 @@
                 }
             }
         }
-
         document.addEventListener('DOMContentLoaded', () => {
             if (window.lucide) lucide.createIcons()
         })
@@ -760,12 +715,10 @@
         [x-cloak] {
             display: none !important;
         }
-
         .no-scrollbar {
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
-
         .no-scrollbar::-webkit-scrollbar {
             display: none;
         }
