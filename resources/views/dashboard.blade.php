@@ -73,7 +73,6 @@
          * ============================================================ */
         function bookingForm() {
             return {
-                // ── flag edit mode — skip reset saat openBookingModal ──
                 _editMode: false,
                 multiDay: false,
                 discountType: 'rupiah',
@@ -377,7 +376,6 @@
                 get formattedGrandTotal() { return this.formatCurrency(this.grandTotal) },
                 get formattedPaidAmount() { return this.formatCurrency(this.paidAmount) },
                 get formattedRemaining() { return this.formatCurrency(this.remaining) },
-                // ── Validasi client-side + scroll ke field kosong ──────────
                 validateAndScroll() {
                     this.clientErrors = {}
                     const errors = {}
@@ -424,16 +422,12 @@
                     return true
                 },
 
-                // ══════════════════════════════════════════════════════
-                // submitBooking() — DIGANTI: native browser validation
-                // popup "Please fill in this field." via reportValidity()
-                // ══════════════════════════════════════════════════════
+                // ── submitBooking — native browser validation tanpa delay ──
                 async submitBooking() {
-                    // ── Native browser validation ──────────────────────
-                    // Cari field required pertama yang kosong/invalid
                     const form = document.getElementById('booking-form')
                     if (!form) return
 
+                    // Cari field required pertama yang invalid
                     const fields = form.querySelectorAll('input[required], select[required], textarea[required]')
                     let firstInvalid = null
                     for (const field of fields) {
@@ -444,13 +438,10 @@
                     }
 
                     if (firstInvalid) {
-                        // Scroll ke field yang invalid dulu agar masuk viewport
-                        firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' })
-                        // Tunggu scroll selesai, baru tampilkan popup native browser
-                        setTimeout(() => {
-                            firstInvalid.focus()
-                            firstInvalid.reportValidity()
-                        }, 300)
+                        // Langsung focus + reportValidity tanpa delay
+                        // agar popup browser muncul instan
+                        firstInvalid.focus()
+                        firstInvalid.reportValidity()
                         return
                     }
 
@@ -497,7 +488,6 @@
                             })
                             return
                         }
-                        // Tutup modal
                         const parentEl = document.querySelector('[x-data^="dashboardFilter"]')
                             ?? document.querySelector('[x-data]')
                         if (parentEl) {
@@ -506,9 +496,7 @@
                                 parent.closeBookingModal()
                             }
                         }
-                        // Reset form
                         this.resetToCreate()
-                        // Notifikasi & reload
                         Swal.fire({
                             icon:             'success',
                             title:            isEdit ? 'Diperbarui!' : 'Tersimpan!',
