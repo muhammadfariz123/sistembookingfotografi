@@ -13,12 +13,9 @@
 <body class="font-sans antialiased bg-white">
 <div x-data="financialPage()" class="min-h-screen bg-white">
 
-    {{-- ══════════════════════════════════════════════
-         HEADER
-    ══════════════════════════════════════════════ --}}
+    {{-- HEADER --}}
     <div class="px-4 sm:px-6 lg:px-8 py-5 border-b border-gray-100">
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            {{-- LEFT --}}
             <div class="flex items-center gap-4">
                 <a href="{{ route('dashboard') }}" class="text-gray-500 hover:text-blue-600 transition">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -30,7 +27,6 @@
                     <p class="text-sm text-gray-400">{{ Auth::user()->name ?? Auth::user()->email }}</p>
                 </div>
             </div>
-            {{-- RIGHT: Filter --}}
             <form method="GET" action="{{ route('financial.index') }}"
                   class="flex flex-wrap items-center gap-2">
                 <button type="submit" name="export" value="1"
@@ -67,48 +63,43 @@
         </div>
     </div>
 
-    {{-- ══════════════════════════════════════════════
-         CONTENT
-    ══════════════════════════════════════════════ --}}
     <div class="px-4 sm:px-6 lg:px-8 pb-10 pt-6 space-y-6">
 
-        {{-- ── EMPTY STATE — tampil jika belum ada booking ─────── --}}
+        {{-- EMPTY STATE --}}
         @if($bookings->count() === 0)
             <div class="bg-white rounded-[20px] border border-gray-200 min-h-[480px] flex items-center justify-center">
                 <div class="text-center max-w-xl px-6 py-12">
-                    {{-- ICON --}}
                     <div class="w-14 h-14 mx-auto rounded-full bg-gray-100 flex items-center justify-center">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                         </svg>
                     </div>
-                    {{-- TITLE --}}
-                    <h2 class="mt-6 text-[22px] font-bold text-gray-900">
-                        Belum Ada Data Keuangan
-                    </h2>
-                    {{-- DESCRIPTION --}}
+                    <h2 class="mt-6 text-[22px] font-bold text-gray-900">Belum Ada Data Keuangan</h2>
                     <p class="mt-2 text-gray-500 text-[15px]">
                         Mulai dengan membuat booking pertama untuk melihat analisis keuangan.
                     </p>
-                    {{-- BUTTON --}}
                     <a href="{{ route('dashboard') }}"
                         class="inline-flex items-center justify-center mt-6 h-[40px] px-5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm transition">
                         Kembali ke Dashboard
                     </a>
                 </div>
             </div>
-
         @else
-        {{-- ── ADA DATA — tampilkan semua section ──────────────── --}}
 
         {{-- ══════════════════════════════════════════════
-             SUMMARY CARDS — Rumus 3.6 s/d 3.9
+             SUMMARY CARDS
+             Rumus 3.6 : Revenue     = Σ Total_i
+             Rumus 3.7 : Sudah Diterima = Σ Db_i
+             Rumus 3.8 : Belum Dibayar  = Σ Total_i (status=Belum Bayar)
+             Rumus 3.9 : Sisa Tagihan   = Σ Sisa_i (Belum Bayar + DP)
         ══════════════════════════════════════════════ --}}
         <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
-            {{-- Total Revenue (3.6) --}}
+
+            {{-- Rumus 3.6 — Revenue = Σ Total_i --}}
             <div class="bg-white border border-gray-200 rounded-2xl p-4 flex items-center justify-between gap-3 shadow-sm">
                 <div class="min-w-0">
                     <p class="text-[11px] text-gray-500 font-medium">Total Revenue</p>
+                    <p class="text-[11px] text-gray-400">(Σ Total<sub>i</sub>)</p>
                     <p class="text-[15px] font-bold text-gray-900 mt-0.5 truncate">
                         Rp {{ number_format($revenue, 0, ',', '.') }}
                     </p>
@@ -119,10 +110,12 @@
                     </svg>
                 </div>
             </div>
-            {{-- Sudah Diterima (3.7) --}}
+
+            {{-- Rumus 3.7 — Sudah Diterima = Σ Db_i --}}
             <div class="bg-white border border-gray-200 rounded-2xl p-4 flex items-center justify-between gap-3 shadow-sm">
                 <div class="min-w-0">
                     <p class="text-[11px] text-gray-500 font-medium">Sudah Diterima</p>
+                    <p class="text-[11px] text-gray-400">(Σ Db<sub>i</sub>)</p>
                     <p class="text-[15px] font-bold text-emerald-600 mt-0.5 truncate">
                         Rp {{ number_format($sudahDiterima, 0, ',', '.') }}
                     </p>
@@ -133,10 +126,12 @@
                     </svg>
                 </div>
             </div>
-            {{-- Belum Dibayar (3.8) --}}
+
+            {{-- Rumus 3.8 — Belum Dibayar = Σ Total_i (status=Belum Bayar) --}}
             <div class="bg-white border border-gray-200 rounded-2xl p-4 flex items-center justify-between gap-3 shadow-sm">
                 <div class="min-w-0">
                     <p class="text-[11px] text-gray-500 font-medium">Belum Dibayar</p>
+                    <p class="text-[11px] text-gray-400">(Σ Total<sub>i</sub>, Belum Bayar)</p>
                     <p class="text-[15px] font-bold text-orange-500 mt-0.5 truncate">
                         Rp {{ number_format($belumDibayar, 0, ',', '.') }}
                     </p>
@@ -147,10 +142,12 @@
                     </svg>
                 </div>
             </div>
-            {{-- Sisa Tagihan (3.9) --}}
+
+            {{-- Rumus 3.9 — Sisa Tagihan = Σ Sisa_i (Belum Bayar + DP) --}}
             <div class="bg-white border border-gray-200 rounded-2xl p-4 flex items-center justify-between gap-3 shadow-sm">
                 <div class="min-w-0">
                     <p class="text-[11px] text-gray-500 font-medium">Sisa Tagihan</p>
+                    <p class="text-[11px] text-gray-400">(Σ Sisa<sub>i</sub>, Belum Bayar+DP)</p>
                     <p class="text-[15px] font-bold text-red-500 mt-0.5 truncate">
                         Rp {{ number_format($sisaTagihan, 0, ',', '.') }}
                     </p>
@@ -161,10 +158,12 @@
                     </svg>
                 </div>
             </div>
-            {{-- Pemasukan Tambahan --}}
+
+            {{-- Pemasukan Tambahan (komponen Rumus 3.10) --}}
             <div class="bg-white border border-gray-200 rounded-2xl p-4 flex items-center justify-between gap-3 shadow-sm">
                 <div class="min-w-0">
                     <p class="text-[11px] text-gray-500 font-medium">Pemasukan Tambahan</p>
+                    <p class="text-[11px] text-gray-400">(komponen 3.10)</p>
                     <p class="text-[15px] font-bold text-blue-600 mt-0.5 truncate">
                         Rp {{ number_format($totalPemasukan, 0, ',', '.') }}
                     </p>
@@ -175,10 +174,12 @@
                     </svg>
                 </div>
             </div>
-            {{-- Total Pengeluaran --}}
+
+            {{-- Total Pengeluaran (komponen Rumus 3.10) --}}
             <div class="bg-white border border-gray-200 rounded-2xl p-4 flex items-center justify-between gap-3 shadow-sm">
                 <div class="min-w-0">
                     <p class="text-[11px] text-gray-500 font-medium">Total Pengeluaran</p>
+                    <p class="text-[11px] text-gray-400">(komponen 3.10)</p>
                     <p class="text-[15px] font-bold text-red-600 mt-0.5 truncate">
                         Rp {{ number_format($totalPengeluaran, 0, ',', '.') }}
                     </p>
@@ -192,7 +193,9 @@
         </div>
 
         {{-- ══════════════════════════════════════════════
-             LABA BERSIH CARD — Rumus 3.10
+             LABA BERSIH CARD
+             Rumus 3.10: Laba Bersih = Sudah Diterima + Pemasukan Tambahan – Total Pengeluaran
+             BUKAN Revenue — sesuai proposal BAB 3
         ══════════════════════════════════════════════ --}}
         <div class="rounded-2xl p-6 {{ $labaBersih >= 0 ? 'bg-gradient-to-r from-emerald-500 to-green-600' : 'bg-gradient-to-r from-red-500 to-rose-600' }} text-white relative overflow-hidden">
             <div class="absolute top-0 right-0 w-40 h-40 rounded-full bg-white/10 -translate-y-1/2 translate-x-1/2"></div>
@@ -200,7 +203,8 @@
             <div class="relative flex items-start justify-between">
                 <div>
                     <p class="text-white/80 text-[13px] font-semibold">Laba Bersih</p>
-                    <p class="text-white/70 text-[11px] mt-0.5">(Revenue Booking + Pemasukan Tambahan – Pengeluaran)</p>
+                    {{-- Keterangan rumus 3.10 sesuai proposal --}}
+                    <p class="text-white/70 text-[11px] mt-0.5">Sudah Diterima + Pemasukan Tambahan – Total Pengeluaran</p>
                     <p class="text-[32px] font-bold mt-2 leading-none">
                         Rp {{ number_format(abs($labaBersih), 0, ',', '.') }}
                     </p>
@@ -208,8 +212,13 @@
                         {{ $labaBersih >= 0 ? 'Untung' : 'Rugi' }} &mdash;
                         Periode: {{ request('month') ? \Carbon\Carbon::create()->month(request('month'))->locale('id')->monthName : 'Semua Bulan' }}
                     </p>
+                    {{--
+                        Rumus 3.10 sesuai proposal:
+                        Laba Bersih = Sudah Diterima (Σ Db_i) + Pemasukan Tambahan – Total Pengeluaran
+                        BUKAN Revenue (Σ Total_i) — Revenue adalah pendapatan kotor, bukan kas yang diterima
+                    --}}
                     <p class="text-white/70 text-[11px] mt-1">
-                        Revenue: Rp {{ number_format($sudahDiterima, 0, ',', '.') }}
+                        Sudah Diterima: Rp {{ number_format($sudahDiterima, 0, ',', '.') }}
                         &nbsp;+&nbsp; Tambahan: Rp {{ number_format($totalPemasukan, 0, ',', '.') }}
                         &nbsp;–&nbsp; Pengeluaran: Rp {{ number_format($totalPengeluaran, 0, ',', '.') }}
                     </p>
@@ -222,11 +231,8 @@
             </div>
         </div>
 
-        {{-- ══════════════════════════════════════════════
-             PEMASUKAN TAMBAHAN & PENGELUARAN
-        ══════════════════════════════════════════════ --}}
+        {{-- PEMASUKAN TAMBAHAN & PENGELUARAN --}}
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {{-- Pemasukan Tambahan --}}
             <div class="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
                 <div class="px-5 py-4 flex items-center justify-between border-b border-gray-100">
                     <h3 class="text-[15px] font-semibold text-gray-900">Pemasukan Tambahan</h3>
@@ -269,7 +275,6 @@
                     </div>
                 @endif
             </div>
-            {{-- Pengeluaran --}}
             <div class="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
                 <div class="px-5 py-4 flex items-center justify-between border-b border-gray-100">
                     <h3 class="text-[15px] font-semibold text-gray-900">Pengeluaran</h3>
@@ -314,9 +319,7 @@
             </div>
         </div>
 
-        {{-- ══════════════════════════════════════════════
-             TREN REVENUE BULANAN
-        ══════════════════════════════════════════════ --}}
+        {{-- TREN REVENUE BULANAN --}}
         @if($trendData->count() > 0)
         <div class="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
             <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
@@ -353,9 +356,7 @@
         </div>
         @endif
 
-        {{-- ══════════════════════════════════════════════
-             STATUS PEMBAYARAN
-        ══════════════════════════════════════════════ --}}
+        {{-- STATUS PEMBAYARAN --}}
         <div class="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
             <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
                 <h3 class="text-[15px] font-semibold text-gray-900">Status Pembayaran</h3>
@@ -405,9 +406,7 @@
             </div>
         </div>
 
-        {{-- ══════════════════════════════════════════════
-             REVENUE PER JENIS LAYANAN
-        ══════════════════════════════════════════════ --}}
+        {{-- REVENUE PER JENIS LAYANAN --}}
         @if($revenueByService->count() > 0)
         <div class="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
             <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
@@ -443,9 +442,7 @@
         </div>
         @endif
 
-        {{-- ══════════════════════════════════════════════
-             STATISTIK RINGKAS
-        ══════════════════════════════════════════════ --}}
+        {{-- STATISTIK RINGKAS --}}
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm text-center">
                 <div class="w-10 h-10 mx-auto rounded-2xl bg-blue-50 flex items-center justify-center mb-3">
@@ -476,9 +473,7 @@
             </div>
         </div>
 
-        {{-- ══════════════════════════════════════════════
-             DETAIL TRANSAKSI BOOKING
-        ══════════════════════════════════════════════ --}}
+        {{-- DETAIL TRANSAKSI BOOKING --}}
         <div class="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
             <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
                 <h3 class="text-[15px] font-semibold text-gray-900">Detail Transaksi Booking</h3>
@@ -497,7 +492,7 @@
                             <th class="px-5 py-3 text-right">Diskon</th>
                             <th class="px-5 py-3 text-right">PPN</th>
                             <th class="px-5 py-3 text-right">Total</th>
-                            <th class="px-5 py-3 text-right">Diterima</th>
+                            <th class="px-5 py-3 text-right">Diterima (Db)</th>
                             <th class="px-5 py-3 text-right">Sisa</th>
                         </tr>
                     </thead>
@@ -534,9 +529,11 @@
                                 <td class="px-5 py-3 text-right font-semibold text-gray-900">
                                     Rp {{ number_format($booking->total, 0, ',', '.') }}
                                 </td>
+                                {{-- Diterima = Db_i (nominal yang sudah dibayar pada transaksi ke-i) --}}
                                 <td class="px-5 py-3 text-right text-emerald-600 font-semibold">
                                     Rp {{ number_format($booking->paid_amount, 0, ',', '.') }}
                                 </td>
+                                {{-- Sisa = Sisa_i (sisa pembayaran pada transaksi ke-i) --}}
                                 <td class="px-5 py-3 text-right font-semibold {{ $booking->remaining > 0 ? 'text-red-500' : 'text-gray-400' }}">
                                     Rp {{ number_format($booking->remaining, 0, ',', '.') }}
                                 </td>
@@ -547,13 +544,10 @@
             </div>
         </div>
 
-        @endif {{-- end @if($bookings->count() > 0) --}}
+        @endif
+    </div>
 
-    </div>{{-- end content --}}
-
-    {{-- ══════════════════════════════════════════════
-         MODAL TAMBAH PEMASUKAN
-    ══════════════════════════════════════════════ --}}
+    {{-- MODAL TAMBAH PEMASUKAN --}}
     <div x-show="showIncomeModal" x-cloak x-transition.opacity class="fixed inset-0 z-50">
         <div @click="showIncomeModal = false" class="absolute inset-0 bg-black/40"></div>
         <div class="relative min-h-screen flex items-center justify-center p-4">
@@ -590,9 +584,7 @@
         </div>
     </div>
 
-    {{-- ══════════════════════════════════════════════
-         MODAL TAMBAH PENGELUARAN
-    ══════════════════════════════════════════════ --}}
+    {{-- MODAL TAMBAH PENGELUARAN --}}
     <div x-show="showExpenseModal" x-cloak x-transition.opacity class="fixed inset-0 z-50">
         <div @click="showExpenseModal = false" class="absolute inset-0 bg-black/40"></div>
         <div class="relative min-h-screen flex items-center justify-center p-4">
@@ -629,21 +621,18 @@
         </div>
     </div>
 
-</div>{{-- end x-data --}}
-
+</div>
 <script src="https://unpkg.com/lucide@latest"></script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         if (window.lucide) lucide.createIcons()
     })
-
     function financialPage() {
         return {
             showIncomeModal:  false,
             showExpenseModal: false,
             incomeForm:  { description: '', amount: '', date: '' },
             expenseForm: { description: '', amount: '', date: '' },
-
             async saveIncome() {
                 if (!this.incomeForm.description || !this.incomeForm.amount || !this.incomeForm.date) {
                     alert('Semua field wajib diisi.')
@@ -667,7 +656,6 @@
                     }
                 } catch (e) { alert('Gagal menyimpan.') }
             },
-
             async saveExpense() {
                 if (!this.expenseForm.description || !this.expenseForm.amount || !this.expenseForm.date) {
                     alert('Semua field wajib diisi.')
@@ -693,7 +681,6 @@
             }
         }
     }
-
     async function deleteIncome(id) {
         if (!confirm('Hapus pemasukan ini?')) return
         const res = await fetch(`/financial/income/${id}`, {
@@ -706,7 +693,6 @@
         const data = await res.json()
         if (data.success) window.location.reload()
     }
-
     async function deleteExpense(id) {
         if (!confirm('Hapus pengeluaran ini?')) return
         const res = await fetch(`/financial/expense/${id}`, {
