@@ -1,12 +1,11 @@
 <!-- resources/views/components/dashboard/booking-table.blade.php -->
 <div
     x-data="bookingTable()"
-    x-init="loadBookings()"
     @reload-bookings.window="loadBookings()"
     @filter-changed.window="applyFilter($event.detail)"
     class="bg-white rounded-[28px] shadow-sm mt-7 border border-gray-100 overflow-hidden">
 
-    <!-- LOADING STATE -->
+    <!-- LOADING STATE — hanya tampil saat pertama load -->
     <div x-show="loading" class="h-[320px] flex flex-col items-center justify-center gap-3">
         <svg class="animate-spin w-8 h-8 text-blue-500" xmlns="http://www.w3.org/2000/svg"
             fill="none" viewBox="0 0 24 24">
@@ -14,6 +13,15 @@
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
         </svg>
         <p class="text-[14px] text-gray-400">Memuat data booking...</p>
+    </div>
+
+    <!-- INDIKATOR REALTIME -->
+    <div x-show="!loading"
+        class="px-6 py-2 bg-green-50 border-b border-green-100 flex items-center gap-2">
+        <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+        <p class="text-[12px] text-green-600 font-medium">
+            Live — memantau booking baru dari klien
+        </p>
     </div>
 
     <!-- TABEL -->
@@ -87,15 +95,20 @@
                                     <span x-text="paymentLabel(booking.payment_status)"></span>
                                 </span>
                                 <div class="space-y-0.5 mt-1">
-                                    <p class="text-[13px] text-gray-600">Total: <span class="font-semibold text-gray-800" x-text="formatCurrency(booking.total)"></span></p>
-                                    <p class="text-[13px] text-gray-500">Dibayar: <span x-text="formatCurrency(booking.paid_amount)"></span></p>
-                                    <p x-show="booking.remaining > 0" class="text-[13px] font-semibold text-red-500">Sisa: <span x-text="formatCurrency(booking.remaining)"></span></p>
+                                    <p class="text-[13px] text-gray-600">
+                                        Total: <span class="font-semibold text-gray-800" x-text="formatCurrency(booking.total)"></span>
+                                    </p>
+                                    <p class="text-[13px] text-gray-500">
+                                        Dibayar: <span x-text="formatCurrency(booking.paid_amount)"></span>
+                                    </p>
+                                    <p x-show="booking.remaining > 0" class="text-[13px] font-semibold text-red-500">
+                                        Sisa: <span x-text="formatCurrency(booking.remaining)"></span>
+                                    </p>
                                 </div>
                             </td>
                             <!-- AKSI -->
                             <td class="px-8 py-6 align-top">
                                 <div class="flex items-center gap-2">
-                                    <!-- INVOICE (menggantikan DETAIL) -->
                                     <button type="button"
                                         @click="openInvoice(booking)"
                                         class="w-9 h-9 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center transition"
@@ -104,14 +117,12 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                         </svg>
                                     </button>
-                                    <!-- EDIT -->
                                     <button type="button" @click="openEditBooking(booking)"
                                         class="w-9 h-9 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-600 flex items-center justify-center transition" title="Edit">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                         </svg>
                                     </button>
-                                    <!-- HAPUS -->
                                     <button type="button" @click="deleteBooking(booking)"
                                         class="w-9 h-9 rounded-xl bg-red-50 hover:bg-red-100 text-red-500 flex items-center justify-center transition" title="Hapus">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -164,24 +175,79 @@
 <script>
 function bookingTable() {
     return {
-        bookings:      [],
-        loading:       true,
-        activeStatus:  'semua',
-        activePayment: 'semua',
-        activeMonth:   '',
-        activeSortBy:  'newest',
-        activeSearch:  '',
+        bookings:        [],
+        loading:         true,
+        pollingInterval: null,
+        lastCount:       0,
+        activeStatus:    'semua',
+        activePayment:   'semua',
+        activeMonth:     '',
+        activeSortBy:    'newest',
+        activeSearch:    '',
 
-        async loadBookings() {
-            this.loading = true
+        init() {
+            // Load data awal dengan loading spinner
+            this.loadBookings(false).then(() => {
+                // Setelah data pertama loaded, mulai polling silent
+                this.startPolling()
+            })
+        },
+
+        startPolling() {
+            // Polling setiap 5 detik — cukup responsif tanpa overload server
+            this.pollingInterval = setInterval(() => {
+                this.silentCheck()
+            }, 5000)
+        },
+
+        // ── Cek count dulu, baru fetch full data kalau ada perubahan ──
+        async silentCheck() {
             try {
-                const res    = await fetch('/bookings', { headers: { 'Accept': 'application/json' } })
+                const res    = await fetch('/bookings/count', {
+                    headers: { 'Accept': 'application/json' }
+                })
                 const result = await res.json()
-                this.bookings = result.data ?? []
+                const count  = result.count ?? 0
+
+                if (count !== this.lastCount) {
+                    // Ada perubahan — reload data lengkap
+                    await this.loadBookings(true)
+                    // Update summary cards
+                    window.dispatchEvent(new CustomEvent('reload-bookings'))
+
+                    // Toast notif kalau ada booking BARU (bukan dihapus)
+                    if (count > this.lastCount) {
+                        Swal.fire({
+                            toast:             true,
+                            position:          'top-end',
+                            icon:              'success',
+                            title:             '🔔 Booking baru masuk!',
+                            showConfirmButton: false,
+                            timer:             3000,
+                            timerProgressBar:  true,
+                            customClass:       { popup: 'rounded-[20px]' }
+                        })
+                    }
+                }
+            } catch (e) {
+                // Gagal cek — abaikan, coba lagi interval berikutnya
+            }
+        },
+
+        // ── silent=false: tampilkan spinner | silent=true: background refresh ──
+        async loadBookings(silent = false) {
+            if (!silent) this.loading = true
+            try {
+                const res    = await fetch('/bookings', {
+                    headers: { 'Accept': 'application/json' }
+                })
+                const result = await res.json()
+                this.bookings  = result.data ?? []
+                this.lastCount = this.bookings.length
             } catch (e) {
                 this.bookings = []
             } finally {
-                this.loading = false
+                if (!silent) this.loading = false
             }
         },
 
@@ -214,7 +280,7 @@ function bookingTable() {
             if (this.activeSearch.trim()) {
                 const q = this.activeSearch.toLowerCase().trim()
                 result = result.filter(b =>
-                    (b.client_name ?? '').toLowerCase().includes(q) ||
+                    (b.client_name    ?? '').toLowerCase().includes(q) ||
                     (b.client_contact ?? '').toLowerCase().includes(q) ||
                     (b.client_address ?? '').toLowerCase().includes(q) ||
                     (b.service_type?.name ?? '').toLowerCase().includes(q)
@@ -231,7 +297,6 @@ function bookingTable() {
             return result
         },
 
-        // ── Buka modal invoice ──────────────────────────────────
         openInvoice(booking) {
             window.dispatchEvent(new CustomEvent('open-invoice', { detail: booking }))
         },
@@ -242,11 +307,15 @@ function bookingTable() {
 
         formatDate(dateStr) {
             if (!dateStr) return '-'
-            return new Intl.DateTimeFormat('id-ID', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(dateStr))
+            return new Intl.DateTimeFormat('id-ID', {
+                weekday: 'short', day: 'numeric', month: 'long', year: 'numeric'
+            }).format(new Date(dateStr))
         },
 
         formatCurrency(value) {
-            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value || 0)
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency', currency: 'IDR', minimumFractionDigits: 0
+            }).format(value || 0)
         },
 
         statusClass(status) {
@@ -275,33 +344,53 @@ function bookingTable() {
 
         async deleteBooking(booking) {
             const confirm = await Swal.fire({
-                title: `Hapus booking "${booking.client_name}"?`,
-                text: 'Tindakan ini tidak dapat dibatalkan.',
-                icon: 'warning',
-                showCancelButton: true,
+                title:              `Hapus booking "${booking.client_name}"?`,
+                text:               'Tindakan ini tidak dapat dibatalkan.',
+                icon:               'warning',
+                showCancelButton:   true,
                 confirmButtonColor: '#ef4444',
-                cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Ya, Hapus',
-                cancelButtonText: 'Batal',
-                reverseButtons: true,
-                customClass: { popup: 'rounded-[28px]' }
+                cancelButtonColor:  '#6b7280',
+                confirmButtonText:  'Ya, Hapus',
+                cancelButtonText:   'Batal',
+                reverseButtons:     true,
+                customClass:        { popup: 'rounded-[28px]' }
             })
             if (!confirm.isConfirmed) return
             try {
                 const res  = await fetch(`/bookings/${booking.id}`, {
                     method: 'DELETE',
-                    headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
+                    headers: {
+                        'Accept':       'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    }
                 })
                 const data = await res.json()
                 if (!res.ok) {
-                    Swal.fire({ icon: 'error', title: 'Gagal!', text: data.message ?? 'Gagal menghapus.', confirmButtonColor: '#2563eb', customClass: { popup: 'rounded-[28px]' } })
+                    Swal.fire({
+                        icon: 'error', title: 'Gagal!',
+                        text: data.message ?? 'Gagal menghapus.',
+                        confirmButtonColor: '#2563eb',
+                        customClass: { popup: 'rounded-[28px]' }
+                    })
                     return
                 }
-                this.bookings = this.bookings.filter(b => b.id !== booking.id)
-                Swal.fire({ icon: 'success', title: 'Dihapus!', text: data.message, confirmButtonColor: '#2563eb', timer: 2000, timerProgressBar: true, showConfirmButton: false, customClass: { popup: 'rounded-[28px]' } })
-                .then(() => { window.dispatchEvent(new CustomEvent('reload-bookings')) })
+                this.bookings  = this.bookings.filter(b => b.id !== booking.id)
+                this.lastCount = this.bookings.length
+                Swal.fire({
+                    icon: 'success', title: 'Dihapus!', text: data.message,
+                    confirmButtonColor: '#2563eb', timer: 2000,
+                    timerProgressBar: true, showConfirmButton: false,
+                    customClass: { popup: 'rounded-[28px]' }
+                }).then(() => {
+                    window.dispatchEvent(new CustomEvent('reload-bookings'))
+                })
             } catch (err) {
-                Swal.fire({ icon: 'error', title: 'Gagal!', text: 'Gagal terhubung ke server.', confirmButtonColor: '#2563eb', customClass: { popup: 'rounded-[28px]' } })
+                Swal.fire({
+                    icon: 'error', title: 'Gagal!',
+                    text: 'Gagal terhubung ke server.',
+                    confirmButtonColor: '#2563eb',
+                    customClass: { popup: 'rounded-[28px]' }
+                })
             }
         }
     }
