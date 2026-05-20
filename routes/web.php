@@ -73,7 +73,7 @@ Route::middleware(['auth'])->group(function () {
         ->name('bookings.update');
     Route::delete('/bookings/{booking}', [BookingController::class, 'destroy'])
         ->name('bookings.destroy');
-    Route::get('/bookings/count', [BookingController::class, 'count'])->name('bookings.count');
+Route::get('/bookings/count', [BookingController::class, 'count'])->name('bookings.count');
     /*
     |--------------------------------------------------------------------------
     | Company Settings

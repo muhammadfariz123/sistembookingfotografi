@@ -5,7 +5,7 @@
     @filter-changed.window="applyFilter($event.detail)"
     class="bg-white rounded-[28px] shadow-sm mt-7 border border-gray-100 overflow-hidden">
 
-    <!-- LOADING STATE — hanya tampil saat pertama load -->
+    <!-- LOADING STATE -->
     <div x-show="loading" class="h-[320px] flex flex-col items-center justify-center gap-3">
         <svg class="animate-spin w-8 h-8 text-blue-500" xmlns="http://www.w3.org/2000/svg"
             fill="none" viewBox="0 0 24 24">
@@ -15,12 +15,12 @@
         <p class="text-[14px] text-gray-400">Memuat data booking...</p>
     </div>
 
-    <!-- INDIKATOR REALTIME -->
+    <!-- INDIKATOR LIVE -->
     <div x-show="!loading"
         class="px-6 py-2 bg-green-50 border-b border-green-100 flex items-center gap-2">
         <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
         <p class="text-[12px] text-green-600 font-medium">
-            Live — memantau booking baru dari klien
+            Live — otomatis menerima booking baru dari klien
         </p>
     </div>
 
@@ -38,7 +38,6 @@
                 </tr>
             </thead>
             <tbody>
-                <!-- DATA ADA -->
                 <template x-if="filteredBookings.length > 0">
                     <template x-for="booking in filteredBookings" :key="booking.id">
                         <tr class="border-b border-gray-50 hover:bg-gray-50/50 transition">
@@ -109,8 +108,7 @@
                             <!-- AKSI -->
                             <td class="px-8 py-6 align-top">
                                 <div class="flex items-center gap-2">
-                                    <button type="button"
-                                        @click="openInvoice(booking)"
+                                    <button type="button" @click="openInvoice(booking)"
                                         class="w-9 h-9 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center transition"
                                         title="Generate Invoice">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -179,6 +177,7 @@ function bookingTable() {
         loading:         true,
         pollingInterval: null,
         lastCount:       0,
+        isFetching:      false,
         activeStatus:    'semua',
         activePayment:   'semua',
         activeMonth:     '',
@@ -186,22 +185,22 @@ function bookingTable() {
         activeSearch:    '',
 
         init() {
-            // Load data awal dengan loading spinner
             this.loadBookings(false).then(() => {
-                // Setelah data pertama loaded, mulai polling silent
                 this.startPolling()
             })
         },
 
         startPolling() {
-            // Polling setiap 5 detik — cukup responsif tanpa overload server
+            // Polling count setiap 1 detik — sangat ringan (hanya 1 query COUNT)
             this.pollingInterval = setInterval(() => {
-                this.silentCheck()
-            }, 5000)
+                this.checkCount()
+            }, 1000)
         },
 
-        // ── Cek count dulu, baru fetch full data kalau ada perubahan ──
-        async silentCheck() {
+        async checkCount() {
+            // Skip kalau sedang fetch data lengkap
+            if (this.isFetching) return
+
             try {
                 const res    = await fetch('/bookings/count', {
                     headers: { 'Accept': 'application/json' }
@@ -210,13 +209,16 @@ function bookingTable() {
                 const count  = result.count ?? 0
 
                 if (count !== this.lastCount) {
-                    // Ada perubahan — reload data lengkap
+                    const isNew = count > this.lastCount
+
+                    // Fetch data lengkap
                     await this.loadBookings(true)
+
                     // Update summary cards
                     window.dispatchEvent(new CustomEvent('reload-bookings'))
 
-                    // Toast notif kalau ada booking BARU (bukan dihapus)
-                    if (count > this.lastCount) {
+                    // Toast notif booking baru
+                    if (isNew) {
                         Swal.fire({
                             toast:             true,
                             position:          'top-end',
@@ -230,13 +232,13 @@ function bookingTable() {
                     }
                 }
             } catch (e) {
-                // Gagal cek — abaikan, coba lagi interval berikutnya
+                // Abaikan error jaringan
             }
         },
 
-        // ── silent=false: tampilkan spinner | silent=true: background refresh ──
         async loadBookings(silent = false) {
             if (!silent) this.loading = true
+            this.isFetching = true
             try {
                 const res    = await fetch('/bookings', {
                     headers: { 'Accept': 'application/json' }
@@ -248,6 +250,7 @@ function bookingTable() {
                 this.bookings = []
             } finally {
                 if (!silent) this.loading = false
+                this.isFetching = false
             }
         },
 
