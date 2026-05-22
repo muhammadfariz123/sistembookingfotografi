@@ -533,3 +533,241 @@
         </div>
     </div>
 </div>
+
+{{-- JS bookingForm() dipindah ke sini dari dashboard.blade.php --}}
+{{-- Ini adalah logika form booking + kalkulasi TPS (Rumus 3.1–3.5) --}}
+<script>
+function bookingForm() {
+    return {
+        _editMode: false, editingBookingId: null,
+        clientName: '', clientContact: '', clientAddress: '',
+        bookingDate: '', startDate: '', endDate: '', bookingTime: '',
+        multiDay: false, status: 'Dijadwalkan', notes: '',
+        quantity: 1, unitPrice: 0, paidAmount: 0,
+        discountValue: 0, discountType: 'rupiah',
+        submitting: false, submitErrors: {}, clientErrors: {},
+        services: [], selectedService: '', selectedServiceId: null,
+        serviceSearch: '', showServiceDropdown: false,
+        showServiceModal: false, serviceModalMode: 'add',
+        serviceSubmitting: false, serviceErrors: {},
+        serviceForm: { id: null, name: '', description: '', price: 'Rp 0' },
+
+        init() { this.loadServices() },
+
+        // GET /service-types
+        async loadServices() {
+            try {
+                const res = await fetch('/service-types', { headers: { 'Accept': 'application/json' } })
+                const result = await res.json()
+                this.services = result.data ?? []
+                if (this.services.length > 0 && !this.editingBookingId) {
+                    this.selectedService   = this.services[0].name
+                    this.selectedServiceId = this.services[0].id
+                    this.unitPrice         = parseInt(this.services[0].price) || 0
+                }
+            } catch { this.services = [] }
+        },
+
+        // Kalkulasi TPS Rumus 3.1–3.5
+        get subtotal()   { return this.unitPrice * this.quantity },
+        get discountAmount() {
+            return this.discountType === 'percent'
+                ? Math.round(this.subtotal * this.discountValue / 100)
+                : Math.min(this.discountValue, this.subtotal)
+        },
+        get grandTotal() { return Math.max(this.subtotal - this.discountAmount, 0) },
+        get remaining()  { return Math.max(this.grandTotal - this.paidAmount, 0) },
+        get paymentStatus() {
+            if (this.paidAmount <= 0)              return 'Belum Bayar'
+            if (this.paidAmount >= this.grandTotal) return 'Lunas'
+            return 'Down Payment'
+        },
+        get discountPercentForBackend() {
+            if (this.discountType === 'percent') return this.discountValue
+            return this.subtotal > 0 ? (this.discountValue / this.subtotal) * 100 : 0
+        },
+        get totalDurasi() {
+            if (!this.startDate || !this.endDate) return 0
+            const diff = new Date(this.endDate) - new Date(this.startDate)
+            return diff < 0 ? 0 : Math.floor(diff / 86400000) + 1
+        },
+        get paymentStatusClass() {
+            if (this.paymentStatus === 'Lunas')        return 'border-green-300 bg-green-50 text-green-700'
+            if (this.paymentStatus === 'Down Payment') return 'border-blue-300 bg-blue-50 text-blue-700'
+            return 'border-yellow-300 bg-yellow-50 text-yellow-700'
+        },
+        get filteredServices() {
+            if (!this.serviceSearch.trim()) return this.services
+            return this.services.filter(s => s.name.toLowerCase().includes(this.serviceSearch.toLowerCase()))
+        },
+        get formattedSubtotal()       { return this.formatCurrency(this.subtotal) },
+        get formattedDiscountAmount() { return this.formatCurrency(this.discountAmount) },
+        get formattedGrandTotal()     { return this.formatCurrency(this.grandTotal) },
+        get formattedPaidAmount()     { return this.formatCurrency(this.paidAmount) },
+        get formattedRemaining()      { return this.formatCurrency(this.remaining) },
+
+        formatNumber(v)   { return new Intl.NumberFormat('id-ID').format(Math.round(v || 0)) },
+        formatCurrency(v) { return 'Rp ' + this.formatNumber(v) },
+        parseRupiah(v) {
+            if (typeof v === 'number') return isNaN(v) ? 0 : v
+            const c = String(v ?? '').replace(/[^0-9]/g, '')
+            return c ? parseInt(c) : 0
+        },
+        formatRupiah(el) {
+            const v = el.value.replace(/[^0-9]/g, '')
+            el.value = v ? 'Rp ' + new Intl.NumberFormat('id-ID').format(parseInt(v)) : 'Rp 0'
+        },
+        updateUnitPrice(el)  { this.unitPrice  = this.parseRupiah(el.value); this.formatRupiah(el) },
+        updatePaidAmount(el) { this.paidAmount = this.parseRupiah(el.value); this.formatRupiah(el) },
+        updateQuantity(el) {
+            let v = parseInt(el.value); if (isNaN(v) || v < 1) v = 1
+            this.quantity = v; el.value = v
+        },
+        toggleServiceDropdown() { this.showServiceDropdown = !this.showServiceDropdown },
+        setDiscountType(type) {
+            this.discountType = type; this.discountValue = 0
+            this.$refs.discountInput.value = type === 'rupiah' ? 'Rp 0' : '0'
+        },
+        formatDiscount(el) {
+            if (this.discountType === 'rupiah') {
+                this.formatRupiah(el); this.discountValue = this.parseRupiah(el.value)
+            } else {
+                let v = el.value.replace(/[^0-9]/g, '')
+                if (!v) { el.value = '0'; this.discountValue = 0; return }
+                v = Math.min(parseInt(v), 100); el.value = String(v); this.discountValue = v
+            }
+        },
+        selectService(service) {
+            this.selectedService = service.name; this.selectedServiceId = service.id
+            this.unitPrice = parseInt(service.price) || 0; this.showServiceDropdown = false
+        },
+        openAddServiceModal() {
+            this.showServiceDropdown = false; this.serviceModalMode = 'add'
+            this.serviceForm = { id: null, name: '', description: '', price: 'Rp 0' }
+            this.serviceErrors = {}; this.showServiceModal = true
+        },
+        editService(service) {
+            this.showServiceDropdown = false; this.serviceModalMode = 'edit'; this.serviceErrors = {}
+            this.serviceForm = { id: service.id, name: service.name, description: service.description || '',
+                price: service.price ? 'Rp ' + new Intl.NumberFormat('id-ID').format(parseInt(service.price)) : 'Rp 0' }
+            this.showServiceModal = true
+        },
+        async saveService() {
+            this.serviceSubmitting = true; this.serviceErrors = {}
+            const isEdit = this.serviceModalMode === 'edit'
+            try {
+                const res = await fetch(isEdit ? '/service-types/' + this.serviceForm.id : '/service-types', {
+                    method: isEdit ? 'PUT' : 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
+                    body: JSON.stringify({ name: this.serviceForm.name, description: this.serviceForm.description, price: parseInt(String(this.serviceForm.price).replace(/[^0-9]/g, '') || '0') })
+                })
+                const result = await res.json()
+                if (res.status === 422) { this.serviceErrors = result.errors ?? {}; return }
+                if (!res.ok) { alert(result.message ?? 'Gagal'); return }
+                if (isEdit) {
+                    const idx = this.services.findIndex(s => s.id === this.serviceForm.id)
+                    if (idx !== -1) this.services[idx] = result.data
+                    if (this.selectedServiceId === result.data.id) { this.selectedService = result.data.name; this.unitPrice = parseInt(result.data.price) || 0 }
+                } else {
+                    this.services.unshift(result.data)
+                    this.selectedService = result.data.name; this.selectedServiceId = result.data.id; this.unitPrice = parseInt(result.data.price) || 0
+                }
+                this.showServiceModal = false
+            } catch { alert('Gagal terhubung ke server.') }
+            finally  { this.serviceSubmitting = false }
+        },
+        async deleteService(service) {
+            this.showServiceDropdown = false
+            if (!confirm('Hapus layanan "' + service.name + '"?')) return
+            try {
+                const res = await fetch('/service-types/' + service.id, {
+                    method: 'DELETE',
+                    headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content }
+                })
+                const result = await res.json()
+                if (!res.ok) { alert(result.message ?? 'Gagal'); return }
+                this.services = this.services.filter(s => s.id !== service.id)
+                if (this.selectedServiceId === service.id) {
+                    if (this.services.length > 0) { this.selectedService = this.services[0].name; this.selectedServiceId = this.services[0].id; this.unitPrice = parseInt(this.services[0].price) || 0 }
+                    else { this.selectedService = ''; this.selectedServiceId = null; this.unitPrice = 0 }
+                }
+            } catch { alert('Gagal terhubung ke server.') }
+        },
+        resetToCreate() {
+            Object.assign(this, {
+                _editMode: false, editingBookingId: null,
+                clientName: '', clientContact: '', clientAddress: '',
+                bookingDate: '', startDate: '', endDate: '', bookingTime: '',
+                multiDay: false, status: 'Dijadwalkan', notes: '',
+                quantity: 1, paidAmount: 0, discountValue: 0, discountType: 'rupiah',
+                submitErrors: {}, showServiceDropdown: false, serviceSearch: ''
+            })
+            if (this.services.length > 0) { this.selectedService = this.services[0].name; this.selectedServiceId = this.services[0].id; this.unitPrice = parseInt(this.services[0].price) || 0 }
+            else { this.selectedService = ''; this.selectedServiceId = null; this.unitPrice = 0 }
+            this.$nextTick(() => {
+                if (this.$refs.discountInput) this.$refs.discountInput.value = 'Rp 0'
+                const t = document.getElementById('booking-modal-title'); if (t) t.textContent = 'Tambah Booking Baru'
+            })
+        },
+        openEditBooking(booking) {
+            Object.assign(this, {
+                editingBookingId: booking.id, clientName: booking.client_name ?? '', clientContact: booking.client_contact ?? '',
+                clientAddress: booking.client_address ?? '', bookingTime: booking.booking_time ? String(booking.booking_time).substring(0, 5) : '',
+                status: booking.status ?? 'Dijadwalkan', quantity: booking.quantity ?? 1,
+                unitPrice: parseInt(booking.unit_price) || 0, paidAmount: parseInt(booking.paid_amount) || 0,
+                notes: booking.notes ?? '', submitErrors: {}, showServiceDropdown: false, serviceSearch: ''
+            })
+            if (booking.start_date) {
+                this.multiDay = true; this.startDate = String(booking.start_date).substring(0, 10)
+                this.endDate = String(booking.end_date ?? '').substring(0, 10); this.bookingDate = ''
+            } else {
+                this.multiDay = false; this.bookingDate = String(booking.booking_date ?? '').substring(0, 10)
+                this.startDate = ''; this.endDate = ''
+            }
+            const discPct = parseFloat(booking.discount_percent) || 0
+            this.discountType = discPct > 0 ? 'percent' : 'rupiah'; this.discountValue = discPct > 0 ? discPct : 0
+            this.$nextTick(() => { if (this.$refs.discountInput) this.$refs.discountInput.value = discPct > 0 ? discPct : 'Rp 0' })
+            if (booking.service_type) { this.selectedService = booking.service_type.name; this.selectedServiceId = booking.service_type.id }
+            this._editMode = true
+            const t = document.getElementById('booking-modal-title'); if (t) t.textContent = 'Edit Booking'
+            Alpine.$data(document.querySelector('[x-data^="dashboardFilter"]') ?? document.querySelector('[x-data]'))?.openBookingModal?.()
+        },
+
+        // POST/PUT /bookings → BookingController
+        async submitBooking() {
+            const form = document.getElementById('booking-form'); if (!form) return
+            for (const f of form.querySelectorAll('input[required], select[required], textarea[required]')) {
+                if (!f.checkValidity()) { f.focus(); f.reportValidity(); return }
+            }
+            this.submitting = true; this.submitErrors = {}
+            const isEdit = this.editingBookingId !== null
+            try {
+                const res = await fetch(isEdit ? `/bookings/${this.editingBookingId}` : '/bookings', {
+                    method: isEdit ? 'PUT' : 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
+                    body: JSON.stringify({
+                        client_name: this.clientName, client_contact: this.clientContact, client_address: this.clientAddress,
+                        service_type_id: this.selectedServiceId,
+                        booking_date: !this.multiDay ? (this.bookingDate || null) : null,
+                        start_date:    this.multiDay  ? (this.startDate   || null) : null,
+                        end_date:      this.multiDay  ? (this.endDate     || null) : null,
+                        booking_time: this.bookingTime || null, status: this.status,
+                        quantity: this.quantity, unit_price: this.unitPrice,
+                        discount_percent: this.discountPercentForBackend,
+                        paid_amount: this.paidAmount, notes: this.notes,
+                    })
+                })
+                const result = await res.json()
+                if (res.status === 422) { this.submitErrors = result.errors ?? {}; return }
+                if (!res.ok) { Swal.fire({ icon:'error', title:'Gagal!', text: result.message ?? 'Terjadi kesalahan.', confirmButtonColor:'#2563eb', customClass:{popup:'rounded-[28px]'} }); return }
+                Alpine.$data(document.querySelector('[x-data^="dashboardFilter"]') ?? document.querySelector('[x-data]'))?.closeBookingModal?.()
+                this.resetToCreate()
+                Swal.fire({ icon:'success', title: isEdit ? 'Diperbarui!' : 'Tersimpan!', text: result.message, confirmButtonColor:'#2563eb', timer:2000, timerProgressBar:true, showConfirmButton:false, customClass:{popup:'rounded-[28px]'} })
+                    .then(() => window.dispatchEvent(new CustomEvent('reload-bookings')))
+            } catch {
+                Swal.fire({ icon:'error', title:'Gagal!', text:'Gagal terhubung ke server.', confirmButtonColor:'#2563eb', customClass:{popup:'rounded-[28px]'} })
+            } finally { this.submitting = false }
+        }
+    }
+}
+</script>
