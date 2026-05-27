@@ -33,9 +33,6 @@
     <p class="text-[13px] text-blue-600 mt-4">
         Kirim link ini ke klien. Data booking yang diisi klien akan masuk ke dashboard admin ini.
     </p>
-    <p class="text-[13px] text-gray-500 mt-1 break-all">
-        ownerId aktif: {{ Auth::id() }}
-    </p>
 </div>
 
 <script>
