@@ -21,7 +21,6 @@ class Booking extends Model
         'booking_time',
         'status',
         'payment_status',
-        'quantity',
         'unit_price',
         'discount_percent',
         'paid_amount',
@@ -36,7 +35,6 @@ class Booking extends Model
         'booking_date'     => 'date',
         'start_date'       => 'date',
         'end_date'         => 'date',
-        'quantity'         => 'integer',
         'unit_price'       => 'integer',
         'discount_percent' => 'decimal:2',
         'paid_amount'      => 'integer',
@@ -62,21 +60,20 @@ class Booking extends Model
      * Jalankan semua kalkulasi TPS dan kembalikan array hasil.
      * Dipanggil di Controller sebelum simpan ke DB.
      *
-     * Rumus:
-     *   (3.1) Subtotal = P × Q
-     *   (3.2) Nd       = Subtotal × D/100
-     *   (3.3) Total    = Subtotal - Nd
-     *   (3.4) Sisa     = Total - Db
-     *   (3.5) Status   = kondisional berdasarkan Db vs Total
+     * Rumus (Modifikasi tanpa Qty):
+     * (3.1) Subtotal = P
+     * (3.2) Nd       = Subtotal × D/100
+     * (3.3) Total    = Subtotal - Nd
+     * (3.4) Sisa     = Total - Db
+     * (3.5) Status   = kondisional berdasarkan Db vs Total
      */
     public static function calculateTps(
         int $unitPrice,
-        int $quantity,
         float $discountPercent,
         int $paidAmount
     ): array {
-        // (3.1) Subtotal = P × Q
-        $subtotal = $unitPrice * $quantity;
+        // (3.1) Subtotal = P (Tanpa perlu dikalikan Quantity)
+        $subtotal = $unitPrice;
 
         // (3.2) Nd = Subtotal × D/100
         $discountAmount = (int) round($subtotal * ($discountPercent / 100));

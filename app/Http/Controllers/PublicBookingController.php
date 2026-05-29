@@ -52,7 +52,6 @@ class PublicBookingController extends Controller
             'client_contact'  => 'required|string|max:255',
             'client_address'  => 'nullable|string|max:500',
             'service_type_id' => 'required|exists:service_types,id',
-            'quantity'        => 'required|integer|min:1',
             'booking_date'    => 'nullable|date',
             'start_date'      => 'nullable|date',
             'end_date'        => 'nullable|date|after_or_equal:start_date',
@@ -64,7 +63,6 @@ class PublicBookingController extends Controller
             ->where('user_id', $owner->id)
             ->firstOrFail();
 
-        $quantity        = (int) $request->quantity;
         $unitPrice       = (int) $service->price;
         $discountPercent = 0.0;
         $paidAmount      = 0;
@@ -72,7 +70,6 @@ class PublicBookingController extends Controller
         // ── Hitung TPS sesuai rumus 3.1–3.5 ──────────────────
         $tps = Booking::calculateTps(
             unitPrice:       $unitPrice,
-            quantity:        $quantity,
             discountPercent: $discountPercent,
             paidAmount:      $paidAmount
         );
@@ -83,7 +80,6 @@ class PublicBookingController extends Controller
             'client_contact'   => $request->client_contact,
             'client_address'   => $request->client_address ?? '-',
             'service_type_id'  => $service->id,
-            'quantity'         => $quantity,
             'unit_price'       => $unitPrice,
             'discount_percent' => $discountPercent,
             'paid_amount'      => $paidAmount,
@@ -128,7 +124,6 @@ class PublicBookingController extends Controller
         if ($total === 0 && (int) $booking->unit_price > 0) {
             $tps             = Booking::calculateTps(
                 (int) $booking->unit_price,
-                (int) $booking->quantity,
                 $discountPercent,
                 (int) $booking->paid_amount
             );

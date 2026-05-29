@@ -1,9 +1,7 @@
-<!-- resources/views/components/dashboard/booking-table.blade.php -->
 <div x-data="bookingTable()" @reload-bookings.window="loadBookings()"
     @filter-changed.window="applyFilter($event.detail)"
     class="bg-white rounded-[28px] shadow-sm mt-7 border border-gray-100 overflow-hidden">
 
-    <!-- LOADING STATE -->
     <div x-show="loading" class="h-[320px] flex flex-col items-center justify-center gap-3">
         <svg class="animate-spin w-8 h-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none"
             viewBox="0 0 24 24">
@@ -13,8 +11,6 @@
         <p class="text-[14px] text-gray-400">Memuat data booking...</p>
     </div>
 
-
-    <!-- TABEL -->
     <div x-show="!loading" class="overflow-x-auto">
         <table class="w-full min-w-[900px]">
             <thead>
@@ -31,7 +27,6 @@
                 <template x-if="filteredBookings.length > 0">
                     <template x-for="booking in filteredBookings" :key="booking.id">
                         <tr class="border-b border-gray-50 hover:bg-gray-50/50 transition">
-                            <!-- KLIEN -->
                             <td class="px-8 py-6 align-top">
                                 <p class="font-bold text-[15px] text-gray-900" x-text="booking.client_name"></p>
                                 <p class="text-[13px] text-gray-500 mt-0.5" x-text="booking.client_contact || ''"></p>
@@ -46,7 +41,6 @@
                                     <p class="text-[12px] text-gray-400" x-text="booking.client_address"></p>
                                 </div>
                             </td>
-                            <!-- LAYANAN -->
                             <td class="px-8 py-6 align-top">
                                 <p class="font-semibold text-[14px] text-gray-900"
                                     x-text="booking.service_type?.name || '-'"></p>
@@ -56,7 +50,6 @@
                                     class="text-[12px] text-gray-400 mt-1 max-w-[200px] line-clamp-2"
                                     x-text="booking.service_type?.description"></p>
                             </td>
-                            <!-- TANGGAL & WAKTU -->
                             <td class="px-8 py-6 align-top whitespace-nowrap">
                                 <template x-if="booking.booking_date && !booking.start_date">
                                     <div>
@@ -80,14 +73,12 @@
                                     <p class="text-[13px] text-gray-400">-</p>
                                 </template>
                             </td>
-                            <!-- STATUS BOOKING -->
                             <td class="px-8 py-6 align-top">
                                 <span :class="statusClass(booking.status)"
                                     class="inline-flex items-center px-3 py-1 rounded-full text-[12px] font-semibold">
                                     <span x-text="booking.status"></span>
                                 </span>
                             </td>
-                            <!-- PEMBAYARAN -->
                             <td class="px-8 py-6 align-top">
                                 <span :class="paymentClass(booking.payment_status)"
                                     class="inline-flex items-center px-3 py-1 rounded-full text-[12px] font-semibold mb-2">
@@ -106,7 +97,6 @@
                                     </p>
                                 </div>
                             </td>
-                            <!-- AKSI -->
                             <td class="px-8 py-6 align-top">
                                 <div class="flex items-center gap-2">
                                     <button type="button" @click="openInvoice(booking)"
@@ -118,6 +108,7 @@
                                                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                         </svg>
                                     </button>
+                                    
                                     <button type="button" @click="openEditBooking(booking)"
                                         class="w-9 h-9 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-600 flex items-center justify-center transition"
                                         title="Edit">
@@ -127,6 +118,7 @@
                                                 d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                         </svg>
                                     </button>
+
                                     <button type="button" @click="deleteBooking(booking)"
                                         class="w-9 h-9 rounded-xl bg-red-50 hover:bg-red-100 text-red-500 flex items-center justify-center transition"
                                         title="Hapus">
@@ -142,7 +134,6 @@
                     </template>
                 </template>
 
-                <!-- KOSONG — tidak ada data sama sekali -->
                 <template x-if="!loading && filteredBookings.length === 0 && bookings.length === 0">
                     <tr>
                         <td colspan="6">
@@ -161,7 +152,6 @@
                     </tr>
                 </template>
 
-                <!-- KOSONG — ada data tapi filter tidak cocok -->
                 <template x-if="!loading && filteredBookings.length === 0 && bookings.length > 0">
                     <tr>
                         <td colspan="6">
@@ -213,14 +203,13 @@
             },
 
             startPolling() {
-                // Polling count setiap 1 detik — sangat ringan (hanya 1 query COUNT)
+                // Polling count setiap 1 detik
                 this.pollingInterval = setInterval(() => {
                     this.checkCount()
                 }, 1000)
             },
 
             async checkCount() {
-                // Skip kalau sedang fetch data lengkap
                 if (this.isFetching) return
 
                 try {
@@ -233,13 +222,9 @@
                     if (count !== this.lastCount) {
                         const isNew = count > this.lastCount
 
-                        // Fetch data lengkap
                         await this.loadBookings(true)
-
-                        // Update summary cards
                         window.dispatchEvent(new CustomEvent('reload-bookings'))
 
-                        // Toast notif booking baru
                         if (isNew) {
                             Swal.fire({
                                 toast: true,
@@ -327,6 +312,7 @@
             },
 
             openEditBooking(booking) {
+                // Mengirim global event membawa payload "booking"
                 window.dispatchEvent(new CustomEvent('open-edit-booking', { detail: booking }))
             },
 

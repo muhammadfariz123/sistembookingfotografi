@@ -34,7 +34,6 @@ class BookingController extends Controller
                             'price' => $booking->serviceType->price,
                         ] : null,
                         'service_type_id' => $booking->service_type_id,
-                        'quantity' => (int) $booking->quantity,
                         'unit_price' => (int) $booking->unit_price,
                         'discount_percent' => (float) $booking->discount_percent,
                         'discount_amount' => (int) $booking->discount_amount,
@@ -85,7 +84,6 @@ class BookingController extends Controller
 
         $tps = Booking::calculateTps(
             unitPrice: (int) $validated['unit_price'],
-            quantity: (int) $validated['quantity'],
             discountPercent: (float) ($validated['discount_percent'] ?? 0),
             paidAmount: (int) ($validated['paid_amount'] ?? 0),
         );
@@ -101,7 +99,6 @@ class BookingController extends Controller
             'end_date' => $validated['end_date'] ?? null,
             'booking_time' => $validated['booking_time'] ?? null,
             'status' => $validated['status'],
-            'quantity' => $validated['quantity'],
             'unit_price' => $validated['unit_price'],
             'discount_percent' => $validated['discount_percent'] ?? 0,
             'paid_amount' => $validated['paid_amount'] ?? 0,
@@ -133,7 +130,6 @@ class BookingController extends Controller
 
         $tps = Booking::calculateTps(
             unitPrice: (int) $validated['unit_price'],
-            quantity: (int) $validated['quantity'],
             discountPercent: (float) ($validated['discount_percent'] ?? 0),
             paidAmount: (int) ($validated['paid_amount'] ?? 0),
         );
@@ -148,7 +144,6 @@ class BookingController extends Controller
             'end_date' => $validated['end_date'] ?? null,
             'booking_time' => $validated['booking_time'] ?? null,
             'status' => $validated['status'],
-            'quantity' => $validated['quantity'],
             'unit_price' => $validated['unit_price'],
             'discount_percent' => $validated['discount_percent'] ?? 0,
             'paid_amount' => $validated['paid_amount'] ?? 0,
@@ -187,6 +182,7 @@ class BookingController extends Controller
             'count' => Booking::where('user_id', Auth::id())->count()
         ]);
     }
+    
     public function stream(Request $request)
     {
         $userId = Auth::id();

@@ -1,12 +1,10 @@
-<!-- resources/views/components/dashboard/booking-modal.blade.php -->
-<div x-show="showBookingModal" x-cloak x-transition.opacity class="fixed inset-0 z-50">
-    <!-- BACKDROP -->
+<div x-show="showBookingModal" x-cloak x-transition.opacity class="fixed inset-0 z-50"
+     @force-open-modal.window="typeof openBookingModal === 'function' ? openBookingModal() : showBookingModal = true"
+     @force-close-modal.window="typeof closeBookingModal === 'function' ? closeBookingModal() : showBookingModal = false">
+    
     <div @click="closeBookingModal()" class="absolute inset-0 bg-black/35 backdrop-blur-sm"></div>
-    <!-- WRAPPER -->
     <div class="relative min-h-screen flex items-center justify-center p-4">
-        <!-- MODAL -->
         <div @click.stop class="bg-white w-full max-w-[680px] rounded-[22px] shadow-2xl overflow-hidden">
-            <!-- HEADER -->
             <div class="px-6 py-5 border-b border-gray-200 flex items-center justify-between">
                 <h2 class="text-[20px] font-bold text-gray-900" id="booking-modal-title">
                     Tambah Booking Baru
@@ -18,15 +16,12 @@
                     </svg>
                 </button>
             </div>
-
-            <!-- BODY FORM -->
             <form id="booking-form"
                 x-data="bookingForm()"
                 @open-edit-booking.window="openEditBooking($event.detail)"
                 @submit.prevent="submitBooking()"
                 class="max-h-[70vh] overflow-y-auto no-scrollbar px-6 py-6">
-
-                <!-- ERROR VALIDASI BACKEND -->
+                
                 <div x-show="Object.keys(submitErrors).length > 0" x-cloak
                     class="mb-5 bg-red-50 border border-red-200 rounded-2xl px-4 py-3">
                     <p class="text-[13px] font-semibold text-red-600 mb-1">Mohon periksa kembali:</p>
@@ -45,8 +40,7 @@
                         </template>
                     </ul>
                 </div>
-
-                <!-- NAMA KLIEN -->
+                
                 <div>
                     <label class="block text-[14px] font-semibold text-gray-800 mb-2">
                         Nama Klien <span class="text-red-500">*</span>
@@ -58,8 +52,6 @@
                         placeholder="Masukkan nama klien"
                         class="w-full h-[44px] rounded-2xl border border-gray-300 px-4 text-[14px] focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
-
-                <!-- KONTAK -->
                 <div class="mt-5">
                     <label class="block text-[14px] font-semibold text-gray-800 mb-2">
                         Kontak Klien <span class="text-red-500">*</span>
@@ -71,8 +63,6 @@
                         placeholder="Nomor telepon atau email"
                         class="w-full h-[44px] rounded-2xl border border-gray-300 px-4 text-[14px]">
                 </div>
-
-                <!-- ALAMAT -->
                 <div class="mt-5">
                     <label class="block text-[14px] font-semibold text-gray-800 mb-2">
                         Alamat Klien <span class="text-red-500">*</span>
@@ -84,26 +74,22 @@
                         placeholder="Alamat klien"
                         class="w-full h-[44px] rounded-2xl border border-gray-300 px-4 text-[14px]">
                 </div>
-
-                <!-- JENIS LAYANAN -->
                 <div class="mt-5 relative">
                     <label class="block text-[14px] font-semibold text-gray-800 mb-2">
-                        Jenis Layanan <span class="text-red-500">*</span>
+                        Paket Layanan <span class="text-red-500">*</span>
                     </label>
-                    {{-- Input hidden untuk native required validation pada dropdown custom --}}
                     <input type="text"
                         :value="selectedService"
                         required
                         tabindex="-1"
                         style="position:absolute;opacity:0;width:1px;height:1px;pointer-events:none;"
                         aria-hidden="true">
-                    <!-- TRIGGER BUTTON -->
                     <button type="button"
-                        @click="toggleServiceDropdown()"
+                        @click="showSummary = true; toggleServiceDropdown()"
                         id="field-service-type"
                         class="w-full h-[44px] rounded-2xl border border-gray-300 px-4 text-left text-[14px] flex items-center justify-between bg-white">
                         <span :class="selectedService ? 'text-gray-900' : 'text-gray-400'"
-                            x-text="selectedService || 'Pilih atau tambah jenis layanan'"></span>
+                            x-text="selectedService || 'Pilih atau tambah paket layanan'"></span>
                         <svg xmlns="http://www.w3.org/2000/svg"
                             class="w-4 h-4 text-gray-400 transition-transform duration-200"
                             :class="showServiceDropdown ? 'rotate-0' : 'rotate-180'"
@@ -111,11 +97,9 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/>
                         </svg>
                     </button>
-                    <!-- DROPDOWN -->
                     <div x-show="showServiceDropdown" x-transition
                         @click.away="showServiceDropdown = false"
                         class="mt-2 bg-white border border-gray-200 rounded-2xl shadow-lg p-3 z-10 relative">
-                        <!-- SEARCH INPUT -->
                         <div class="mb-3">
                             <div class="relative">
                                 <svg xmlns="http://www.w3.org/2000/svg"
@@ -138,7 +122,6 @@
                                 </button>
                             </div>
                         </div>
-                        <!-- LIST LAYANAN -->
                         <div class="space-y-0.5 max-h-[200px] overflow-y-auto no-scrollbar">
                             <template x-if="services.length === 0">
                                 <div class="py-8 text-center">
@@ -165,18 +148,11 @@
                                         Tidak ada layanan dengan kata kunci
                                         "<span class="font-medium text-gray-600" x-text="serviceSearch"></span>".
                                     </p>
-                                    <button type="button" @click="serviceSearch = ''"
-                                        class="mt-2 text-[12px] text-blue-600 hover:underline">
-                                        Hapus pencarian
-                                    </button>
                                 </div>
                             </template>
                             <template x-if="filteredServices.length > 0">
                                 <template x-for="service in filteredServices" :key="service.id">
-                                    <div
-                                        :class="selectedServiceId === service.id
-                                            ? 'bg-blue-50 border border-blue-100'
-                                            : 'hover:bg-gray-50 border border-transparent'"
+                                    <div :class="selectedServiceId === service.id ? 'bg-blue-50 border border-blue-100' : 'hover:bg-gray-50 border border-transparent'"
                                         class="flex items-center justify-between px-2 py-3 rounded-xl transition">
                                         <button type="button" @click="selectService(service)" class="flex-1 text-left min-w-0">
                                             <div class="flex items-center gap-2">
@@ -218,7 +194,6 @@
                                 </template>
                             </template>
                         </div>
-                        <!-- BUTTON TAMBAH LAYANAN -->
                         <div class="mt-3 pt-3 border-t border-gray-100">
                             <button type="button" @click="openAddServiceModal()"
                                 class="w-full h-[36px] rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[14px] font-medium flex items-center justify-center gap-2 transition">
@@ -232,8 +207,6 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- MULTI DAY -->
                 <div class="mt-5">
                     <label class="inline-flex items-center gap-2 text-[14px] text-gray-700">
                         <input type="checkbox" x-model="multiDay"
@@ -241,8 +214,6 @@
                         Booking lebih dari 1 hari
                     </label>
                 </div>
-
-                <!-- TANGGAL & WAKTU -->
                 <div class="mt-5">
                     <template x-if="!multiDay">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -252,7 +223,6 @@
                                 </label>
                                 <input type="date"
                                     x-model="bookingDate"
-                                    id="field-booking-date"
                                     required
                                     class="w-full h-[44px] rounded-2xl border border-gray-300 px-4 text-[14px]">
                             </div>
@@ -273,7 +243,6 @@
                                     </label>
                                     <input type="date"
                                         x-model="startDate"
-                                        id="field-start-date"
                                         required
                                         class="w-full h-[44px] rounded-2xl border border-gray-300 px-4 text-[14px]">
                                 </div>
@@ -283,7 +252,6 @@
                                     </label>
                                     <input type="date"
                                         x-model="endDate"
-                                        id="field-end-date"
                                         required
                                         class="w-full h-[44px] rounded-2xl border border-gray-300 px-4 text-[14px]">
                                 </div>
@@ -291,7 +259,7 @@
                                     <label class="block text-[14px] font-semibold text-gray-800 mb-2">Waktu</label>
                                     <input type="time" x-model="bookingTime"
                                         class="w-full h-[44px] rounded-2xl border border-gray-300 px-4 text-[14px]">
-                                    <p class="text-[11px] text-gray-500 mt-1">Opsional - kosongkan jika tidak diperlukan</p>
+                                    <p class="text-[11px] text-gray-500 mt-1">Opsional</p>
                                 </div>
                             </div>
                             <div x-show="totalDurasi > 0" x-transition
@@ -303,8 +271,6 @@
                         </div>
                     </template>
                 </div>
-
-                <!-- STATUS -->
                 <div class="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-[14px] font-semibold text-gray-800 mb-2">Status</label>
@@ -320,112 +286,85 @@
                         <input type="text" :value="paymentStatus" readonly :class="paymentStatusClass"
                             class="w-full h-[44px] rounded-2xl border px-4 text-[14px] font-medium cursor-default">
                         <p class="text-[11px] text-blue-600 mt-1">
-                            Status pembayaran tervalidasi otomatis berdasarkan nominal yang dibayarkan.
+                            Status pembayaran tervalidasi otomatis.
                         </p>
                     </div>
                 </div>
-
-                <!-- QTY & HARGA -->
+                
                 <div class="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-[14px] font-semibold text-gray-800 mb-2">
-                            Quantity <span class="text-red-500">*</span>
-                        </label>
-                        <input type="number" min="1"
-                            :value="quantity"
-                            @input="updateQuantity($event.target)"
-                            required
-                            :class="submitErrors.quantity ? 'border-red-400 ring-1 ring-red-400' : 'border-gray-300'"
-                            class="w-full h-[44px] rounded-2xl border px-4 text-[14px]">
-                        <p x-show="submitErrors.quantity" class="text-[11px] text-red-500 mt-1"
-                            x-text="submitErrors.quantity?.[0]"></p>
-                    </div>
-                    <div>
-                        <label class="block text-[14px] font-semibold text-gray-800 mb-2">Harga per Unit (Rp)</label>
+                        <label class="block text-[14px] font-semibold text-gray-800 mb-2">Harga Paket (Rp)</label>
                         <input type="text"
                             :value="formatCurrency(unitPrice)"
-                            @input="updateUnitPrice($event.target)"
-                            @focus="$event.target.select()"
+                            readonly
+                            class="w-full h-[44px] rounded-2xl border border-gray-200 px-4 text-[14px] bg-gray-50 text-gray-500 cursor-not-allowed outline-none focus:ring-0">
+                    </div>
+                    <div>
+                        <label class="block text-[14px] font-semibold text-gray-800 mb-2">Sudah Dibayar (Rp)</label>
+                        <input type="text"
+                            :value="formatCurrency(paidAmount)"
+                            @input="updatePaidAmount($event.target)"
+                            @focus="showSummary = true; $event.target.select()"
                             class="w-full h-[44px] rounded-2xl border border-gray-300 px-4 text-[14px]">
                     </div>
                 </div>
-
-                <!-- SUDAH DIBAYAR -->
+                
                 <div class="mt-5">
-                    <label class="block text-[14px] font-semibold text-gray-800 mb-2">Sudah Dibayar (Rp)</label>
-                    <input type="text"
-                        :value="formatCurrency(paidAmount)"
-                        @input="updatePaidAmount($event.target)"
-                        @focus="$event.target.select()"
-                        class="w-full h-[44px] rounded-2xl border border-gray-300 px-4 text-[14px]">
-                </div>
-
-                <!-- DISKON -->
-                <div class="mt-5">
-                    <label class="block text-[14px] font-semibold text-gray-800 mb-2">Diskon</label>
+                    <label class="block text-[14px] font-semibold text-gray-800 mb-2">Diskon (%)</label>
                     <div class="relative">
-                        <input type="text" x-ref="discountInput" value="Rp 0"
+                        <input type="number" min="0" max="100"
+                            x-model="discountValue"
                             @input="formatDiscount($event.target)"
-                            @focus="$event.target.select()"
-                            class="w-full h-[44px] rounded-2xl border border-gray-300 pl-4 pr-20 text-[14px]">
-                        <div class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center bg-gray-100 rounded-xl p-1 gap-1">
-                            <button type="button" @click="setDiscountType('rupiah')"
-                                :class="discountType === 'rupiah' ? 'bg-blue-100 text-blue-600' : 'text-gray-500'"
-                                class="px-3 h-6 rounded-lg text-[12px] font-semibold transition">Rp</button>
-                            <button type="button" @click="setDiscountType('percent')"
-                                :class="discountType === 'percent' ? 'bg-blue-100 text-blue-600' : 'text-gray-500'"
-                                class="px-3 h-6 rounded-lg text-[12px] font-semibold transition">%</button>
+                            @focus="showSummary = true; $event.target.select()"
+                            class="w-full h-[44px] rounded-2xl border border-gray-300 pl-4 pr-12 text-[14px] focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <div class="absolute right-4 top-1/2 -translate-y-1/2 flex items-center text-gray-400 font-bold">
+                            %
                         </div>
                     </div>
                 </div>
 
-                <!-- SUMMARY TPS -->
-                <div class="mt-5 border border-gray-200 rounded-2xl p-4 text-[14px]">
+                <div x-show="showSummary" x-transition class="mt-5 border border-gray-200 rounded-2xl p-4 text-[14px]">
                     <div class="flex items-center gap-2 mb-3">
                         <span class="text-[11px] font-bold tracking-widest text-gray-400 uppercase">
-                            Kalkulasi Otomatis TPS
+                            Ringkasan Biaya
                         </span>
                     </div>
                     <div class="flex justify-between py-2 border-b border-gray-100">
-                        <span class="text-gray-500">Subtotal <span class="text-[11px] text-gray-400">(P × Q)</span> :</span>
+                        <span class="text-gray-500">Subtotal:</span>
                         <span class="font-medium" x-text="formattedSubtotal"></span>
                     </div>
-                    <template x-if="discountAmount > 0">
+                    <template x-if="discountValue > 0">
                         <div class="flex justify-between py-2 border-b border-gray-100">
-                            <span class="text-gray-500">Diskon <span class="text-[11px] text-gray-400">(Nd)</span> :</span>
+                            <span class="text-gray-500">Diskon (<span x-text="discountValue"></span>%):</span>
                             <span class="font-medium text-red-500" x-text="'- ' + formattedDiscountAmount"></span>
                         </div>
                     </template>
                     <div class="flex justify-between py-2 border-b border-gray-100">
-                        <span class="font-semibold text-gray-800">Total
-                            <span class="text-[11px] font-normal text-gray-400">(Subtotal - Nd)</span> :</span>
+                        <span class="font-semibold text-gray-800">Total Keseluruhan:</span>
                         <span class="font-bold text-blue-600" x-text="formattedGrandTotal"></span>
                     </div>
                     <div class="flex justify-between py-2 border-b border-gray-100">
-                        <span class="text-gray-500">Sudah Dibayar <span class="text-[11px] text-gray-400">(Db)</span> :</span>
+                        <span class="text-gray-500">Sudah Dibayar:</span>
                         <span class="font-medium" x-text="formattedPaidAmount"></span>
                     </div>
                     <div class="flex justify-between py-2 border-b border-gray-100">
-                        <span class="text-gray-500">Sisa <span class="text-[11px] text-gray-400">(Total - Db)</span> :</span>
+                        <span class="text-gray-500">Sisa Pembayaran:</span>
                         <span class="font-bold text-red-500" x-text="formattedRemaining"></span>
                     </div>
                     <div class="flex justify-between pt-2 items-center">
-                        <span class="text-gray-500">Status Pembayaran
-                            <span class="text-[11px] text-gray-400">(otomatis)</span> :</span>
+                        <span class="text-gray-500">Status Pembayaran:</span>
                         <span :class="paymentStatusClass"
                             class="px-3 py-1 rounded-xl border text-[12px] font-semibold"
                             x-text="paymentStatus"></span>
                     </div>
                 </div>
-
-                <!-- CATATAN -->
+                
                 <div class="mt-5">
                     <label class="block text-[14px] font-semibold text-gray-800 mb-2">Catatan</label>
                     <textarea x-model="notes" rows="4" placeholder="Tambahkan catatan..."
                         class="w-full rounded-2xl border border-gray-300 px-4 py-3 text-[14px] resize-none"></textarea>
                 </div>
-
-                <!-- MODAL TAMBAH / EDIT LAYANAN (nested) -->
+                
                 <div x-show="showServiceModal" x-cloak x-transition.opacity class="fixed inset-0 z-[70]">
                     <div @click="showServiceModal = false" class="absolute inset-0 bg-black/20"></div>
                     <div class="relative min-h-screen flex items-center justify-center p-4">
@@ -441,10 +380,8 @@
                                         <template x-for="(msgs, field) in serviceErrors" :key="field">
                                             <template x-for="msg in msgs" :key="msg">
                                                 <li class="text-[12px] text-red-600 flex items-center gap-2">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 shrink-0"
-                                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                                     </svg>
                                                     <span x-text="msg"></span>
                                                 </li>
@@ -453,15 +390,11 @@
                                     </ul>
                                 </div>
                                 <div>
-                                    <label class="block text-[14px] font-semibold text-gray-800 mb-2">
-                                        Nama Layanan <span class="text-red-500">*</span>
-                                    </label>
+                                    <label class="block text-[14px] font-semibold text-gray-800 mb-2">Nama Layanan <span class="text-red-500">*</span></label>
                                     <input type="text" x-model="serviceForm.name"
                                         :class="serviceErrors.name ? 'border-red-400 ring-1 ring-red-400' : 'border-gray-300'"
                                         placeholder="Masukkan nama layanan..."
                                         class="w-full h-[38px] rounded-xl border px-4 text-[14px] focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                    <p x-show="serviceErrors.name" class="text-[11px] text-red-500 mt-1"
-                                        x-text="serviceErrors.name?.[0]"></p>
                                 </div>
                                 <div class="mt-5">
                                     <label class="block text-[14px] font-semibold text-gray-800 mb-2">Deskripsi (opsional)</label>
@@ -476,30 +409,12 @@
                                         class="w-full h-[38px] rounded-xl border border-gray-300 px-4 text-[14px] focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                                 </div>
                                 <div class="mt-6 flex items-center justify-end gap-3">
-                                    <button type="button" @click="showServiceModal = false"
-                                        :disabled="serviceSubmitting"
+                                    <button type="button" @click="showServiceModal = false" :disabled="serviceSubmitting"
                                         class="h-[36px] px-5 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-800 text-[14px] font-medium transition disabled:opacity-50">
                                         Batal
                                     </button>
                                     <button type="button" @click="saveService()" :disabled="serviceSubmitting"
                                         class="h-[36px] px-6 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[14px] font-medium flex items-center gap-2 transition disabled:opacity-60">
-                                        <template x-if="serviceSubmitting">
-                                            <svg class="animate-spin w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-                                            </svg>
-                                        </template>
-                                        <template x-if="!serviceSubmitting && serviceModalMode === 'add'">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-                                            </svg>
-                                        </template>
-                                        <template x-if="!serviceSubmitting && serviceModalMode === 'edit'">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 21H7a2 2 0 01-2-2V5a2 2 0 012-2h7l5 5v11a2 2 0 01-2 2z"/>
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 21v-8H7v8M7 3v5h8"/>
-                                            </svg>
-                                        </template>
                                         <span x-text="serviceModalMode === 'add' ? 'Tambah Layanan' : 'Simpan Perubahan'"></span>
                                     </button>
                                 </div>
@@ -508,8 +423,7 @@
                     </div>
                 </div>
             </form>
-
-            <!-- FOOTER -->
+            
             <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-end gap-3">
                 <button @click="closeBookingModal()"
                     class="h-[40px] px-5 rounded-2xl bg-gray-100 text-gray-700 font-medium text-[14px] hover:bg-gray-200 transition">
@@ -518,43 +432,31 @@
                 <button type="button"
                     @click="document.getElementById('booking-form').dispatchEvent(new Event('submit', {bubbles: true, cancelable: true}))"
                     class="h-[40px] px-6 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[14px] transition flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M17 21H7a2 2 0 01-2-2V5a2 2 0 012-2h7l5 5v11a2 2 0 01-2 2z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 21v-8H7v8M7 3v5h8"/>
-                    </svg>
-                    <span x-text="document.getElementById('booking-form')?._x_dataStack?.[0]?.editingBookingId
-                        ? 'Simpan Perubahan' : 'Simpan Booking'">
-                        Simpan Booking
-                    </span>
+                    <span x-text="document.getElementById('booking-form')?._x_dataStack?.[0]?.editingBookingId ? 'Simpan Perubahan' : 'Simpan Booking'"></span>
                 </button>
             </div>
         </div>
     </div>
 </div>
 
-{{-- JS bookingForm() dipindah ke sini dari dashboard.blade.php --}}
-{{-- Ini adalah logika form booking + kalkulasi TPS (Rumus 3.1–3.5) --}}
 <script>
 function bookingForm() {
     return {
-        _editMode: false, editingBookingId: null,
+        _editMode: false, editingBookingId: null, showSummary: false,
         clientName: '', clientContact: '', clientAddress: '',
         bookingDate: '', startDate: '', endDate: '', bookingTime: '',
         multiDay: false, status: 'Dijadwalkan', notes: '',
-        quantity: 1, unitPrice: 0, paidAmount: 0,
-        discountValue: 0, discountType: 'rupiah',
+        unitPrice: 0, paidAmount: 0,
+        discountValue: 0, // Hanya angka persentase 0-100
         submitting: false, submitErrors: {}, clientErrors: {},
         services: [], selectedService: '', selectedServiceId: null,
         serviceSearch: '', showServiceDropdown: false,
         showServiceModal: false, serviceModalMode: 'add',
         serviceSubmitting: false, serviceErrors: {},
         serviceForm: { id: null, name: '', description: '', price: 'Rp 0' },
-
+        
         init() { this.loadServices() },
-
-        // GET /service-types
+        
         async loadServices() {
             try {
                 const res = await fetch('/service-types', { headers: { 'Accept': 'application/json' } })
@@ -567,13 +469,11 @@ function bookingForm() {
                 }
             } catch { this.services = [] }
         },
-
-        // Kalkulasi TPS Rumus 3.1–3.5
-        get subtotal()   { return this.unitPrice * this.quantity },
+        
+        get subtotal()   { return this.unitPrice },
         get discountAmount() {
-            return this.discountType === 'percent'
-                ? Math.round(this.subtotal * this.discountValue / 100)
-                : Math.min(this.discountValue, this.subtotal)
+            // Karena diskon murni persen
+            return Math.round(this.subtotal * (this.discountValue / 100));
         },
         get grandTotal() { return Math.max(this.subtotal - this.discountAmount, 0) },
         get remaining()  { return Math.max(this.grandTotal - this.paidAmount, 0) },
@@ -581,10 +481,6 @@ function bookingForm() {
             if (this.paidAmount <= 0)              return 'Belum Bayar'
             if (this.paidAmount >= this.grandTotal) return 'Lunas'
             return 'Down Payment'
-        },
-        get discountPercentForBackend() {
-            if (this.discountType === 'percent') return this.discountValue
-            return this.subtotal > 0 ? (this.discountValue / this.subtotal) * 100 : 0
         },
         get totalDurasi() {
             if (!this.startDate || !this.endDate) return 0
@@ -605,7 +501,7 @@ function bookingForm() {
         get formattedGrandTotal()     { return this.formatCurrency(this.grandTotal) },
         get formattedPaidAmount()     { return this.formatCurrency(this.paidAmount) },
         get formattedRemaining()      { return this.formatCurrency(this.remaining) },
-
+        
         formatNumber(v)   { return new Intl.NumberFormat('id-ID').format(Math.round(v || 0)) },
         formatCurrency(v) { return 'Rp ' + this.formatNumber(v) },
         parseRupiah(v) {
@@ -617,29 +513,27 @@ function bookingForm() {
             const v = el.value.replace(/[^0-9]/g, '')
             el.value = v ? 'Rp ' + new Intl.NumberFormat('id-ID').format(parseInt(v)) : 'Rp 0'
         },
-        updateUnitPrice(el)  { this.unitPrice  = this.parseRupiah(el.value); this.formatRupiah(el) },
-        updatePaidAmount(el) { this.paidAmount = this.parseRupiah(el.value); this.formatRupiah(el) },
-        updateQuantity(el) {
-            let v = parseInt(el.value); if (isNaN(v) || v < 1) v = 1
-            this.quantity = v; el.value = v
+        updatePaidAmount(el) { 
+            this.showSummary = true; 
+            this.paidAmount = this.parseRupiah(el.value); 
+            this.formatRupiah(el) 
         },
         toggleServiceDropdown() { this.showServiceDropdown = !this.showServiceDropdown },
-        setDiscountType(type) {
-            this.discountType = type; this.discountValue = 0
-            this.$refs.discountInput.value = type === 'rupiah' ? 'Rp 0' : '0'
-        },
+        
         formatDiscount(el) {
-            if (this.discountType === 'rupiah') {
-                this.formatRupiah(el); this.discountValue = this.parseRupiah(el.value)
-            } else {
-                let v = el.value.replace(/[^0-9]/g, '')
-                if (!v) { el.value = '0'; this.discountValue = 0; return }
-                v = Math.min(parseInt(v), 100); el.value = String(v); this.discountValue = v
-            }
+            this.showSummary = true;
+            let v = parseInt(el.value);
+            if (isNaN(v) || v < 0) v = 0;
+            if (v > 100) v = 100;
+            this.discountValue = v;
         },
+
         selectService(service) {
-            this.selectedService = service.name; this.selectedServiceId = service.id
-            this.unitPrice = parseInt(service.price) || 0; this.showServiceDropdown = false
+            this.showSummary = true;
+            this.selectedService = service.name; 
+            this.selectedServiceId = service.id;
+            this.unitPrice = parseInt(service.price) || 0; 
+            this.showServiceDropdown = false;
         },
         openAddServiceModal() {
             this.showServiceDropdown = false; this.serviceModalMode = 'add'
@@ -695,45 +589,70 @@ function bookingForm() {
         },
         resetToCreate() {
             Object.assign(this, {
-                _editMode: false, editingBookingId: null,
+                _editMode: false, editingBookingId: null, showSummary: false,
                 clientName: '', clientContact: '', clientAddress: '',
                 bookingDate: '', startDate: '', endDate: '', bookingTime: '',
                 multiDay: false, status: 'Dijadwalkan', notes: '',
-                quantity: 1, paidAmount: 0, discountValue: 0, discountType: 'rupiah',
+                unitPrice: 0, paidAmount: 0, discountValue: 0,
                 submitErrors: {}, showServiceDropdown: false, serviceSearch: ''
             })
             if (this.services.length > 0) { this.selectedService = this.services[0].name; this.selectedServiceId = this.services[0].id; this.unitPrice = parseInt(this.services[0].price) || 0 }
             else { this.selectedService = ''; this.selectedServiceId = null; this.unitPrice = 0 }
             this.$nextTick(() => {
-                if (this.$refs.discountInput) this.$refs.discountInput.value = 'Rp 0'
                 const t = document.getElementById('booking-modal-title'); if (t) t.textContent = 'Tambah Booking Baru'
             })
         },
+        
         openEditBooking(booking) {
             Object.assign(this, {
-                editingBookingId: booking.id, clientName: booking.client_name ?? '', clientContact: booking.client_contact ?? '',
-                clientAddress: booking.client_address ?? '', bookingTime: booking.booking_time ? String(booking.booking_time).substring(0, 5) : '',
-                status: booking.status ?? 'Dijadwalkan', quantity: booking.quantity ?? 1,
-                unitPrice: parseInt(booking.unit_price) || 0, paidAmount: parseInt(booking.paid_amount) || 0,
-                notes: booking.notes ?? '', submitErrors: {}, showServiceDropdown: false, serviceSearch: ''
+                editingBookingId: booking.id, 
+                clientName: booking.client_name ?? '', 
+                clientContact: booking.client_contact ?? '',
+                clientAddress: booking.client_address ?? '', 
+                bookingTime: booking.booking_time ? String(booking.booking_time).substring(0, 5) : '',
+                status: booking.status ?? 'Dijadwalkan', 
+                unitPrice: parseInt(booking.unit_price) || 0, 
+                paidAmount: parseInt(booking.paid_amount) || 0,
+                notes: booking.notes ?? '', 
+                submitErrors: {}, 
+                showServiceDropdown: false, 
+                serviceSearch: '',
+                showSummary: true 
             })
-            if (booking.start_date) {
-                this.multiDay = true; this.startDate = String(booking.start_date).substring(0, 10)
-                this.endDate = String(booking.end_date ?? '').substring(0, 10); this.bookingDate = ''
-            } else {
-                this.multiDay = false; this.bookingDate = String(booking.booking_date ?? '').substring(0, 10)
-                this.startDate = ''; this.endDate = ''
-            }
-            const discPct = parseFloat(booking.discount_percent) || 0
-            this.discountType = discPct > 0 ? 'percent' : 'rupiah'; this.discountValue = discPct > 0 ? discPct : 0
-            this.$nextTick(() => { if (this.$refs.discountInput) this.$refs.discountInput.value = discPct > 0 ? discPct : 'Rp 0' })
-            if (booking.service_type) { this.selectedService = booking.service_type.name; this.selectedServiceId = booking.service_type.id }
-            this._editMode = true
-            const t = document.getElementById('booking-modal-title'); if (t) t.textContent = 'Edit Booking'
-            Alpine.$data(document.querySelector('[x-data^="dashboardFilter"]') ?? document.querySelector('[x-data]'))?.openBookingModal?.()
-        },
 
-        // POST/PUT /bookings → BookingController
+            if (booking.start_date) {
+                this.multiDay = true; 
+                this.startDate = String(booking.start_date).substring(0, 10)
+                this.endDate = String(booking.end_date ?? '').substring(0, 10); 
+                this.bookingDate = ''
+            } else {
+                this.multiDay = false; 
+                this.bookingDate = String(booking.booking_date ?? '').substring(0, 10)
+                this.startDate = ''; 
+                this.endDate = ''
+            }
+
+            // Set Diskon Murni Persentase
+            this.discountValue = parseFloat(booking.discount_percent) || 0;
+            
+            if (booking.service_type) { 
+                this.selectedService = booking.service_type.name; 
+                this.selectedServiceId = booking.service_type.id 
+            } else if (booking.service_type_id) {
+                const s = this.services.find(s => s.id == booking.service_type_id);
+                if (s) {
+                    this.selectedService = s.name;
+                    this.selectedServiceId = s.id;
+                }
+            }
+            
+            this._editMode = true
+            const t = document.getElementById('booking-modal-title'); 
+            if (t) t.textContent = 'Edit Booking'
+            
+            window.dispatchEvent(new CustomEvent('force-open-modal'));
+        },
+        
         async submitBooking() {
             const form = document.getElementById('booking-form'); if (!form) return
             for (const f of form.querySelectorAll('input[required], select[required], textarea[required]')) {
@@ -752,15 +671,17 @@ function bookingForm() {
                         start_date:    this.multiDay  ? (this.startDate   || null) : null,
                         end_date:      this.multiDay  ? (this.endDate     || null) : null,
                         booking_time: this.bookingTime || null, status: this.status,
-                        quantity: this.quantity, unit_price: this.unitPrice,
-                        discount_percent: this.discountPercentForBackend,
+                        unit_price: this.unitPrice,
+                        discount_percent: this.discountValue,
                         paid_amount: this.paidAmount, notes: this.notes,
                     })
                 })
                 const result = await res.json()
                 if (res.status === 422) { this.submitErrors = result.errors ?? {}; return }
                 if (!res.ok) { Swal.fire({ icon:'error', title:'Gagal!', text: result.message ?? 'Terjadi kesalahan.', confirmButtonColor:'#2563eb', customClass:{popup:'rounded-[28px]'} }); return }
-                Alpine.$data(document.querySelector('[x-data^="dashboardFilter"]') ?? document.querySelector('[x-data]'))?.closeBookingModal?.()
+                
+                window.dispatchEvent(new CustomEvent('force-close-modal'));
+
                 this.resetToCreate()
                 Swal.fire({ icon:'success', title: isEdit ? 'Diperbarui!' : 'Tersimpan!', text: result.message, confirmButtonColor:'#2563eb', timer:2000, timerProgressBar:true, showConfirmButton:false, customClass:{popup:'rounded-[28px]'} })
                     .then(() => window.dispatchEvent(new CustomEvent('reload-bookings')))

@@ -9,7 +9,6 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen bg-[#eef2ff] font-sans antialiased">
-
     {{-- HEADER --}}
     <div class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-8 px-4 text-center">
         @if($companySetting?->logo_path)
@@ -19,9 +18,7 @@
         <h1 class="text-2xl font-bold">Form Booking Layanan</h1>
         <p class="text-white/70 text-sm mt-1">Isi data di bawah ini untuk mengirim booking ke admin.</p>
     </div>
-
     <div class="max-w-2xl mx-auto px-4 py-8" x-data="publicBookingForm()">
-
         {{-- ERROR --}}
         @if($errors->any())
             <div class="bg-red-50 border border-red-200 rounded-2xl px-5 py-4 mb-6">
@@ -32,10 +29,8 @@
                 </ul>
             </div>
         @endif
-
         <form method="POST" action="{{ route('booking.public.store', $ownerId) }}" id="booking-form">
             @csrf
-
             {{-- STEP 1: DATA KLIEN --}}
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-5">
                 <div class="flex items-start gap-3 mb-5">
@@ -74,7 +69,6 @@
                         class="w-full h-[44px] rounded-xl border border-gray-300 px-4 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
             </div>
-
             {{-- STEP 2: PILIH LAYANAN --}}
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-5">
                 <div class="flex items-start gap-3 mb-5">
@@ -135,36 +129,25 @@
                     @enderror
                 @endif
             </div>
-
             {{-- STEP 3: DETAIL BOOKING --}}
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-5">
                 <div class="flex items-start gap-3 mb-5">
                     <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm shrink-0">3</div>
                     <div>
                         <h2 class="font-semibold text-gray-900 text-[16px]">Detail Booking</h2>
-                        <p class="text-gray-500 text-sm">Isi jumlah, tanggal, dan waktu booking</p>
+                        <p class="text-gray-500 text-sm">Isi tanggal dan waktu booking</p>
                     </div>
                 </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">
-                            Quantity <span class="text-red-500">*</span>
-                        </label>
-                        <input type="number" name="quantity" min="1"
-                            value="{{ old('quantity', 1) }}"
-                            x-model.number="quantity"
-                            required
-                            class="w-full h-[44px] rounded-xl border border-gray-300 px-4 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    </div>
-                    <div class="flex flex-col justify-end">
+                
+                <div class="mt-4">
+                    <div class="flex flex-col justify-center">
                         {{-- Total biaya — tampil jika layanan sudah dipilih --}}
                         <template x-if="selectedServiceId && unitPrice > 0">
                             <div class="bg-blue-600 rounded-xl px-4 py-3 text-white">
                                 <p class="text-[11px] font-semibold uppercase tracking-wider opacity-80 mb-0.5">Total Biaya</p>
                                 <p class="text-[24px] font-bold leading-none" x-text="formatCurrency(estimatedTotal)"></p>
                                 <p class="text-[11px] opacity-70 mt-1.5">
-                                    Harga sesuai layanan × quantity. DP minimal 30% wajib dibayar setelah booking dikirim.
+                                    Harga sesuai paket layanan. DP minimal 30% wajib dibayar setelah booking dikirim.
                                 </p>
                             </div>
                         </template>
@@ -184,7 +167,6 @@
                         Booking lebih dari 1 hari
                     </label>
                 </div>
-
                 {{-- Tanggal yang sudah terisi --}}
                 @if(!empty($bookedDates))
                     <div class="mt-4 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
@@ -194,7 +176,6 @@
                         </p>
                     </div>
                 @endif
-
                 {{-- Tanggal single --}}
                 <div x-show="!multiDay" class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
@@ -215,7 +196,6 @@
                             class="w-full h-[44px] rounded-xl border border-gray-300 px-4 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     </div>
                 </div>
-
                 {{-- Tanggal multi day --}}
                 <div x-show="multiDay" class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
@@ -246,7 +226,6 @@
                     </div>
                 </div>
             </div>
-
             {{-- STEP 4: CATATAN --}}
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
                 <div class="flex items-start gap-3 mb-5">
@@ -263,7 +242,6 @@
                         class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">{{ old('notes') }}</textarea>
                 </div>
             </div>
-
             {{-- SUBMIT --}}
             <button type="button" @click="handleSubmit()"
                 class="w-full h-[52px] rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-[16px] shadow-lg transition flex items-center justify-center gap-2">
@@ -274,17 +252,15 @@
             </button>
         </form>
     </div>
-
     <script>
         function publicBookingForm() {
             return {
                 selectedServiceId: '{{ old('service_type_id', '') }}',
                 unitPrice: 0,
-                quantity: {{ old('quantity', 1) }},
                 multiDay: false,
                 serviceError: false,
                 get estimatedTotal() {
-                    return this.unitPrice * this.quantity
+                    return this.unitPrice
                 },
                 selectService(id, price) {
                     this.selectedServiceId = String(id)

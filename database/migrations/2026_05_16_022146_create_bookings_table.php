@@ -34,7 +34,6 @@ return new class extends Migration
             $table->string('payment_status')->default('Belum Bayar');
 
             // TPS — input
-            $table->integer('quantity')->default(1);
             $table->bigInteger('unit_price')->default(0);
             $table->decimal('discount_percent', 5, 2)->default(0);
             $table->bigInteger('paid_amount')->default(0);

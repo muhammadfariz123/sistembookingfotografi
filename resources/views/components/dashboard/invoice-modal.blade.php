@@ -1,29 +1,19 @@
 {{-- resources/views/components/dashboard/invoice-modal.blade.php --}}
 <div x-data="invoiceModal()" @open-invoice.window="openModal($event.detail)" x-show="show" x-cloak x-transition.opacity
     class="fixed inset-0 z-[60]">
-    <!-- BACKDROP -->
     <div @click="show = false" class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
-    <!-- WRAPPER -->
     <div class="relative min-h-screen flex items-center justify-center p-4">
         <div @click.stop
             class="bg-white w-full max-w-[860px] rounded-[22px] shadow-2xl overflow-hidden max-h-[95vh] flex flex-col">
-            <!-- HEADER MODAL -->
             <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between shrink-0 bg-white">
                 <h2 class="text-[18px] font-bold text-gray-900">Generate Invoice</h2>
                 <div class="flex items-center gap-2">
-                    <button @click="downloadPDF()"
-                        class="h-[36px] px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[13px] font-semibold flex items-center gap-2 transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                        </svg>
-                        Download PDF
-                    </button>
                     <button @click="printInvoice()"
                         class="h-[36px] px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[13px] font-semibold flex items-center gap-2 transition">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
                         </svg>
-                        Print
+                        Print / Save PDF
                     </button>
                     <button @click="show = false"
                         class="w-8 h-8 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-500 flex items-center justify-center transition">
@@ -34,7 +24,6 @@
                 </div>
             </div>
 
-            <!-- LOADING -->
             <div x-show="loading" class="flex-1 flex items-center justify-center py-16">
                 <svg class="animate-spin w-8 h-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
@@ -42,10 +31,7 @@
                 </svg>
             </div>
 
-            <!-- BODY -->
             <div x-show="!loading" class="flex-1 overflow-y-auto no-scrollbar">
-
-                <!-- PENGATURAN INVOICE -->
                 <div class="px-6 py-5 border-b border-gray-100 bg-gray-50/50">
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="text-[15px] font-bold text-gray-800">Pengaturan Invoice</h3>
@@ -58,7 +44,6 @@
                         </button>
                     </div>
 
-                    <!-- JENIS INVOICE -->
                     <div class="bg-white rounded-2xl border border-gray-200 p-4">
                         <p class="text-[13px] font-semibold text-gray-700 mb-3">Jenis Invoice</p>
                         <div class="flex flex-wrap gap-6">
@@ -79,7 +64,6 @@
                             </label>
                         </div>
 
-                        <!-- Pengaturan DP -->
                         <div x-show="invoiceType === 'dp'" class="mt-4 space-y-3">
                             <div class="flex gap-2">
                                 <button @click="dpMethod = 'percent'"
@@ -94,7 +78,6 @@
                                 </button>
                             </div>
 
-                            <!-- Slider persen -->
                             <template x-if="dpMethod === 'percent'">
                                 <div>
                                     <p class="text-[13px] font-medium text-gray-600 mb-2">Persentase DP</p>
@@ -111,11 +94,9 @@
                                 </div>
                             </template>
 
-                            <!-- ── Input nominal (UPDATED) ── -->
                             <template x-if="dpMethod === 'nominal'">
                                 <div>
                                     <p class="text-[13px] font-medium text-gray-600 mb-2">Nominal DP (Rp)</p>
-                                    <!-- Input dengan suffix Rupiah -->
                                     <div class="relative">
                                         <input
                                             type="text"
@@ -129,13 +110,11 @@
                                             Rupiah
                                         </span>
                                     </div>
-                                    <!-- Info -->
                                     <p class="text-[12px] text-blue-600 mt-1.5">
                                         DP: <span x-text="formatRp(dpNominal)"></span>
                                         dari total <span x-text="formatRp(booking?.total ?? 0)"></span>
                                         (<span x-text="dpNominalPercent"></span>%)
                                     </p>
-                                    <!-- Preset buttons -->
                                     <div class="flex items-center gap-2 mt-2 flex-wrap">
                                         <span class="text-[12px] text-gray-500">Preset:</span>
                                         <template x-for="preset in [25, 30, 50]" :key="preset">
@@ -150,7 +129,6 @@
                                 </div>
                             </template>
 
-                            <!-- Summary DP -->
                             <div class="bg-blue-50 rounded-xl p-3 text-[13px] space-y-1 border border-blue-100">
                                 <div class="flex justify-between">
                                     <span class="text-gray-600">Total Keseluruhan:</span>
@@ -167,7 +145,6 @@
                             </div>
                         </div>
 
-                        <!-- Summary Pelunasan -->
                         <div x-show="invoiceType === 'pelunasan'" class="mt-4">
                             <div class="bg-orange-50 rounded-xl p-3 text-[13px] space-y-1 border border-orange-100">
                                 <div class="flex justify-between">
@@ -185,7 +162,6 @@
                             </div>
                         </div>
 
-                        <!-- Summary Penuh -->
                         <div x-show="invoiceType === 'penuh'" class="mt-4">
                             <div class="bg-green-50 rounded-xl p-3 text-[13px] space-y-1 border border-green-100">
                                 <div class="flex justify-between">
@@ -200,7 +176,6 @@
                         </div>
                     </div>
 
-                    <!-- NOMOR, TANGGAL, JATUH TEMPO -->
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
                         <div>
                             <label class="block text-[12px] font-semibold text-gray-600 mb-1.5">Nomor Invoice</label>
@@ -219,7 +194,6 @@
                         </div>
                     </div>
 
-                    <!-- INFO TIP -->
                     <div class="mt-3 bg-yellow-50 border border-yellow-100 rounded-xl px-4 py-3 text-[12px] text-yellow-800">
                         💡 Pilih jenis invoice di atas:
                         <strong>Invoice DP</strong> untuk pembayaran awal,
@@ -229,13 +203,11 @@
                     </div>
                 </div>
 
-                <!-- PREVIEW INVOICE -->
-                <div id="invoice-preview" class="px-8 py-8 bg-white">
-                    <!-- HEADER INVOICE -->
-                    <div class="flex items-start justify-between mb-8">
+                <div id="invoice-preview" class="px-8 py-8 bg-white mx-auto w-full max-w-[794px] box-border transition-all">
+                    <div class="flex items-start justify-between mb-6">
                         <div>
                             <template x-if="company?.company_logo">
-                                <img :src="'/storage/' + company.company_logo" alt="Logo" class="h-14 object-contain mb-3">
+                                <img :src="'/storage/' + company.company_logo" alt="Logo" class="h-12 object-contain mb-3">
                             </template>
                             <h2 class="text-[20px] font-bold text-blue-700 leading-none"
                                 x-text="company?.company_name || 'Nama Perusahaan'"></h2>
@@ -246,15 +218,14 @@
                                 x-text="'Email: ' + company?.company_email"></p>
                         </div>
                         <div class="text-right">
-                            <h1 class="text-[32px] font-black text-gray-900 tracking-tight">INVOICE</h1>
+                            <h1 class="text-[32px] font-black text-gray-900 tracking-tight leading-none">INVOICE</h1>
                             <p class="text-[13px] text-gray-500 mt-1" x-text="invoiceNumber"></p>
                         </div>
                     </div>
 
-                    <hr class="border-gray-200 mb-6">
+                    <hr class="border-gray-200 mb-5">
 
-                    <!-- BILL TO & TANGGAL -->
-                    <div class="flex items-start justify-between mb-6">
+                    <div class="flex items-start justify-between mb-5">
                         <div>
                             <p class="text-[12px] font-semibold text-gray-500 uppercase tracking-wide mb-1">Bill To:</p>
                             <p class="text-[16px] font-bold text-gray-900" x-text="booking?.client_name || '-'"></p>
@@ -278,13 +249,11 @@
                         </div>
                     </div>
 
-                    <!-- TABEL LAYANAN -->
-                    <table class="w-full mb-6 text-[13px]">
+                    <table class="w-full mb-5 text-[13px]">
                         <thead>
                             <tr class="bg-blue-600 text-white">
                                 <th class="px-4 py-3 text-left font-semibold rounded-tl-lg">Deskripsi Layanan</th>
-                                <th class="px-4 py-3 text-center font-semibold">Qty</th>
-                                <th class="px-4 py-3 text-right font-semibold">Harga per Unit</th>
+                                <th class="px-4 py-3 text-right font-semibold">Harga Paket</th>
                                 <th class="px-4 py-3 text-right font-semibold">Tanggal & Waktu</th>
                                 <th class="px-4 py-3 text-right font-semibold rounded-tr-lg">Jumlah</th>
                             </tr>
@@ -293,24 +262,22 @@
                             <tr class="border border-gray-200">
                                 <td class="px-4 py-4 align-top">
                                     <p class="font-bold text-gray-900" x-text="booking?.service_type?.name || '-'"></p>
-                                    <p class="text-[12px] text-blue-600 mt-0.5" x-text="booking?.service_type?.description || ''"></p>
+                                    <p class="text-[12px] text-blue-600 mt-0.5 whitespace-pre-line" x-text="booking?.service_type?.description || ''"></p>
                                     <p class="text-[12px] text-gray-500 mt-0.5" x-text="booking?.notes || ''"></p>
                                 </td>
-                                <td class="px-4 py-4 text-center" x-text="booking?.quantity || 1"></td>
                                 <td class="px-4 py-4 text-right" x-text="formatRp(booking?.unit_price ?? 0)"></td>
                                 <td class="px-4 py-4 text-right" x-text="formatDateShort(booking?.booking_date ?? booking?.start_date)"></td>
-                                <td class="px-4 py-4 text-right font-semibold"
-                                    x-text="formatRp((booking?.unit_price ?? 0) * (booking?.quantity ?? 1))"></td>
+                                <td class="px-4 py-4 text-right font-semibold text-gray-900"
+                                    x-text="formatRp(booking?.subtotal ?? booking?.unit_price ?? 0)"></td>
                             </tr>
                         </tbody>
                     </table>
 
-                    <!-- SUMMARY KEUANGAN -->
-                    <div class="flex justify-end mb-6">
+                    <div class="flex justify-end mb-5">
                         <div class="w-full max-w-[340px] space-y-2 text-[13px]">
                             <div class="flex justify-between">
                                 <span class="text-gray-500">Subtotal:</span>
-                                <span class="font-medium" x-text="formatRp(booking?.subtotal ?? booking?.total ?? 0)"></span>
+                                <span class="font-medium text-gray-800" x-text="formatRp(booking?.subtotal ?? booking?.total ?? 0)"></span>
                             </div>
                             <template x-if="(booking?.discount_amount ?? 0) > 0">
                                 <div class="flex justify-between">
@@ -318,9 +285,9 @@
                                     <span class="font-medium text-red-500" x-text="'- ' + formatRp(booking?.discount_amount ?? 0)"></span>
                                 </div>
                             </template>
-                            <div class="flex justify-between border-t border-gray-200 pt-2">
+                            <div class="flex justify-between border-t border-gray-200 pt-2 mt-2">
                                 <span class="text-gray-700 font-medium">Total keseluruhan:</span>
-                                <span class="font-bold" x-text="formatRp(booking?.total ?? 0)"></span>
+                                <span class="font-bold text-gray-900" x-text="formatRp(booking?.total ?? 0)"></span>
                             </div>
                             <template x-if="invoiceType === 'dp'">
                                 <div>
@@ -359,33 +326,32 @@
                         </div>
                     </div>
 
-                    <!-- INFORMASI PEMBAYARAN -->
-                    <div class="border border-gray-200 rounded-2xl p-5 mb-4">
-                        <p class="text-[14px] font-bold text-gray-800 mb-1">Informasi Pembayaran</p>
-                        <p class="text-[13px] text-gray-500 mb-4">
-                            Status: <span class="font-semibold" x-text="booking?.payment_status || '-'"></span>
-                        </p>
-                        <div class="border-2 border-orange-300 rounded-xl p-4 text-center mb-4 bg-orange-50/50">
+                    <div class="border border-gray-200 rounded-xl p-5 mb-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <p class="text-[14px] font-bold text-gray-800">Informasi Pembayaran</p>
+                            <p class="text-[12px] text-gray-500">Status: <span class="font-semibold text-gray-700" x-text="booking?.payment_status || '-'"></span></p>
+                        </div>
+                        <div class="border-2 border-orange-300 rounded-lg p-3 text-center mb-4 bg-orange-50/50">
                             <p class="text-[12px] font-semibold text-orange-600 mb-1">
                                 <span x-text="invoiceType === 'dp' ? 'Jumlah DP yang harus ditransfer' : 'Jumlah yang harus ditransfer'"></span>
                             </p>
-                            <p class="text-[26px] font-black text-orange-600" x-text="formatRp(invoiceAmount)"></p>
+                            <p class="text-[24px] font-black text-orange-600 leading-none" x-text="formatRp(invoiceAmount)"></p>
                         </div>
                         <template x-if="company?.bank_name || company?.bank_account">
                             <div>
-                                <p class="text-[13px] font-semibold text-gray-700 mb-2">Transfer Bank:</p>
+                                <p class="text-[12px] font-semibold text-gray-700 mb-1.5">Transfer Bank:</p>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <template x-if="company?.bank_name">
-                                        <div class="border border-gray-200 rounded-xl p-3 text-[13px]">
+                                        <div class="bg-gray-50 rounded-lg p-2.5 text-[12px]">
                                             <p><strong>Bank:</strong> <span x-text="company?.bank_name"></span></p>
-                                            <p><strong>No. Rekening:</strong> <span x-text="company?.bank_account"></span></p>
+                                            <p><strong>No. Rek:</strong> <span x-text="company?.bank_account"></span></p>
                                             <p><strong>A.n:</strong> <span x-text="company?.bank_holder"></span></p>
                                         </div>
                                     </template>
                                     <template x-if="company?.bank_name_2">
-                                        <div class="border border-gray-200 rounded-xl p-3 text-[13px]">
+                                        <div class="bg-gray-50 rounded-lg p-2.5 text-[12px]">
                                             <p><strong>Bank:</strong> <span x-text="company?.bank_name_2"></span></p>
-                                            <p><strong>No. Rekening:</strong> <span x-text="company?.bank_account_2"></span></p>
+                                            <p><strong>No. Rek:</strong> <span x-text="company?.bank_account_2"></span></p>
                                             <p><strong>A.n:</strong> <span x-text="company?.bank_holder_2"></span></p>
                                         </div>
                                     </template>
@@ -393,15 +359,14 @@
                             </div>
                         </template>
                         <template x-if="company?.payment_instruction">
-                            <div class="mt-3 bg-yellow-50 border border-yellow-200 rounded-xl p-3">
-                                <p class="text-[12px] font-semibold text-yellow-800 mb-0.5">Instruksi Pembayaran:</p>
-                                <p class="text-[12px] text-yellow-800" x-text="company?.payment_instruction"></p>
+                            <div class="mt-3 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                                <p class="text-[11px] font-semibold text-yellow-800 mb-0.5">Instruksi Pembayaran:</p>
+                                <p class="text-[11px] text-yellow-800" x-text="company?.payment_instruction"></p>
                             </div>
                         </template>
                     </div>
 
-                    <!-- FOOTER INVOICE -->
-                    <p class="text-center text-[11px] text-gray-400"
+                    <p class="text-center text-[10px] text-gray-400 mt-4"
                         x-text="'Invoice ini dibuat secara otomatis oleh sistem ' + (company?.company_name || '')"></p>
                 </div>
             </div>
@@ -461,7 +426,6 @@ function invoiceModal() {
             }
         },
 
-        // ── Computed ───────────────────────────────────────────
         get dpAmount() {
             const total = this.booking?.total ?? 0
             if (this.dpMethod === 'percent') {
@@ -482,7 +446,6 @@ function invoiceModal() {
             return Math.round((this.dpNominal / total) * 100)
         },
 
-        // ── Display nominal — format saat blur, angka saat fokus ─
         get dpNominalDisplay() {
             if (this.dpNominalFocused) {
                 return this.dpNominal > 0 ? String(this.dpNominal) : ''
@@ -501,7 +464,6 @@ function invoiceModal() {
             }
         },
 
-        // ── Handlers nominal input ─────────────────────────────
         handleDpNominalFocus(el) {
             this.dpNominalFocused = true
             this.$nextTick(() => {
@@ -528,7 +490,6 @@ function invoiceModal() {
             this.dpNominal = raw === '' ? 0 : Math.min(parseInt(raw), total)
         },
 
-        // ── Set preset persen ──────────────────────────────────
         setDpPreset(percent) {
             const total    = this.booking?.total ?? 0
             this.dpNominal = Math.round(total * percent / 100)
@@ -543,7 +504,6 @@ function invoiceModal() {
             this.dpNominalFocused = false
         },
 
-        // ── Format helpers ─────────────────────────────────────
         formatRp(value) {
             return 'Rp ' + new Intl.NumberFormat('id-ID').format(Math.round(value || 0))
         },
@@ -558,23 +518,6 @@ function invoiceModal() {
             return new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(dateStr))
         },
 
-        // ── Download PDF ───────────────────────────────────────
-        async downloadPDF() {
-            const { default: html2pdf } = await import('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js')
-            const element = document.getElementById('invoice-preview')
-            html2pdf()
-                .set({
-                    margin:      [10, 10, 10, 10],
-                    filename:    this.invoiceNumber + '.pdf',
-                    image:       { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2, useCORS: true },
-                    jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                })
-                .from(element)
-                .save()
-        },
-
-        // ── Print ──────────────────────────────────────────────
         printInvoice() {
             const content = document.getElementById('invoice-preview').innerHTML
             const win     = window.open('', '_blank')
@@ -584,8 +527,18 @@ function invoiceModal() {
                 <title>${this.invoiceNumber}</title>
                 <script src="https://cdn.tailwindcss.com"><\/script>
                 <style>
-                    @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
-                    body { font-family: sans-serif; padding: 20px; }
+                    @media print { 
+                        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                        /* Paksa 1 halaman jika memungkinkan */
+                        html, body {
+                            width: 100%;
+                            height: 100%;
+                            margin: 0;
+                            padding: 0;
+                            overflow: hidden;
+                        }
+                    }
+                    body { font-family: sans-serif; padding: 10px; max-width: 800px; margin: auto; }
                 </style>
                 </head><body>${content}</body></html>
             `)

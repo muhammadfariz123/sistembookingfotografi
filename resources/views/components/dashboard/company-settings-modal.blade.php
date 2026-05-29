@@ -187,7 +187,7 @@
                             <label class="block text-[14px] font-semibold text-gray-800 mb-2">Instruksi Pembayaran</label>
                             <textarea rows="3" x-model="form.payment_instruction"
                                 class="w-full rounded-2xl border border-gray-300 px-4 py-3 text-[14px] resize-none"
-                                placeholder="Instruksi transfer untuk klien"></textarea>
+                                placeholder="Instruksi transfer untuk klien, contoh : Silakan transfer ke rekening di atas dan kirimkan bukti transfer untuk konfirmasi pembayaran."></textarea>
                         </div>
                     </div>
 
