@@ -10,11 +10,11 @@
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="font-sans antialiased bg-white">
-<div x-data="financialPage()" class="min-h-screen bg-white">
+<body class="font-sans antialiased bg-[#f5f7fb]">
+<div x-data="financialPage()" class="min-h-screen">
 
     {{-- HEADER --}}
-    <div class="px-4 sm:px-6 lg:px-8 py-5 border-b border-gray-100">
+    <div class="px-4 sm:px-6 lg:px-8 py-5 bg-white border-b border-gray-100 shadow-sm">
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div class="flex items-center gap-4">
                 <a href="{{ route('dashboard') }}" class="text-gray-500 hover:text-blue-600 transition">
@@ -65,24 +65,25 @@
 
     <div class="px-4 sm:px-6 lg:px-8 pb-10 pt-6 space-y-6">
 
-        {{-- EMPTY STATE --}}
+        {{-- EMPTY STATE DISELAASKAN --}}
         @if($bookings->count() === 0)
-            <div class="bg-white rounded-[20px] border border-gray-200 min-h-[480px] flex items-center justify-center">
-                <div class="text-center max-w-xl px-6 py-12">
-                    <div class="w-14 h-14 mx-auto rounded-full bg-gray-100 flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                        </svg>
-                    </div>
-                    <h2 class="mt-6 text-[22px] font-bold text-gray-900">Belum Ada Data Keuangan</h2>
-                    <p class="mt-2 text-gray-500 text-[15px]">
-                        Mulai dengan membuat booking pertama untuk melihat analisis keuangan.
-                    </p>
-                    <a href="{{ route('dashboard') }}"
-                        class="inline-flex items-center justify-center mt-6 h-[40px] px-5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm transition">
-                        Kembali ke Dashboard
-                    </a>
-                </div>
+            <div class="bg-white rounded-[28px] border border-gray-100 min-h-[480px] flex flex-col items-center justify-center p-8 shadow-sm mt-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 text-gray-300 mb-5" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                <h1 class="text-[20px] sm:text-[24px] font-bold text-gray-400">Belum ada data keuangan</h1>
+                <p class="text-gray-400 mt-2 text-[13px] sm:text-[14px] max-w-sm text-center">
+                    Mulai dengan membuat booking pertama untuk melihat laporan dan analisis keuangan Anda di sini.
+                </p>
+                <a href="{{ route('dashboard') }}"
+                    class="mt-6 inline-flex items-center gap-2 h-[44px] px-6 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[14px] transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Kembali ke Dashboard
+                </a>
             </div>
         @else
 
@@ -203,7 +204,6 @@
             <div class="relative flex items-start justify-between">
                 <div>
                     <p class="text-white/80 text-[13px] font-semibold">Laba Bersih</p>
-                    {{-- Keterangan rumus 3.10 sesuai proposal --}}
                     <p class="text-white/70 text-[11px] mt-0.5">Sudah Diterima + Pemasukan Tambahan – Total Pengeluaran</p>
                     <p class="text-[32px] font-bold mt-2 leading-none">
                         Rp {{ number_format(abs($labaBersih), 0, ',', '.') }}
@@ -212,11 +212,6 @@
                         {{ $labaBersih >= 0 ? 'Untung' : 'Rugi' }} &mdash;
                         Periode: {{ request('month') ? \Carbon\Carbon::create()->month(request('month'))->locale('id')->monthName : 'Semua Bulan' }}
                     </p>
-                    {{--
-                        Rumus 3.10 sesuai proposal:
-                        Laba Bersih = Sudah Diterima (Σ Db_i) + Pemasukan Tambahan – Total Pengeluaran
-                        BUKAN Revenue (Σ Total_i) — Revenue adalah pendapatan kotor, bukan kas yang diterima
-                    --}}
                     <p class="text-white/70 text-[11px] mt-1">
                         Sudah Diterima: Rp {{ number_format($sudahDiterima, 0, ',', '.') }}
                         &nbsp;+&nbsp; Tambahan: Rp {{ number_format($totalPemasukan, 0, ',', '.') }}
@@ -519,7 +514,7 @@
                                     </span>
                                 </td>
                                 <td class="px-5 py-3 text-right text-gray-700">
-                                    Rp {{ number_format($booking->subtotal ?? ($booking->unit_price * $booking->quantity), 0, ',', '.') }}
+                                    Rp {{ number_format($booking->subtotal ?? ($booking->unit_price), 0, ',', '.') }}
                                 </td>
                                 <td class="px-5 py-3 text-right text-gray-500">Rp 0</td>
                                 <td class="px-5 py-3 text-right text-red-500">
@@ -622,11 +617,7 @@
     </div>
 
 </div>
-<script src="https://unpkg.com/lucide@latest"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        if (window.lucide) lucide.createIcons()
-    })
     function financialPage() {
         return {
             showIncomeModal:  false,

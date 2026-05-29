@@ -2,15 +2,12 @@
     <div
         x-data="serviceTypePage(@js($services))"
         class="px-3 sm:px-6 lg:px-8 py-6 sm:py-8 bg-[#f5f7fb] min-h-screen overflow-x-hidden">
-        <!-- CONTAINER -->
         <div class="bg-white border border-gray-200 rounded-[20px] sm:rounded-[30px] shadow-sm p-4 sm:p-6 lg:p-8">
-            <!-- BACK -->
             <a href="{{ route('dashboard') }}"
                 class="inline-flex items-center gap-2 text-gray-600 hover:text-blue-600 text-[13px] sm:text-[14px] font-medium transition">
                 <i data-lucide="arrow-left" class="w-4 h-4"></i>
                 Kembali ke Dashboard
             </a>
-            <!-- HEADER -->
             <div class="mt-5 sm:mt-6 flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 sm:gap-6">
                 <div>
                     <h1 class="text-[22px] sm:text-[26px] lg:text-[30px] font-bold text-[#0f172a]">
@@ -75,12 +72,19 @@
                                     </tr>
                                 </template>
                             </template>
+                            
                             <template x-if="services.length === 0">
                                 <tr>
-                                    <td colspan="4" class="py-16 text-center text-[14px] text-gray-500">
-                                        Belum ada layanan. Klik
-                                        <span class="font-semibold text-blue-600">"Tambah Layanan"</span>
-                                        untuk membuat layanan baru.
+                                    <td colspan="4">
+                                        <div class="h-[320px] flex flex-col items-center justify-center px-4 text-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-14 h-14 text-gray-300 mb-4" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                            </svg>
+                                            <h1 class="text-[20px] sm:text-[24px] font-bold text-gray-400">Belum ada layanan</h1>
+                                            <p class="text-gray-400 mt-2 text-[13px] sm:text-[14px]">Klik Tambah Layanan untuk memulai</p>
+                                        </div>
                                     </td>
                                 </tr>
                             </template>
@@ -90,13 +94,11 @@
             </div>
         </div>
 
-        <!-- MODAL -->
         <div x-show="showModal" x-cloak x-transition.opacity class="fixed inset-0 z-50 overflow-y-auto">
             <div @click="closeModal()" class="fixed inset-0 bg-black/35 backdrop-blur-sm"></div>
             <div class="relative min-h-screen flex items-center justify-center p-3 sm:p-4">
                 <div @click.stop
                     class="bg-white w-full max-w-[560px] rounded-[22px] sm:rounded-[28px] shadow-2xl overflow-hidden">
-                    <!-- HEADER MODAL -->
                     <div class="px-5 sm:px-6 py-4 sm:py-5 border-b border-gray-200 flex items-center justify-between">
                         <h2 class="text-[20px] sm:text-[24px] font-bold text-[#1e293b]"
                             x-text="editing ? 'Edit Layanan' : 'Tambah Layanan Baru'"></h2>
@@ -108,9 +110,7 @@
                             </svg>
                         </button>
                     </div>
-                    <!-- BODY MODAL -->
                     <div class="px-5 sm:px-6 py-5 sm:py-6 space-y-5">
-                        <!-- ERROR VALIDASI BACKEND -->
                         <div x-show="Object.keys(errors).length > 0" x-cloak
                             class="bg-red-50 border border-red-200 rounded-2xl px-4 py-3">
                             <ul class="space-y-1">
@@ -128,7 +128,6 @@
                                 </template>
                             </ul>
                         </div>
-                        <!-- NAMA — tambah id + required -->
                         <div>
                             <label class="block text-[14px] font-semibold text-gray-700 mb-2">
                                 Nama Layanan <span class="text-red-500">*</span>
@@ -142,7 +141,6 @@
                                 placeholder="Contoh: Wedding, Prewedding, Wisuda"
                                 class="w-full h-[48px] rounded-2xl border text-[14px] px-4 focus:outline-none focus:ring-2 focus:ring-blue-300 transition">
                         </div>
-                        <!-- DESKRIPSI -->
                         <div>
                             <label class="block text-[14px] font-semibold text-gray-700 mb-2">
                                 Deskripsi (Opsional)
@@ -153,7 +151,6 @@
                                 placeholder="Deskripsi layanan..."
                                 class="w-full rounded-2xl border border-gray-300 text-[14px] px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-blue-300 transition"></textarea>
                         </div>
-                        <!-- HARGA -->
                         <div>
                             <label class="block text-[14px] font-semibold text-gray-700 mb-2">
                                 Harga Default (Opsional)
@@ -169,7 +166,6 @@
                             </p>
                         </div>
                     </div>
-                    <!-- FOOTER MODAL -->
                     <div class="px-5 sm:px-6 pb-5 sm:pb-6 flex flex-col-reverse sm:flex-row justify-end gap-2">
                         <button
                             type="button"
@@ -288,7 +284,6 @@
                 async submitForm() {
                     if (this.submitLoading) return
 
-                    // ── Native browser validation — sama seperti booking modal ──
                     const nameInput = document.getElementById('field-service-name')
                     if (nameInput && !nameInput.checkValidity()) {
                         nameInput.focus()

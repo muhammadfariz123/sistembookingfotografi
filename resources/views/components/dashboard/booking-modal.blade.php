@@ -123,33 +123,35 @@
                             </div>
                         </div>
                         <div class="space-y-0.5 max-h-[200px] overflow-y-auto no-scrollbar">
+                            
                             <template x-if="services.length === 0">
-                                <div class="py-8 text-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-gray-300 mx-auto mb-3"
-                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <div class="py-8 flex flex-col items-center justify-center text-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-gray-300 mb-3" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                     </svg>
-                                    <p class="text-[13px] font-semibold text-gray-500">Belum ada layanan</p>
-                                    <p class="text-[12px] text-gray-400 mt-1">
-                                        Klik "Tambah Layanan" di bawah untuk membuat layanan pertama.
+                                    <h1 class="text-[16px] font-bold text-gray-400">Belum ada layanan</h1>
+                                    <p class="text-[12px] text-gray-400 mt-1 max-w-[200px]">
+                                        Klik "Tambah Layanan" di bawah untuk memulai
                                     </p>
                                 </div>
                             </template>
+                            
                             <template x-if="services.length > 0 && serviceSearch.trim() && filteredServices.length === 0">
-                                <div class="py-8 text-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-gray-300 mx-auto mb-3"
-                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <div class="py-8 flex flex-col items-center justify-center text-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-gray-300 mb-3" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                                     </svg>
-                                    <p class="text-[13px] font-semibold text-gray-500">Tidak ditemukan</p>
-                                    <p class="text-[12px] text-gray-400 mt-1">
-                                        Tidak ada layanan dengan kata kunci
-                                        "<span class="font-medium text-gray-600" x-text="serviceSearch"></span>".
+                                    <h1 class="text-[16px] font-bold text-gray-400">Tidak ditemukan</h1>
+                                    <p class="text-[12px] text-gray-400 mt-1 max-w-[200px]">
+                                        Tidak ada layanan dengan kata kunci "<span class="font-medium text-gray-600" x-text="serviceSearch"></span>"
                                     </p>
                                 </div>
                             </template>
+                            
                             <template x-if="filteredServices.length > 0">
                                 <template x-for="service in filteredServices" :key="service.id">
                                     <div :class="selectedServiceId === service.id ? 'bg-blue-50 border border-blue-100' : 'hover:bg-gray-50 border border-transparent'"
@@ -447,7 +449,7 @@ function bookingForm() {
         bookingDate: '', startDate: '', endDate: '', bookingTime: '',
         multiDay: false, status: 'Dijadwalkan', notes: '',
         unitPrice: 0, paidAmount: 0,
-        discountValue: 0, // Hanya angka persentase 0-100
+        discountValue: 0,
         submitting: false, submitErrors: {}, clientErrors: {},
         services: [], selectedService: '', selectedServiceId: null,
         serviceSearch: '', showServiceDropdown: false,
@@ -472,7 +474,6 @@ function bookingForm() {
         
         get subtotal()   { return this.unitPrice },
         get discountAmount() {
-            // Karena diskon murni persen
             return Math.round(this.subtotal * (this.discountValue / 100));
         },
         get grandTotal() { return Math.max(this.subtotal - this.discountAmount, 0) },
@@ -550,7 +551,7 @@ function bookingForm() {
             this.serviceSubmitting = true; this.serviceErrors = {}
             const isEdit = this.serviceModalMode === 'edit'
             try {
-                const res = await fetch(isEdit ? '/service-types/' + this.serviceForm.id : '/service-types', {
+                const res = await fetch(isEdit ? `/service-types/${this.serviceForm.id}` : '/service-types', {
                     method: isEdit ? 'PUT' : 'POST',
                     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
                     body: JSON.stringify({ name: this.serviceForm.name, description: this.serviceForm.description, price: parseInt(String(this.serviceForm.price).replace(/[^0-9]/g, '') || '0') })
@@ -574,7 +575,7 @@ function bookingForm() {
             this.showServiceDropdown = false
             if (!confirm('Hapus layanan "' + service.name + '"?')) return
             try {
-                const res = await fetch('/service-types/' + service.id, {
+                const res = await fetch(`/service-types/${service.id}`, {
                     method: 'DELETE',
                     headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content }
                 })
@@ -632,7 +633,6 @@ function bookingForm() {
                 this.endDate = ''
             }
 
-            // Set Diskon Murni Persentase
             this.discountValue = parseFloat(booking.discount_percent) || 0;
             
             if (booking.service_type) { 

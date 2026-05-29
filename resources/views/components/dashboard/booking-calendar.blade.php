@@ -1,16 +1,12 @@
-<!-- resources/views/components/dashboard/booking-calendar.blade.php -->
 <div
     x-data="bookingCalendar()"
     x-init="loadBookings()"
     @reload-bookings.window="loadBookings()"
     class="bg-white rounded-[28px] shadow-sm mt-7 border border-gray-100 p-5 overflow-hidden">
 
-    <!-- HEADER -->
     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 mb-5">
         <div>
-            <!-- JUDUL BULAN & TAHUN DINAMIS -->
             <h2 class="text-[20px] font-bold text-gray-800" x-text="calendarTitle"></h2>
-            <!-- LEGEND -->
             <div class="flex flex-wrap items-center gap-5 mt-3 text-sm">
                 <div class="flex items-center gap-2">
                     <div class="w-3 h-3 rounded-full bg-blue-600"></div>
@@ -26,7 +22,6 @@
                 </div>
             </div>
         </div>
-        <!-- NAVIGATION -->
         <div class="flex items-center gap-2">
             <button @click="prevMonth()"
                 class="w-10 h-10 rounded-xl bg-gray-100 hover:bg-gray-200 transition flex items-center justify-center">
@@ -43,7 +38,6 @@
         </div>
     </div>
 
-    <!-- LOADING -->
     <div x-show="loading" class="flex justify-center items-center py-16">
         <svg class="animate-spin w-8 h-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
@@ -51,9 +45,7 @@
         </svg>
     </div>
 
-    <!-- KALENDER -->
     <div x-show="!loading">
-        <!-- HARI -->
         <div class="grid grid-cols-7 gap-2 mb-3">
             <template x-for="day in days" :key="day">
                 <div class="text-center text-sm font-medium text-gray-500">
@@ -62,19 +54,15 @@
             </template>
         </div>
 
-        <!-- TANGGAL -->
         <div class="grid grid-cols-7 gap-2">
             <template x-for="(item, index) in calendarDates" :key="index">
                 <div>
-                    <!-- KOTAK KOSONG (padding awal bulan) -->
                     <div x-show="!item" class="h-[140px] rounded-2xl bg-transparent"></div>
 
-                    <!-- TANGGAL AKTIF -->
                     <div x-show="item"
                         :class="isToday(item) ? 'border-blue-400 bg-blue-50/30' : 'border-gray-200 bg-white'"
                         class="h-[140px] rounded-2xl border p-2 relative overflow-hidden flex flex-col">
 
-                        <!-- NOMOR TANGGAL -->
                         <div class="flex justify-end mb-1">
                             <span
                                 :class="isToday(item)
@@ -84,11 +72,11 @@
                             </span>
                         </div>
 
-                        <!-- BOOKING DI TANGGAL INI -->
                         <div class="flex-1 overflow-y-auto no-scrollbar space-y-1">
                             <template x-for="booking in getBookingsForDay(item)" :key="booking.id">
                                 <div
                                     :class="bookingDotClass(booking.status)"
+                                    @click="openDayDetail(item)"
                                     class="text-white text-[10px] font-medium px-1.5 py-0.5 rounded-lg truncate cursor-pointer leading-tight"
                                     :title="booking.client_name + ' - ' + (booking.service_type?.name ?? '')"
                                     x-text="booking.client_name">
@@ -100,16 +88,19 @@
             </template>
         </div>
 
-        <!-- EMPTY STATE — tampil jika tidak ada booking sama sekali -->
         <template x-if="bookings.length === 0">
-            <div class="py-16 text-center">
-                <h3 class="text-[22px] font-bold text-gray-400">Belum ada data booking</h3>
-                <p class="text-gray-400 mt-2">Klik Tambah Booking untuk memulai</p>
+            <div class="h-[320px] flex flex-col items-center justify-center px-4 text-center mt-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-14 h-14 text-gray-300 mb-4" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                <h1 class="text-[20px] sm:text-[24px] font-bold text-gray-400">Belum ada data booking</h1>
+                <p class="text-gray-400 mt-2 text-[13px] sm:text-[14px]">Klik Tambah Booking untuk memulai</p>
             </div>
         </template>
     </div>
 
-    <!-- MODAL DETAIL BOOKING (klik tanggal yang ada booking) -->
     <div x-show="showDetail" x-cloak x-transition.opacity class="fixed inset-0 z-50">
         <div @click="showDetail = false" class="absolute inset-0 bg-black/35 backdrop-blur-sm"></div>
         <div class="relative min-h-screen flex items-center justify-center p-4">
