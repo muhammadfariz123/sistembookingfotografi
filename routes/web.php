@@ -57,9 +57,7 @@ Route::middleware(['auth'])->group(function () {
     | Service Types
     |--------------------------------------------------------------------------
     */
-    Route::resource('service-types', ServiceTypeController::class)
-        ->only(['index', 'store', 'show', 'update', 'destroy']);
-
+    Route::resource('service-types', ServiceTypeController::class);
     /*
     |--------------------------------------------------------------------------
     | Bookings

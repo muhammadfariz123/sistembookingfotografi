@@ -3,86 +3,65 @@
 namespace App\Http\Controllers;
 
 use App\Models\ServiceType;
-use App\Http\Requests\ServiceTypeRequest;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class ServiceTypeController extends Controller
 {
     public function index()
     {
-        $services = ServiceType::where('user_id', Auth::id())
-            ->orderBy('name')
-            ->get();
-
-        if (request()->wantsJson()) {
-            return response()->json([
-                'success' => true,
-                'data' => $services,
-            ]);
-        }
-
+        $services = ServiceType::where('user_id', Auth::id())->latest()->get();
         return view('service-types.index', compact('services'));
     }
 
-    public function store(ServiceTypeRequest $request)
+    // FUNGSI BARU UNTUK HALAMAN CREATE
+    public function create()
     {
-        $validated = $request->validated();
-
-        $price = isset($validated['price'])
-            ? (int) preg_replace('/[^0-9]/', '', (string) $validated['price'])
-            : 0;
-
-        $service = ServiceType::create([
-            'user_id' => Auth::id(),
-            'name' => $validated['name'],
-            'description' => $validated['description'] ?? null,
-            'price' => $price,
-        ]);
-
-        // AJAX request → return JSON
-        if ($request->wantsJson() || $request->ajax()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Layanan berhasil ditambahkan.',
-                'data' => $service,
-            ], 201);
-        }
-
-        // Form biasa → redirect
-        return redirect()
-            ->route('service-types.index')
-            ->with('success', 'Layanan berhasil ditambahkan.');
+        return view('service-types.form');
     }
 
-    public function update(ServiceTypeRequest $request, ServiceType $serviceType)
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'name'        => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'price'       => 'nullable|numeric|min:0',
+        ]);
+
+        $validated['user_id'] = Auth::id();
+
+        ServiceType::create($validated);
+
+        // Ubah jadi Redirect dengan flash message
+        return redirect()->route('service-types.index')->with('success', 'Layanan berhasil ditambahkan!');
+    }
+
+    // FUNGSI BARU UNTUK HALAMAN EDIT
+    public function edit(ServiceType $serviceType)
+    {
+        // Pastikan hanya pemilik yang bisa edit
+        if ($serviceType->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        return view('service-types.form', ['service' => $serviceType]);
+    }
+
+    public function update(Request $request, ServiceType $serviceType)
     {
         if ($serviceType->user_id !== Auth::id()) {
             abort(403);
         }
 
-        $validated = $request->validated();
-
-        $price = isset($validated['price'])
-            ? (int) preg_replace('/[^0-9]/', '', (string) $validated['price'])
-            : 0;
-
-        $serviceType->update([
-            'name' => $validated['name'],
-            'description' => $validated['description'] ?? null,
-            'price' => $price,
+        $validated = $request->validate([
+            'name'        => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'price'       => 'nullable|numeric|min:0',
         ]);
 
-        if ($request->wantsJson() || $request->ajax()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Layanan berhasil diperbarui.',
-                'data' => $serviceType->fresh(),
-            ]);
-        }
+        $serviceType->update($validated);
 
-        return redirect()
-            ->route('service-types.index')
-            ->with('success', 'Layanan berhasil diperbarui.');
+        return redirect()->route('service-types.index')->with('success', 'Layanan berhasil diperbarui!');
     }
 
     public function destroy(ServiceType $serviceType)
@@ -91,19 +70,13 @@ class ServiceTypeController extends Controller
             abort(403);
         }
 
-        try {
-            $serviceType->delete();
-        } catch (\Illuminate\Database\QueryException $e) {
-            // Foreign key constraint — layanan masih dipakai booking
-            return response()->json([
-                'success' => false,
-                'message' => "Layanan \"{$serviceType->name}\" tidak bisa dihapus karena masih digunakan oleh data booking.",
-            ], 422);
+        // Cek jika layanan dipakai di booking
+        if ($serviceType->bookings()->exists()) {
+            return redirect()->back()->with('error', 'Layanan tidak bisa dihapus karena masih digunakan di Booking.');
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => "Layanan \"{$serviceType->name}\" berhasil dihapus.",
-        ]);
+        $serviceType->delete();
+
+        return redirect()->route('service-types.index')->with('success', 'Layanan berhasil dihapus!');
     }
 }

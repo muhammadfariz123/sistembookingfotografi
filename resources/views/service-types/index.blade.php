@@ -1,72 +1,78 @@
 <x-app-layout>
-    <div
-        x-data="serviceTypePage(@js($services))"
-        class="px-3 sm:px-6 lg:px-8 py-6 sm:py-8 bg-[#f5f7fb] min-h-screen overflow-x-hidden">
-        <div class="bg-white border border-gray-200 rounded-[20px] sm:rounded-[30px] shadow-sm p-4 sm:p-6 lg:p-8">
-            <a href="{{ route('dashboard') }}"
-                class="inline-flex items-center gap-2 text-gray-600 hover:text-blue-600 text-[13px] sm:text-[14px] font-medium transition">
-                <i data-lucide="arrow-left" class="w-4 h-4"></i>
-                Kembali ke Dashboard
-            </a>
-            <div class="mt-5 sm:mt-6 flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 sm:gap-6">
-                <div>
-                    <h1 class="text-[22px] sm:text-[26px] lg:text-[30px] font-bold text-[#0f172a]">
-                        Kelola Jenis Layanan
-                    </h1>
-                    <p class="text-[13px] sm:text-[15px] text-gray-500 mt-2">
-                        Tambahkan dan kelola jenis layanan yang Anda tawarkan
-                    </p>
+    <div x-data="{ services: @js($services) }" 
+         class="px-3 sm:px-6 lg:px-8 py-4 sm:py-6 bg-[#f5f7fb] w-full flex flex-col overflow-hidden"
+         style="height: calc(100vh - 65px);"> <div class="bg-white border border-gray-200 rounded-[20px] sm:rounded-[30px] shadow-sm p-4 sm:p-6 lg:p-8 flex flex-col flex-1 min-h-0 overflow-hidden">
+            
+            <div class="shrink-0 mb-6">
+                <a href="{{ route('dashboard') }}" class="inline-flex items-center gap-2 text-gray-600 hover:text-blue-600 text-[13px] sm:text-[14px] font-medium transition">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke Dashboard
+                </a>
+
+                <div class="mt-4 sm:mt-5 flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 sm:gap-6">
+                    <div>
+                        <h1 class="text-[22px] sm:text-[26px] lg:text-[30px] font-bold text-[#0f172a] leading-tight">
+                            Kelola Jenis Layanan
+                        </h1>
+                        <p class="text-[13px] sm:text-[15px] text-gray-500 mt-1.5">
+                            Tambahkan dan kelola jenis layanan yang Anda tawarkan
+                        </p>
+                    </div>
+                    <a href="{{ route('service-types.create') }}"
+                        class="h-[48px] px-5 sm:px-6 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[14px] sm:text-[15px] flex items-center justify-center gap-2 shadow-sm transition whitespace-nowrap w-full lg:w-auto shrink-0">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Tambah Layanan
+                    </a>
                 </div>
-                <button
-                    @click="openCreateModal()"
-                    class="h-[44px] sm:h-[48px] px-5 sm:px-6 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[14px] sm:text-[15px] flex items-center justify-center gap-2 shadow-lg shadow-blue-200 transition whitespace-nowrap w-full lg:w-auto">
-                    <i data-lucide="plus" class="w-4 h-4"></i>
-                    Tambah Layanan
-                </button>
             </div>
 
-            {{-- ── TABEL ── --}}
-            <div class="mt-6 sm:mt-8 border border-gray-200 rounded-[22px] overflow-hidden">
-                <div class="overflow-x-auto">
+            {{-- ── TABEL SECTION ── --}}
+            <div class="border border-gray-200 rounded-[22px] flex-1 min-h-0 flex flex-col overflow-hidden relative">
+                
+                <div class="bg-[#f8fafc] border-b border-gray-200 shrink-0 pr-[scrollbar-width]"> 
                     <table class="w-full min-w-[500px]">
-                        <thead class="bg-[#f8fafc]">
+                        <thead>
                             <tr class="text-left">
-                                @foreach (['Nama Layanan', 'Deskripsi', 'Harga Default'] as $head)
-                                    <th class="px-4 lg:px-6 py-4 text-[12px] font-semibold tracking-wide text-gray-500 uppercase">
-                                        {{ $head }}
-                                    </th>
-                                @endforeach
-                                <th class="px-4 lg:px-6 py-4 text-[12px] font-semibold tracking-wide text-gray-500 uppercase text-right">
-                                    Aksi
-                                </th>
+                                <th class="w-1/3 px-4 lg:px-6 py-4 text-[12px] font-semibold tracking-wide text-gray-500 uppercase">Nama Layanan</th>
+                                <th class="w-1/3 px-4 lg:px-6 py-4 text-[12px] font-semibold tracking-wide text-gray-500 uppercase">Deskripsi</th>
+                                <th class="w-1/6 px-4 lg:px-6 py-4 text-[12px] font-semibold tracking-wide text-gray-500 uppercase">Harga Default</th>
+                                <th class="w-1/6 px-4 lg:px-6 py-4 text-[12px] font-semibold tracking-wide text-gray-500 uppercase text-right">Aksi</th>
                             </tr>
                         </thead>
+                    </table>
+                </div>
+
+                <div class="overflow-y-auto overflow-x-auto flex-1 no-scrollbar">
+                    <table class="w-full min-w-[500px]">
                         <tbody class="divide-y divide-gray-200">
+                            
                             <template x-if="services.length > 0">
                                 <template x-for="item in services" :key="item.id">
                                     <tr class="hover:bg-gray-50 transition">
-                                        <td class="px-4 lg:px-6 py-5">
-                                            <p class="font-semibold text-[14px] lg:text-[15px] text-[#0f172a]"
-                                                x-text="item.name"></p>
+                                        <td class="w-1/3 px-4 lg:px-6 py-4 sm:py-5">
+                                            <p class="font-semibold text-[14px] lg:text-[15px] text-[#0f172a]" x-text="item.name"></p>
                                         </td>
-                                        <td class="px-4 lg:px-6 py-5">
-                                            <p class="text-[13px] lg:text-[14px] text-gray-500"
-                                                x-text="item.description || '-'"></p>
+                                        <td class="w-1/3 px-4 lg:px-6 py-4 sm:py-5">
+                                            <p class="text-[13px] lg:text-[14px] text-gray-500 line-clamp-2" x-text="item.description || '-'"></p>
                                         </td>
-                                        <td class="px-4 lg:px-6 py-5 whitespace-nowrap">
+                                        <td class="w-1/6 px-4 lg:px-6 py-4 sm:py-5 whitespace-nowrap">
                                             <p class="text-[13px] lg:text-[14px] font-medium text-[#0f172a]"
-                                                x-text="formatCurrency(item.price)"></p>
+                                                x-text="new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(item.price || 0)"></p>
                                         </td>
-                                        <td class="px-4 lg:px-6 py-5">
+                                        <td class="w-1/6 px-4 lg:px-6 py-4 sm:py-5">
                                             <div class="flex justify-end gap-3">
-                                                <button type="button" @click="openEditModal(item)"
-                                                    class="w-9 h-9 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-600 flex items-center justify-center transition">
+                                                <a :href="`/service-types/${item.id}/edit`"
+                                                    class="w-9 h-9 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-600 flex items-center justify-center transition shrink-0">
                                                     <i data-lucide="pencil" class="w-4 h-4"></i>
-                                                </button>
-                                                <button type="button" @click="confirmDelete(item)"
-                                                    class="w-9 h-9 rounded-xl bg-red-50 hover:bg-red-100 text-red-500 flex items-center justify-center transition">
+                                                </a>
+
+                                                <button type="button" @click="deleteServiceType(item.id)"
+                                                    class="w-9 h-9 rounded-xl bg-red-50 hover:bg-red-100 text-red-500 flex items-center justify-center transition shrink-0">
                                                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                                                 </button>
+                                                
+                                                <form :id="`delete-form-${item.id}`" :action="`/service-types/${item.id}`" method="POST" class="hidden">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                </form>
                                             </div>
                                         </td>
                                     </tr>
@@ -77,10 +83,8 @@
                                 <tr>
                                     <td colspan="4">
                                         <div class="h-[320px] flex flex-col items-center justify-center px-4 text-center">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-14 h-14 text-gray-300 mb-4" fill="none"
-                                                viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-14 h-14 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                             </svg>
                                             <h1 class="text-[20px] sm:text-[24px] font-bold text-gray-400">Belum ada layanan</h1>
                                             <p class="text-gray-400 mt-2 text-[13px] sm:text-[14px]">Klik Tambah Layanan untuk memulai</p>
@@ -92,117 +96,7 @@
                     </table>
                 </div>
             </div>
-        </div>
-
-        <div x-show="showModal" x-cloak x-transition.opacity class="fixed inset-0 z-50 overflow-y-auto">
-            <div @click="closeModal()" class="fixed inset-0 bg-black/35 backdrop-blur-sm"></div>
-            <div class="relative min-h-screen flex items-center justify-center p-3 sm:p-4">
-                <div @click.stop
-                    class="bg-white w-full max-w-[560px] rounded-[22px] sm:rounded-[28px] shadow-2xl overflow-hidden">
-                    <div class="px-5 sm:px-6 py-4 sm:py-5 border-b border-gray-200 flex items-center justify-between">
-                        <h2 class="text-[20px] sm:text-[24px] font-bold text-[#1e293b]"
-                            x-text="editing ? 'Edit Layanan' : 'Tambah Layanan Baru'"></h2>
-                        <button @click="closeModal()" :disabled="submitLoading"
-                            class="text-gray-400 hover:text-gray-600 transition disabled:opacity-40">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
-                        </button>
-                    </div>
-                    <div class="px-5 sm:px-6 py-5 sm:py-6 space-y-5">
-                        <div x-show="Object.keys(errors).length > 0" x-cloak
-                            class="bg-red-50 border border-red-200 rounded-2xl px-4 py-3">
-                            <ul class="space-y-1">
-                                <template x-for="(msgs, field) in errors" :key="field">
-                                    <template x-for="msg in msgs" :key="msg">
-                                        <li class="text-[12px] text-red-600 flex items-center gap-2">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 shrink-0"
-                                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                            </svg>
-                                            <span x-text="msg"></span>
-                                        </li>
-                                    </template>
-                                </template>
-                            </ul>
-                        </div>
-                        <div>
-                            <label class="block text-[14px] font-semibold text-gray-700 mb-2">
-                                Nama Layanan <span class="text-red-500">*</span>
-                            </label>
-                            <input
-                                type="text"
-                                id="field-service-name"
-                                x-model="form.name"
-                                required
-                                :class="errors.name ? 'border-red-400 ring-1 ring-red-400' : 'border-gray-300'"
-                                placeholder="Contoh: Wedding, Prewedding, Wisuda"
-                                class="w-full h-[48px] rounded-2xl border text-[14px] px-4 focus:outline-none focus:ring-2 focus:ring-blue-300 transition">
-                        </div>
-                        <div>
-                            <label class="block text-[14px] font-semibold text-gray-700 mb-2">
-                                Deskripsi (Opsional)
-                            </label>
-                            <textarea
-                                x-model="form.description"
-                                rows="4"
-                                placeholder="Deskripsi layanan..."
-                                class="w-full rounded-2xl border border-gray-300 text-[14px] px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-blue-300 transition"></textarea>
-                        </div>
-                        <div>
-                            <label class="block text-[14px] font-semibold text-gray-700 mb-2">
-                                Harga Default (Opsional)
-                            </label>
-                            <input
-                                type="text"
-                                x-model="form.price_display"
-                                @input="formatPrice($event)"
-                                placeholder="0"
-                                class="w-full h-[48px] rounded-2xl border border-gray-300 text-[14px] px-4 focus:outline-none focus:ring-2 focus:ring-blue-300 transition">
-                            <p class="text-[12px] text-gray-500 mt-1">
-                                Harga ini akan diisi otomatis saat membuat booking (bisa diubah nanti)
-                            </p>
-                        </div>
-                    </div>
-                    <div class="px-5 sm:px-6 pb-5 sm:pb-6 flex flex-col-reverse sm:flex-row justify-end gap-2">
-                        <button
-                            type="button"
-                            @click="closeModal()"
-                            :disabled="submitLoading"
-                            class="h-[46px] px-6 rounded-2xl border border-gray-300 text-gray-600 font-medium text-[14px] disabled:opacity-60 transition">
-                            Batal
-                        </button>
-                        <button
-                            type="button"
-                            @click="submitForm()"
-                            :disabled="submitLoading"
-                            class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold h-[46px] px-6 rounded-2xl transition flex items-center justify-center gap-2 min-w-[170px]">
-                            <svg x-show="submitLoading"
-                                class="animate-spin h-4 w-4 shrink-0"
-                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10"
-                                    stroke="currentColor" stroke-width="4"/>
-                                <path class="opacity-75" fill="currentColor"
-                                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
-                            </svg>
-                            <svg x-show="!submitLoading"
-                                xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0"
-                                fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M17 21H7a2 2 0 01-2-2V5a2 2 0 012-2h7l5 5v11a2 2 0 01-2 2z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M17 21v-8H7v8M7 3v5h8"/>
-                            </svg>
-                            <span x-text="submitLoading
-                                ? 'Menyimpan...'
-                                : (editing ? 'Simpan Perubahan' : 'Simpan')">
-                            </span>
-                        </button>
-                    </div>
-                </div>
-            </div>
+            
         </div>
     </div>
 
@@ -212,215 +106,39 @@
             if (window.lucide) lucide.createIcons()
         })
 
-        function refreshIcons() {
-            if (window.lucide) {
-                setTimeout(() => lucide.createIcons(), 50)
-            }
-        }
-
-        function serviceTypePage(services) {
-            return {
-                showModal:     false,
-                editing:       false,
-                submitLoading: false,
-                services,
-                errors: {},
-                form: {
-                    id:            null,
-                    name:          '',
-                    description:   '',
-                    price:         0,
-                    price_display: ''
-                },
-                init() {
-                    this.$watch('services', () => refreshIcons())
-                },
-                formatCurrency(value) {
-                    return new Intl.NumberFormat('id-ID', {
-                        style:                 'currency',
-                        currency:              'IDR',
-                        minimumFractionDigits: 0
-                    }).format(value || 0)
-                },
-                toRupiah(value) {
-                    return new Intl.NumberFormat('id-ID').format(value || 0)
-                },
-                formatPrice(event) {
-                    const raw = event.target.value.replace(/\D/g, '')
-                    this.form.price         = raw ? parseInt(raw) : 0
-                    this.form.price_display = raw
-                        ? new Intl.NumberFormat('id-ID').format(parseInt(raw))
-                        : ''
-                },
-                resetForm() {
-                    this.form   = { id: null, name: '', description: '', price: 0, price_display: '' }
-                    this.errors = {}
-                },
-                openCreateModal() {
-                    this.editing       = false
-                    this.submitLoading = false
-                    this.resetForm()
-                    this.showModal     = true
-                },
-                openEditModal(item) {
-                    this.editing       = true
-                    this.submitLoading = false
-                    this.errors        = {}
-                    const price        = item.price ? parseInt(item.price) : 0
-                    this.form = {
-                        id:            item.id,
-                        name:          item.name,
-                        description:   item.description || '',
-                        price:         price,
-                        price_display: this.toRupiah(price)
-                    }
-                    this.showModal = true
-                },
-                closeModal() {
-                    if (this.submitLoading) return
-                    this.showModal = false
-                    this.errors    = {}
-                },
-                async submitForm() {
-                    if (this.submitLoading) return
-
-                    const nameInput = document.getElementById('field-service-name')
-                    if (nameInput && !nameInput.checkValidity()) {
-                        nameInput.focus()
-                        nameInput.reportValidity()
-                        return
-                    }
-
-                    this.submitLoading = true
-                    this.errors        = {}
-                    const url    = this.editing
-                        ? `/service-types/${this.form.id}`
-                        : `/service-types`
-                    const method = this.editing ? 'PUT' : 'POST'
-                    try {
-                        const res = await fetch(url, {
-                            method,
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Accept':       'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                            },
-                            body: JSON.stringify({
-                                name:        this.form.name,
-                                description: this.form.description,
-                                price:       this.form.price
-                            })
-                        })
-                        const result = await res.json()
-                        if (res.status === 422) {
-                            this.errors = result.errors ?? {}
-                            return
-                        }
-                        if (!res.ok) {
-                            Swal.fire({
-                                icon:               'error',
-                                title:              'Gagal!',
-                                text:               result.message ?? 'Terjadi kesalahan.',
-                                confirmButtonColor: '#2563eb',
-                                customClass:        { popup: 'rounded-[28px]' }
-                            })
-                            return
-                        }
-                        if (this.editing) {
-                            const idx = this.services.findIndex(s => s.id === this.form.id)
-                            if (idx !== -1) this.services.splice(idx, 1, result.data)
-                        } else {
-                            this.services.unshift(result.data)
-                        }
-                        refreshIcons()
-                        this.showModal = false
-                        Swal.fire({
-                            icon:               'success',
-                            title:              'Berhasil!',
-                            text:               result.message,
-                            confirmButtonColor: '#2563eb',
-                            timer:              2000,
-                            timerProgressBar:   true,
-                            showConfirmButton:  false,
-                            customClass:        { popup: 'rounded-[28px]' }
-                        })
-                    } catch (err) {
-                        Swal.fire({
-                            icon:               'error',
-                            title:              'Gagal!',
-                            text:               'Gagal terhubung ke server.',
-                            confirmButtonColor: '#2563eb',
-                            customClass:        { popup: 'rounded-[28px]' }
-                        })
-                    } finally {
-                        this.submitLoading = false
-                    }
-                },
-                async confirmDelete(item) {
-                    const confirm = await Swal.fire({
-                        title:              `Hapus "${item.name}"?`,
-                        text:               'Layanan yang sedang digunakan booking tidak bisa dihapus.',
-                        icon:               'warning',
-                        showCancelButton:   true,
-                        confirmButtonColor: '#ef4444',
-                        cancelButtonColor:  '#6b7280',
-                        confirmButtonText:  'Ya, Hapus',
-                        cancelButtonText:   'Batal',
-                        reverseButtons:     true,
-                        customClass:        { popup: 'rounded-[28px]' }
-                    })
-                    if (!confirm.isConfirmed) return
-                    try {
-                        const res  = await fetch(`/service-types/${item.id}`, {
-                            method: 'DELETE',
-                            headers: {
-                                'Accept':       'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                            }
-                        })
-                        const data = await res.json()
-                        if (!res.ok) {
-                            const msg = res.status === 500
-                                ? `Layanan "${item.name}" tidak bisa dihapus karena masih digunakan oleh data booking.`
-                                : (data.message ?? 'Gagal menghapus.')
-                            Swal.fire({
-                                icon:               'warning',
-                                title:              'Tidak Bisa Dihapus',
-                                text:               msg,
-                                confirmButtonColor: '#2563eb',
-                                customClass:        { popup: 'rounded-[28px]' }
-                            })
-                            return
-                        }
-                        this.services = this.services.filter(s => s.id !== item.id)
-                        refreshIcons()
-                        Swal.fire({
-                            icon:               'success',
-                            title:              'Dihapus!',
-                            text:               data.message,
-                            confirmButtonColor: '#2563eb',
-                            timer:              2000,
-                            timerProgressBar:   true,
-                            showConfirmButton:  false,
-                            customClass:        { popup: 'rounded-[28px]' }
-                        })
-                    } catch (err) {
-                        Swal.fire({
-                            icon:               'error',
-                            title:              'Gagal!',
-                            text:               'Gagal terhubung ke server.',
-                            confirmButtonColor: '#2563eb',
-                            customClass:        { popup: 'rounded-[28px]' }
-                        })
-                    }
+        function deleteServiceType(id) {
+            Swal.fire({
+                title: 'Hapus Layanan?',
+                text: 'Layanan yang dihapus tidak bisa dikembalikan.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#9ca3af',
+                confirmButtonText: 'Ya, Hapus',
+                cancelButtonText: 'Batal',
+                reverseButtons: true,
+                customClass: { popup: 'rounded-[28px]' }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById(`delete-form-${id}`).submit();
                 }
-            }
+            })
         }
     </script>
+    
     <style>
-        [x-cloak] { display: none !important; }
-        html, body { overflow-x: hidden; max-width: 100%; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
+        /* Menghilangkan scrollbar tapi tetap bisa di scroll lewat trackpad/mouse wheel */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        /* Cegah scrolling di body global saat berada di halaman ini */
+        body {
+            overflow: hidden !important;
+        }
     </style>
 </x-app-layout>
