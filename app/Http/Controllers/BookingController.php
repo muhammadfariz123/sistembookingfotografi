@@ -73,6 +73,22 @@ class BookingController extends Controller
 
         return view('dashboard');
     }
+    public function create()
+    {
+        // Ambil layanan milik user yang sedang login
+        $serviceTypes = \App\Models\ServiceType::where('user_id', \Illuminate\Support\Facades\Auth::id())->get();
+        return view('bookings.form', compact('serviceTypes'));
+    }
+
+    public function edit(Booking $booking)
+    {
+        if ($booking->user_id !== \Illuminate\Support\Facades\Auth::id()) {
+            abort(403);
+        }
+
+        $serviceTypes = \App\Models\ServiceType::where('user_id', \Illuminate\Support\Facades\Auth::id())->get();
+        return view('bookings.form', compact('booking', 'serviceTypes'));
+    }
 
     public function store(BookingRequest $request)
     {
@@ -182,7 +198,7 @@ class BookingController extends Controller
             'count' => Booking::where('user_id', Auth::id())->count()
         ]);
     }
-    
+
     public function stream(Request $request)
     {
         $userId = Auth::id();

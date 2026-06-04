@@ -18,6 +18,7 @@
         <h1 class="text-2xl font-bold">Form Booking Layanan</h1>
         <p class="text-white/70 text-sm mt-1">Isi data di bawah ini untuk mengirim booking ke admin.</p>
     </div>
+
     <div class="max-w-2xl mx-auto px-4 py-8" x-data="publicBookingForm()">
         {{-- ERROR --}}
         @if($errors->any())
@@ -29,8 +30,10 @@
                 </ul>
             </div>
         @endif
+
         <form method="POST" action="{{ route('booking.public.store', $ownerId) }}" id="booking-form">
             @csrf
+            
             {{-- STEP 1: DATA KLIEN --}}
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-5">
                 <div class="flex items-start gap-3 mb-5">
@@ -69,6 +72,7 @@
                         class="w-full h-[44px] rounded-xl border border-gray-300 px-4 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
             </div>
+
             {{-- STEP 2: PILIH LAYANAN --}}
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-5">
                 <div class="flex items-start gap-3 mb-5">
@@ -79,15 +83,12 @@
                     </div>
                 </div>
                 @if($services->isEmpty())
-                    <div class="py-8 text-center text-gray-400 text-sm">
-                        Belum ada layanan tersedia saat ini.
-                    </div>
+                    <div class="py-8 text-center text-gray-400 text-sm">Belum ada layanan tersedia saat ini.</div>
                 @else
                     <div class="space-y-3">
                         @foreach($services as $service)
                             <label class="block cursor-pointer">
-                                <input type="radio" name="service_type_id"
-                                    value="{{ $service->id }}"
+                                <input type="radio" name="service_type_id" value="{{ $service->id }}"
                                     x-model="selectedServiceId"
                                     @change="selectService({{ $service->id }}, {{ (int)$service->price }})"
                                     {{ old('service_type_id') == $service->id ? 'checked' : '' }}
@@ -96,11 +97,9 @@
                                     <div class="flex items-center gap-3">
                                         <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition"
                                             :class="selectedServiceId == '{{ $service->id }}' ? 'border-blue-500 bg-blue-500' : 'border-gray-300'">
-                                            <div x-show="selectedServiceId == '{{ $service->id }}'"
-                                                class="w-2 h-2 rounded-full bg-white"></div>
+                                            <div x-show="selectedServiceId == '{{ $service->id }}'" class="w-2 h-2 rounded-full bg-white"></div>
                                         </div>
-                                        <p class="font-semibold text-[15px]"
-                                            :class="selectedServiceId == '{{ $service->id }}' ? 'text-blue-700' : 'text-gray-900'">
+                                        <p class="font-semibold text-[15px]" :class="selectedServiceId == '{{ $service->id }}' ? 'text-blue-700' : 'text-gray-900'">
                                             {{ $service->name }}
                                         </p>
                                     </div>
@@ -121,14 +120,10 @@
                             </label>
                         @endforeach
                     </div>
-                    <div x-show="serviceError" class="mt-2 text-sm text-red-500 font-medium">
-                        Jenis layanan wajib dipilih.
-                    </div>
-                    @error('service_type_id')
-                        <p class="mt-2 text-sm text-red-500">{{ $message }}</p>
-                    @enderror
+                    <div x-show="serviceError" class="mt-2 text-sm text-red-500 font-medium" style="display: none;">Jenis layanan wajib dipilih.</div>
                 @endif
             </div>
+            
             {{-- STEP 3: DETAIL BOOKING --}}
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-5">
                 <div class="flex items-start gap-3 mb-5">
@@ -139,93 +134,49 @@
                     </div>
                 </div>
                 
-                <div class="mt-4">
-                    <div class="flex flex-col justify-center">
-                        {{-- Total biaya — tampil jika layanan sudah dipilih --}}
-                        <template x-if="selectedServiceId && unitPrice > 0">
-                            <div class="bg-blue-600 rounded-xl px-4 py-3 text-white">
-                                <p class="text-[11px] font-semibold uppercase tracking-wider opacity-80 mb-0.5">Total Biaya</p>
-                                <p class="text-[24px] font-bold leading-none" x-text="formatCurrency(estimatedTotal)"></p>
-                                <p class="text-[11px] opacity-70 mt-1.5">
-                                    Harga sesuai paket layanan. DP minimal 30% wajib dibayar setelah booking dikirim.
-                                </p>
-                            </div>
-                        </template>
-                        {{-- Placeholder sebelum pilih layanan --}}
-                        <template x-if="!selectedServiceId || unitPrice === 0">
-                            <div class="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
-                                <p class="text-[13px] text-gray-400">Pilih layanan terlebih dahulu untuk melihat total biaya.</p>
-                            </div>
-                        </template>
+                <div class="mt-4 bg-blue-600 rounded-xl px-5 py-4 text-white shadow-md">
+                    <p class="text-[11px] font-semibold uppercase tracking-wider opacity-80 mb-1">Total Biaya Paket</p>
+                    <p class="text-[28px] font-bold leading-none mb-3" x-text="formatCurrency(estimatedTotal)"></p>
+                    <div class="space-y-2 border-t border-white/20 pt-3 text-[12px] opacity-90">
+                        <p class="flex items-start gap-2">• <span>DP Minimal 30%: <b class="font-bold" x-text="formatCurrency(estimatedTotal * 0.3)"></b></span></p>
+                        <p class="flex items-start gap-2">• <span>Pelunasan dapat dilakukan maksimal pada hari acara.</span></p>
                     </div>
                 </div>
 
-                {{-- Multi day toggle --}}
                 <div class="mt-4">
                     <label class="inline-flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
                         <input type="checkbox" x-model="multiDay" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
                         Booking lebih dari 1 hari
                     </label>
                 </div>
-                {{-- Tanggal yang sudah terisi --}}
-                @if(!empty($bookedDates))
-                    <div class="mt-4 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-                        <p class="text-xs font-semibold text-amber-700 mb-1">Tanggal yang sudah terisi:</p>
-                        <p class="text-xs text-amber-600">
-                            {{ collect($bookedDates)->map(fn($d) => \Carbon\Carbon::parse($d)->locale('id')->isoFormat('D MMM YYYY'))->join(', ') }}
-                        </p>
-                    </div>
-                @endif
-                {{-- Tanggal single --}}
+                
                 <div x-show="!multiDay" class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">
-                            Tanggal <span class="text-red-500">*</span>
-                        </label>
-                        <input type="date" name="booking_date"
-                            id="booking_date"
-                            :required="!multiDay"
-                            value="{{ old('booking_date') }}"
-                            min="{{ now()->addDay()->format('Y-m-d') }}"
-                            class="w-full h-[44px] rounded-xl border border-gray-300 px-4 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Tanggal <span class="text-red-500">*</span></label>
+                        <input type="date" name="booking_date" :required="!multiDay" value="{{ now()->format('Y-m-d') }}" min="{{ now()->format('Y-m-d') }}" class="w-full h-[44px] rounded-xl border border-gray-300 px-4 text-sm">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">Waktu</label>
-                        <input type="time" name="booking_time"
-                            value="{{ old('booking_time') }}"
-                            class="w-full h-[44px] rounded-xl border border-gray-300 px-4 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <input type="time" name="booking_time" class="w-full h-[44px] rounded-xl border border-gray-300 px-4 text-sm">
                     </div>
                 </div>
-                {{-- Tanggal multi day --}}
-                <div x-show="multiDay" class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                
+                <div x-show="multiDay" class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4" style="display: none;">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">
-                            Tanggal Mulai <span class="text-red-500">*</span>
-                        </label>
-                        <input type="date" name="start_date"
-                            :required="multiDay"
-                            value="{{ old('start_date') }}"
-                            min="{{ now()->addDay()->format('Y-m-d') }}"
-                            class="w-full h-[44px] rounded-xl border border-gray-300 px-4 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Tanggal Mulai <span class="text-red-500">*</span></label>
+                        <input type="date" name="start_date" :required="multiDay" value="{{ now()->format('Y-m-d') }}" min="{{ now()->format('Y-m-d') }}" class="w-full h-[44px] rounded-xl border border-gray-300 px-4 text-sm">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">
-                            Tanggal Selesai <span class="text-red-500">*</span>
-                        </label>
-                        <input type="date" name="end_date"
-                            :required="multiDay"
-                            value="{{ old('end_date') }}"
-                            min="{{ now()->addDay()->format('Y-m-d') }}"
-                            class="w-full h-[44px] rounded-xl border border-gray-300 px-4 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Tanggal Selesai <span class="text-red-500">*</span></label>
+                        <input type="date" name="end_date" :required="multiDay" value="{{ now()->format('Y-m-d') }}" min="{{ now()->format('Y-m-d') }}" class="w-full h-[44px] rounded-xl border border-gray-300 px-4 text-sm">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">Waktu</label>
-                        <input type="time" name="booking_time"
-                            value="{{ old('booking_time') }}"
-                            class="w-full h-[44px] rounded-xl border border-gray-300 px-4 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <input type="time" name="booking_time" class="w-full h-[44px] rounded-xl border border-gray-300 px-4 text-sm">
                     </div>
                 </div>
             </div>
+            
             {{-- STEP 4: CATATAN --}}
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
                 <div class="flex items-start gap-3 mb-5">
@@ -235,23 +186,15 @@
                         <p class="text-gray-500 text-sm">Isi bila ada permintaan khusus</p>
                     </div>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Catatan</label>
-                    <textarea name="notes" rows="3"
-                        placeholder="Catatan tambahan..."
-                        class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">{{ old('notes') }}</textarea>
-                </div>
+                <textarea name="notes" rows="3" placeholder="Catatan tambahan..." class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm resize-none focus:ring-2 focus:ring-blue-500">{{ old('notes') }}</textarea>
             </div>
-            {{-- SUBMIT --}}
-            <button type="button" @click="handleSubmit()"
-                class="w-full h-[52px] rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-[16px] shadow-lg transition flex items-center justify-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
-                </svg>
+            
+            <button type="button" @click="handleSubmit()" class="w-full h-[52px] rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-[16px] shadow-lg transition">
                 Kirim Booking
             </button>
         </form>
     </div>
+    
     <script>
         function publicBookingForm() {
             return {
@@ -259,29 +202,20 @@
                 unitPrice: 0,
                 multiDay: false,
                 serviceError: false,
-                get estimatedTotal() {
-                    return this.unitPrice
-                },
+                get estimatedTotal() { return this.unitPrice },
                 selectService(id, price) {
-                    this.selectedServiceId = String(id)
-                    this.unitPrice = price
-                    this.serviceError = false
+                    this.selectedServiceId = String(id);
+                    this.unitPrice = price;
+                    this.serviceError = false;
                 },
-                formatCurrency(value) {
-                    return 'Rp ' + new Intl.NumberFormat('id-ID').format(value || 0)
-                },
+                formatCurrency(value) { return 'Rp ' + new Intl.NumberFormat('id-ID').format(value || 0) },
                 handleSubmit() {
                     if (!this.selectedServiceId) {
-                        this.serviceError = true
-                        document.querySelector('[name="service_type_id"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-                        return
+                        this.serviceError = true;
+                        window.scrollTo({ top: 400, behavior: 'smooth' });
+                        return;
                     }
-                    const form = document.getElementById('booking-form')
-                    if (!form.checkValidity()) {
-                        form.reportValidity()
-                        return
-                    }
-                    form.submit()
+                    document.getElementById('booking-form').submit();
                 }
             }
         }

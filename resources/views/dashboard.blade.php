@@ -8,20 +8,16 @@
        filter-panel    → search, filter, toggle tabel/kalender, tombol aksi
        booking-table   → tabel data booking + polling realtime
        booking-calendar→ kalender booking
-       booking-modal   → form tambah/edit booking + kalkulasi TPS
        invoice-modal   → generate & download invoice
-       company-settings→ pengaturan perusahaan & rekening bank
      
      JS di sini: dashboardApp()
-       Hanya menangani: viewMode, modal state
+       Hanya menangani: viewMode, kalender helpers
        Semua filter sudah pindah ke filter-panel
        Summary sudah pindah ke summary-cards
      ================================================ --}}
 <x-app-layout>
     <div x-data="dashboardApp()"
-         @open-company-settings.window="openCompanySettingsModal()"
          @set-view-mode.window="viewMode = $event.detail"
-         @open-booking-modal.window="openBookingModal()"
          class="px-4 sm:px-6 lg:px-7 py-7 bg-[#f5f7fb] min-h-screen overflow-x-hidden">
 
         {{-- Kartu summary: status booking + status pembayaran --}}
@@ -40,24 +36,17 @@
             <x-dashboard.booking-calendar />
         </div>
 
-        {{-- Modal: tambah/edit booking --}}
-        @include('components.dashboard.booking-modal')
-
         {{-- Modal: invoice --}}
         <x-dashboard.invoice-modal />
 
-        {{-- Modal: pengaturan perusahaan --}}
-        <x-dashboard.company-settings-modal />
     </div>
 
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
-    // dashboardApp() — minimal, hanya kelola viewMode dan modal
+    // dashboardApp() — minimal, hanya kelola viewMode dan kalender
     function dashboardApp() {
         return {
             viewMode: 'table',
-            showBookingModal:         false,
-            showCompanySettingsModal: false,
 
             // Kalender helpers — dipakai booking-calendar.blade.php
             currentDate: new Date(),
@@ -65,35 +54,6 @@
 
             init() {
                 this.$nextTick(() => { if (window.lucide) lucide.createIcons() })
-            },
-
-            openBookingModal() {
-                this.showBookingModal = true
-                document.body.classList.add('overflow-hidden')
-                this.$nextTick(() => {
-                    if (window.lucide) lucide.createIcons()
-                    const fd = document.getElementById('booking-form')?._x_dataStack?.[0]
-                    if (fd) fd._editMode ? (fd._editMode = false) : fd.resetToCreate?.()
-                })
-            },
-            closeBookingModal() {
-                this.showBookingModal = false
-                document.body.classList.remove('overflow-hidden')
-                this.$nextTick(() => {
-                    document.getElementById('booking-form')?._x_dataStack?.[0]?.resetToCreate?.()
-                })
-            },
-            openCompanySettingsModal() {
-                this.showCompanySettingsModal = true
-                document.body.classList.add('overflow-hidden')
-                this.$nextTick(() => {
-                    if (window.lucide) lucide.createIcons()
-                    window.dispatchEvent(new CustomEvent('reload-company-settings'))
-                })
-            },
-            closeCompanySettingsModal() {
-                this.showCompanySettingsModal = false
-                document.body.classList.remove('overflow-hidden')
             },
 
             get calendarTitle() {

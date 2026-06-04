@@ -10,18 +10,20 @@ use Illuminate\Support\Facades\Storage;
 
 class CompanySettingController extends Controller
 {
-    // ── GET: ambil setting milik user yang login ──────────────
-    public function show()
+    // ── GET: Tampilkan Halaman Form Pengaturan ──────────────
+    public function edit()
     {
         $setting = CompanySetting::where('user_id', Auth::id())->first();
 
-        return response()->json([
-            'success' => true,
-            'data'    => $setting,
-        ]);
+        // Jika belum ada data, buat instance kosong agar form tidak error
+        if (!$setting) {
+            $setting = new CompanySetting();
+        }
+
+        return view('company-settings.form', compact('setting'));
     }
 
-    // ── POST: simpan atau update setting ─────────────────────
+    // ── POST: Simpan atau Update Pengaturan ─────────────────────
     public function store(Request $request)
     {
         $request->validate([
@@ -68,10 +70,7 @@ class CompanySettingController extends Controller
 
         $setting->save();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Pengaturan perusahaan berhasil disimpan.',
-            'data'    => $setting,
-        ]);
+        // Redirect kembali ke halaman form dengan pesan sukses
+        return redirect()->route('company-setting.edit')->with('success', 'Pengaturan perusahaan berhasil disimpan.');
     }
 }

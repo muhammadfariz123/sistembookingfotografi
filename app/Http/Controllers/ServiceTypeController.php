@@ -23,19 +23,57 @@ class ServiceTypeController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'        => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'price'       => 'nullable|numeric|min:0',
+            'name' => 'required|string|max:255',
+            'description' => 'required|string', // SEKARANG REQUIRED
+            'price' => 'required|numeric|min:0', // SEKARANG REQUIRED
         ]);
-
         $validated['user_id'] = Auth::id();
+        $service = ServiceType::create($validated);
 
-        ServiceType::create($validated);
-
-        // Ubah jadi Redirect dengan flash message
+        if ($request->wantsJson()) {
+            return response()->json(['message' => 'Layanan berhasil ditambahkan!', 'data' => $service]);
+        }
         return redirect()->route('service-types.index')->with('success', 'Layanan berhasil ditambahkan!');
     }
 
+    public function update(Request $request, ServiceType $serviceType)
+    {
+        if ($serviceType->user_id !== Auth::id()) {
+            abort(403);
+        }
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'required|string', // SEKARANG REQUIRED
+            'price' => 'required|numeric|min:0', // SEKARANG REQUIRED
+        ]);
+        $serviceType->update($validated);
+
+        if ($request->wantsJson()) {
+            return response()->json(['message' => 'Layanan diperbarui!', 'data' => $serviceType]);
+        }
+        return redirect()->route('service-types.index')->with('success', 'Layanan diperbarui!');
+    }
+
+    public function destroy(ServiceType $serviceType)
+    {
+        if ($serviceType->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        if ($serviceType->bookings()->exists()) {
+            if (request()->wantsJson()) {
+                return response()->json(['message' => 'Layanan sedang digunakan di booking, tidak bisa dihapus.'], 400);
+            }
+            return redirect()->back()->with('error', 'Layanan masih digunakan.');
+        }
+
+        $serviceType->delete();
+
+        if (request()->wantsJson()) {
+            return response()->json(['message' => 'Layanan dihapus!']);
+        }
+        return redirect()->route('service-types.index')->with('success', 'Layanan berhasil dihapus!');
+    }
     // FUNGSI BARU UNTUK HALAMAN EDIT
     public function edit(ServiceType $serviceType)
     {
@@ -47,36 +85,5 @@ class ServiceTypeController extends Controller
         return view('service-types.form', ['service' => $serviceType]);
     }
 
-    public function update(Request $request, ServiceType $serviceType)
-    {
-        if ($serviceType->user_id !== Auth::id()) {
-            abort(403);
-        }
 
-        $validated = $request->validate([
-            'name'        => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'price'       => 'nullable|numeric|min:0',
-        ]);
-
-        $serviceType->update($validated);
-
-        return redirect()->route('service-types.index')->with('success', 'Layanan berhasil diperbarui!');
-    }
-
-    public function destroy(ServiceType $serviceType)
-    {
-        if ($serviceType->user_id !== Auth::id()) {
-            abort(403);
-        }
-
-        // Cek jika layanan dipakai di booking
-        if ($serviceType->bookings()->exists()) {
-            return redirect()->back()->with('error', 'Layanan tidak bisa dihapus karena masih digunakan di Booking.');
-        }
-
-        $serviceType->delete();
-
-        return redirect()->route('service-types.index')->with('success', 'Layanan berhasil dihapus!');
-    }
 }

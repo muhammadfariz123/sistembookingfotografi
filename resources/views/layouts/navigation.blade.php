@@ -23,7 +23,8 @@
                         class="cursor-pointer hover:text-blue-600 transition block">
                         <i data-lucide="bar-chart-3" style="width:18px;height:18px;"></i>
                     </a>
-                    <span class="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[11px] px-2 py-1 rounded shadow-sm opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap z-20">
+                    <span
+                        class="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[11px] px-2 py-1 rounded shadow-sm opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap z-20">
                         Laporan Keuangan
                     </span>
                 </div>
@@ -34,20 +35,20 @@
                         class="cursor-pointer hover:text-blue-600 transition block">
                         <i data-lucide="download" style="width:18px;height:18px;"></i>
                     </a>
-                    <span class="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[11px] px-2 py-1 rounded shadow-sm opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap z-20">
+                    <span
+                        class="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[11px] px-2 py-1 rounded shadow-sm opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap z-20">
                         Unduh Excel
                     </span>
                 </div>
 
                 {{-- Pengaturan Perusahaan --}}
                 <div class="relative group">
-                    <button
-                        type="button"
-                        @click="$dispatch('open-company-settings')"
+                    <a href="{{ route('company-setting.edit') }}"
                         class="cursor-pointer hover:text-blue-600 transition block">
                         <i data-lucide="settings" style="width:18px;height:18px;"></i>
-                    </button>
-                    <span class="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[11px] px-2 py-1 rounded shadow-sm opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap z-20">
+                    </a>
+                    <span
+                        class="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[11px] px-2 py-1 rounded shadow-sm opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap z-20">
                         Pengaturan Perusahaan
                     </span>
                 </div>
@@ -56,13 +57,12 @@
                 <div class="relative group">
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <button
-                            type="submit"
-                            class="cursor-pointer hover:text-red-500 transition block">
+                        <button type="submit" class="cursor-pointer hover:text-red-500 transition block">
                             <i data-lucide="log-out" style="width:18px;height:18px;"></i>
                         </button>
                     </form>
-                    <span class="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[11px] px-2 py-1 rounded shadow-sm opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap z-20">
+                    <span
+                        class="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[11px] px-2 py-1 rounded shadow-sm opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap z-20">
                         Logout
                     </span>
                 </div>
@@ -70,9 +70,7 @@
 
             {{-- MOBILE MENU BUTTON --}}
             <div class="flex md:hidden items-center gap-3">
-                <button
-                    @click="open = !open"
-                    class="p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition">
+                <button @click="open = !open" class="p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition">
                     <i x-show="!open" data-lucide="menu" style="width:20px;height:20px;"></i>
                     <i x-show="open" data-lucide="x" style="width:20px;height:20px;"></i>
                 </button>
@@ -104,18 +102,15 @@
                 </a>
 
                 {{-- Pengaturan Perusahaan Mobile --}}
-                <button
-                    type="button"
-                    @click="open = false; $dispatch('open-company-settings');"
+                <a href="{{ route('company-setting.edit') }}"
                     class="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition">
                     <i data-lucide="settings" style="width:18px;height:18px;"></i>
                     <span>Pengaturan Perusahaan</span>
-                </button>
+                </a>
 
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <button
-                        type="submit"
+                    <button type="submit"
                         class="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-red-500 hover:bg-red-50 transition">
                         <i data-lucide="log-out" style="width:18px;height:18px;"></i>
                         <span>Logout</span>

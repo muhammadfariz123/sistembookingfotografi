@@ -59,28 +59,30 @@ Route::middleware(['auth'])->group(function () {
     */
     Route::resource('service-types', ServiceTypeController::class);
     /*
-    |--------------------------------------------------------------------------
-    | Bookings
-    |--------------------------------------------------------------------------
-    */
-    Route::get('/bookings', [BookingController::class, 'index'])
-        ->name('bookings.index');
-    Route::post('/bookings', [BookingController::class, 'store'])
-        ->name('bookings.store');
-    Route::put('/bookings/{booking}', [BookingController::class, 'update'])
-        ->name('bookings.update');
-    Route::delete('/bookings/{booking}', [BookingController::class, 'destroy'])
-        ->name('bookings.destroy');
-Route::get('/bookings/count', [BookingController::class, 'count'])->name('bookings.count');
-    /*
-    |--------------------------------------------------------------------------
-    | Company Settings
-    |--------------------------------------------------------------------------
-    */
-    // Company Setting
-    Route::get('/company-setting', [CompanySettingController::class, 'show'])->name('company-setting.show');
-    Route::post('/company-setting', [CompanySettingController::class, 'store'])->name('company-setting.store');
+       |--------------------------------------------------------------------------
+       | Bookings
+       |--------------------------------------------------------------------------
+       */
+    Route::get('/bookings/create', [BookingController::class, 'create'])->name('bookings.create');
+    Route::get('/bookings/{booking}/edit', [BookingController::class, 'edit'])->name('bookings.edit');
 
+    Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');
+    Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
+    Route::put('/bookings/{booking}', [BookingController::class, 'update'])->name('bookings.update');
+    Route::delete('/bookings/{booking}', [BookingController::class, 'destroy'])->name('bookings.destroy');
+    Route::get('/bookings/count', [BookingController::class, 'count'])->name('bookings.count');   /*
+|--------------------------------------------------------------------------
+| Company Settings
+|--------------------------------------------------------------------------
+*/
+    // Company Setting
+/*
+|--------------------------------------------------------------------------
+| Company Settings
+|--------------------------------------------------------------------------
+*/
+    Route::get('/company-setting', [CompanySettingController::class, 'edit'])->name('company-setting.edit');
+    Route::post('/company-setting', [CompanySettingController::class, 'store'])->name('company-setting.store');
     // invoice
     Route::get('/invoices/{booking}', [InvoiceController::class, 'show'])->name('invoice.show');
 });
