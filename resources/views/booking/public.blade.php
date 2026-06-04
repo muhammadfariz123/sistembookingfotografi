@@ -130,33 +130,54 @@
                     <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm shrink-0">3</div>
                     <div>
                         <h2 class="font-semibold text-gray-900 text-[16px]">Detail Booking</h2>
-                        <p class="text-gray-500 text-sm">Isi tanggal dan waktu booking</p>
+                        <p class="text-gray-500 text-sm">Isi tanggal dan waktu acara</p>
                     </div>
                 </div>
                 
-                <div class="mt-4 bg-blue-600 rounded-xl px-5 py-4 text-white shadow-md">
-                    <p class="text-[11px] font-semibold uppercase tracking-wider opacity-80 mb-1">Total Biaya Paket</p>
-                    <p class="text-[28px] font-bold leading-none mb-3" x-text="formatCurrency(estimatedTotal)"></p>
-                    <div class="space-y-2 border-t border-white/20 pt-3 text-[12px] opacity-90">
-                        <p class="flex items-start gap-2">• <span>DP Minimal 30%: <b class="font-bold" x-text="formatCurrency(estimatedTotal * 0.3)"></b></span></p>
-                        <p class="flex items-start gap-2">• <span>Pelunasan dapat dilakukan maksimal pada hari acara.</span></p>
+                <div class="mt-4">
+                    <div class="flex flex-col justify-center">
+                        {{-- Total biaya — tampil jika layanan sudah dipilih --}}
+                        <template x-if="selectedServiceId && unitPrice > 0">
+                            <div class="bg-blue-600 rounded-xl px-5 py-4 text-white shadow-md">
+                                <p class="text-[11px] font-semibold uppercase tracking-wider opacity-80 mb-1">Total Biaya Paket</p>
+                                <p class="text-[28px] font-bold leading-none mb-3" x-text="formatCurrency(estimatedTotal)"></p>
+                                
+                                <div class="space-y-2 border-t border-white/20 pt-3 text-[12px] opacity-90">
+                                    <p class="flex items-start gap-2">
+                                        <span class="font-bold mt-0.5">•</span>
+                                        <span>DP Minimal 30%: <b class="font-bold text-yellow-300" x-text="formatCurrency(estimatedTotal * 0.3)"></b> (Jatuh tempo 1-2 hari setelah Invoice dikirim)</span>
+                                    </p>
+                                    <p class="flex items-start gap-2">
+                                        <span class="font-bold mt-0.5">•</span>
+                                        <span>Pelunasan Sisa Tagihan wajib diselesaikan <b class="font-bold text-yellow-300">maksimal H-7</b> sebelum hari acara.</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </template>
+                        {{-- Placeholder sebelum pilih layanan --}}
+                        <template x-if="!selectedServiceId || unitPrice === 0">
+                            <div class="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+                                <p class="text-[13px] text-gray-400">Pilih layanan terlebih dahulu untuk melihat total biaya dan ketentuan pembayaran.</p>
+                            </div>
+                        </template>
                     </div>
                 </div>
 
-                <div class="mt-4">
+                {{-- Multi day toggle --}}
+                <div class="mt-5">
                     <label class="inline-flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
                         <input type="checkbox" x-model="multiDay" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                        Booking lebih dari 1 hari
+                        Acara lebih dari 1 hari
                     </label>
                 </div>
                 
                 <div x-show="!multiDay" class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Tanggal <span class="text-red-500">*</span></label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Tanggal Acara <span class="text-red-500">*</span></label>
                         <input type="date" name="booking_date" :required="!multiDay" value="{{ now()->format('Y-m-d') }}" min="{{ now()->format('Y-m-d') }}" class="w-full h-[44px] rounded-xl border border-gray-300 px-4 text-sm">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Waktu</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Waktu Mulai</label>
                         <input type="time" name="booking_time" class="w-full h-[44px] rounded-xl border border-gray-300 px-4 text-sm">
                     </div>
                 </div>
@@ -171,7 +192,7 @@
                         <input type="date" name="end_date" :required="multiDay" value="{{ now()->format('Y-m-d') }}" min="{{ now()->format('Y-m-d') }}" class="w-full h-[44px] rounded-xl border border-gray-300 px-4 text-sm">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Waktu</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Waktu Mulai</label>
                         <input type="time" name="booking_time" class="w-full h-[44px] rounded-xl border border-gray-300 px-4 text-sm">
                     </div>
                 </div>
@@ -189,8 +210,8 @@
                 <textarea name="notes" rows="3" placeholder="Catatan tambahan..." class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm resize-none focus:ring-2 focus:ring-blue-500">{{ old('notes') }}</textarea>
             </div>
             
-            <button type="button" @click="handleSubmit()" class="w-full h-[52px] rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-[16px] shadow-lg transition">
-                Kirim Booking
+            <button type="button" @click="handleSubmit()" class="w-full h-[52px] rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-[16px] shadow-lg transition hover:scale-[1.02]">
+                Kirim Booking ke Admin
             </button>
         </form>
     </div>

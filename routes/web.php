@@ -14,22 +14,28 @@ use App\Http\Controllers\PublicBookingController;
 | Web Routes
 |--------------------------------------------------------------------------
 */
+
+// ── ROOT ROUTE ──────────────────────────────────────────────────────────
+// Karena ini sistem manajemen internal, kita langsung arahkan halaman 
+// utama (/) ke halaman Login. (Welcome page sudah dihapus).
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('login');
 });
 
 
-// ── Public booking routes (tidak perlu login) ─────────────────
+// ── Public booking routes (tidak perlu login) ───────────────────────────
 Route::get('/booking/{ownerId}', [PublicBookingController::class, 'show'])
     ->name('booking.public.show');
 Route::post('/booking/{ownerId}', [PublicBookingController::class, 'store'])
     ->name('booking.public.store');
-// ── Ganti {booking} → {bookingId} agar tidak konflik model binding ──
+// Ganti {booking} → {bookingId} agar tidak konflik model binding
 Route::get('/booking/{ownerId}/invoice/{bookingId}', [PublicBookingController::class, 'invoice'])
     ->name('booking.public.invoice');
+
+
 /*
 |--------------------------------------------------------------------------
-| Protected Routes
+| Protected Routes (Hanya untuk Admin yang sudah Login)
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth'])->group(function () {
@@ -52,39 +58,38 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/financial/expense', [FinancialController::class, 'storeExpense'])->name('financial.expense.store');
     Route::delete('/financial/income/{income}', [FinancialController::class, 'destroyIncome'])->name('financial.income.destroy');
     Route::delete('/financial/expense/{expense}', [FinancialController::class, 'destroyExpense'])->name('financial.expense.destroy');
+    
     /*
     |--------------------------------------------------------------------------
     | Service Types
     |--------------------------------------------------------------------------
     */
     Route::resource('service-types', ServiceTypeController::class);
+    
     /*
-       |--------------------------------------------------------------------------
-       | Bookings
-       |--------------------------------------------------------------------------
-       */
+    |--------------------------------------------------------------------------
+    | Bookings
+    |--------------------------------------------------------------------------
+    */
     Route::get('/bookings/create', [BookingController::class, 'create'])->name('bookings.create');
     Route::get('/bookings/{booking}/edit', [BookingController::class, 'edit'])->name('bookings.edit');
-
     Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');
     Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
     Route::put('/bookings/{booking}', [BookingController::class, 'update'])->name('bookings.update');
     Route::delete('/bookings/{booking}', [BookingController::class, 'destroy'])->name('bookings.destroy');
-    Route::get('/bookings/count', [BookingController::class, 'count'])->name('bookings.count');   /*
-|--------------------------------------------------------------------------
-| Company Settings
-|--------------------------------------------------------------------------
-*/
-    // Company Setting
-/*
-|--------------------------------------------------------------------------
-| Company Settings
-|--------------------------------------------------------------------------
-*/
+    Route::get('/bookings/count', [BookingController::class, 'count'])->name('bookings.count');    
+
+    /*
+    |--------------------------------------------------------------------------
+    | Company Settings
+    |--------------------------------------------------------------------------
+    */
     Route::get('/company-setting', [CompanySettingController::class, 'edit'])->name('company-setting.edit');
     Route::post('/company-setting', [CompanySettingController::class, 'store'])->name('company-setting.store');
-    // invoice
+    
+    // Invoice Internal
     Route::get('/invoices/{booking}', [InvoiceController::class, 'show'])->name('invoice.show');
 });
 
+// Memuat rute autentikasi bawaan Laravel Breeze (login, logout, dll)
 require __DIR__ . '/auth.php';

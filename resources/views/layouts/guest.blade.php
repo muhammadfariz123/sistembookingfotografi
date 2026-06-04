@@ -1,31 +1,31 @@
+{{-- resources/views/layouts/guest.blade.php --}}
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="csrf-token" content="{{ csrf_token() }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'Rozi Photography') }}</title>
+    <title>{{ config('app.name', 'Rozi Photography') }}</title>
 
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-    </head>
-    <body class="font-sans text-gray-900 antialiased">
-        <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-[#f5f7fb]">
-            
-            <div>
-                <a href="/">
-                    {{-- <x-application-logo class="w-20 h-20 fill-current text-gray-500" /> --}}
-                </a>
-            </div>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-            <div class="w-full sm:max-w-md mt-6 px-6 py-8 bg-white shadow-lg overflow-hidden sm:rounded-[28px] border border-gray-100">
-                {{ $slot }}
-            </div>
-            
+    <style>
+        /* Paksa seluruh font di halaman tamu menggunakan Poppins */
+        body { font-family: 'Poppins', sans-serif !important; }
+    </style>
+</head>
+<body class="font-sans text-gray-900 antialiased bg-[#f5f7fb]">
+    
+    <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0">
+        <div class="w-full sm:max-w-md mt-6 px-6 py-8 bg-white shadow-lg border border-gray-100 overflow-hidden sm:rounded-[24px]">
+            {{ $slot }}
         </div>
-    </body>
+    </div>
+
+</body>
 </html>

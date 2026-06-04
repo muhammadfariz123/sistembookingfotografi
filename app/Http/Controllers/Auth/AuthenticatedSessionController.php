@@ -1,4 +1,5 @@
 <?php
+// app/Http/Controllers/Auth/AuthenticatedSessionController.php
 
 namespace App\Http\Controllers\Auth;
 
@@ -12,7 +13,7 @@ use Illuminate\View\View;
 class AuthenticatedSessionController extends Controller
 {
     /**
-     * Display the login view.
+     * Menampilkan halaman login untuk Admin.
      */
     public function create(): View
     {
@@ -20,31 +21,33 @@ class AuthenticatedSessionController extends Controller
     }
 
     /**
-     * Handle an incoming authentication request.
+     * Memproses Request Login yang dikirim dari form AJAX (login.blade.php).
      */
     public function store(LoginRequest $request)
     {
+        // 1. Validasi & Cek kredensial email + password di database
         $request->authenticate();
 
+        // 2. Mencegah serangan Session Fixation (Keamanan TPS)
         $request->session()->regenerate();
 
+        // 3. Mengembalikan response dalam bentuk JSON (Sesuai ekspektasi fetch Javascript)
         return response()->json([
             'success' => true,
-            'redirect' => route('dashboard'),
+            'redirect' => route('dashboard'), // URL tujuan setelah sukses
         ]);
     }
 
     /**
-     * Destroy an authenticated session.
+     * Menghancurkan session (Proses Logout Admin).
      */
     public function destroy(Request $request): RedirectResponse
     {
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
+        $request->session()->regenerateToken(); // Reset token CSRF
 
-        $request->session()->regenerateToken();
-
-        return redirect('/');
+        return redirect('/'); // Kembali ke halaman utama (login.blade.php)
     }
 }

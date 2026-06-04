@@ -13,12 +13,22 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <style>
+        /* Memaksa seluruh sistem menggunakan font Poppins agar konsisten */
+        body {
+            font-family: 'Poppins', sans-serif !important;
+        }
+    </style>
 </head>
 
-<body class="font-sans antialiased bg-[#f5f7fb]">
+<body class="antialiased bg-[#f5f7fb]">
     <div class="min-h-screen">
+        
+        {{-- Navigasi Utama Admin --}}
         @include('layouts.navigation')
 
+        {{-- Header Halaman (Opsional) --}}
         @isset($header)
             <header class="bg-white shadow-sm border-b border-gray-100">
                 <div class="max-w-7xl mx-auto py-5 px-4 sm:px-6 lg:px-8">
@@ -27,6 +37,7 @@
             </header>
         @endisset
 
+        {{-- Konten Utama (Slot) --}}
         <main>
             {{ $slot }}
         </main>
@@ -38,8 +49,9 @@
         document.addEventListener('DOMContentLoaded', () => {
             /*
             |--------------------------------------------------------------------------
-            | SUCCESS ALERT
+            | SUCCESS ALERT (GLOBAL)
             |--------------------------------------------------------------------------
+            | Menangkap session 'success' dari controller dan menampilkannya sebagai popup
             */
             @if (session('success'))
                 Swal.fire({
@@ -55,7 +67,7 @@
 
             /*
             |--------------------------------------------------------------------------
-            | ERROR ALERT
+            | ERROR ALERT (GLOBAL)
             |--------------------------------------------------------------------------
             */
             @if (session('error'))
@@ -73,6 +85,7 @@
         |--------------------------------------------------------------------------
         | DELETE CONFIRMATION GLOBAL
         |--------------------------------------------------------------------------
+        | Fungsi ini dipanggil setiap kali tombol hapus ditekan untuk mencegah hapus tak disengaja.
         */
         function confirmDelete(event, text = 'Data yang dihapus tidak bisa dikembalikan.') {
             event.preventDefault()
@@ -81,7 +94,7 @@
                 text: text,
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#ef4444', // Merah untuk aksi hapus (UX lebih baik)
+                confirmButtonColor: '#ef4444', 
                 cancelButtonColor: '#9ca3af',
                 confirmButtonText: 'Ya, Hapus',
                 cancelButtonText: 'Batal',
