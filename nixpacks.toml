@@ -1,5 +1,11 @@
 [phases.setup]
-nixPackages = ["php83", "php83Extensions.pdo", "php83Extensions.pdo_pgsql", "nodejs_20"]
+nixPackages = [
+    "php83", 
+    "php83Extensions.pdo", 
+    "php83Extensions.pdo_pgsql", 
+    "php83Extensions.gd", 
+    "nodejs_20"
+]
 
 [phases.build]
 cmds = [
