@@ -1,0 +1,12 @@
+[phases.setup]
+nixPackages = ["php83", "php83Extensions.pdo", "php83Extensions.pdo_pgsql", "nodejs_20"]
+
+[phases.build]
+cmds = [
+    "composer install --no-dev --optimize-autoloader",
+    "npm install",
+    "npm run build"
+]
+
+[start]
+cmd = "php -S 0.0.0.0:$PORT -t public"
