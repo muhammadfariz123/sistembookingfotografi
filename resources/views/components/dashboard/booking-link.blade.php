@@ -1,18 +1,22 @@
 {{-- resources/views/components/dashboard/booking-link.blade.php --}}
+{{-- 
+    [PENJELASAN UNTUK SIDANG]
+    Komponen ini bertindak sebagai titik mulai (Entry Point) bagi pelanggan. 
+    Dengan menyalin tautan (link) publik ini, pelanggan dapat menginput data pesanan (Input TPS),
+    yang nantinya akan diolah (Process) secara otomatis di Dashboard Admin.
+--}}
 @php
     $bookingUrl = route('booking.public.show', Auth::id());
 @endphp
 
 <div class="bg-[#edf4ff] border border-[#cfe0ff] rounded-[24px] p-4 sm:p-5 overflow-hidden">
     <div class="flex flex-col lg:flex-row lg:items-center gap-4">
-        <!-- ICON -->
         <div class="flex items-center gap-2 min-w-fit">
             <i data-lucide="link-2" class="w-5 h-5 text-blue-600"></i>
             <h3 class="text-[16px] font-semibold text-blue-600 whitespace-nowrap">
                 Link Booking Klien
             </h3>
         </div>
-        <!-- INPUT -->
         <div class="flex-1 min-w-0">
             <input
                 type="text"
@@ -21,7 +25,6 @@
                 value="{{ $bookingUrl }}"
                 class="w-full h-[46px] rounded-2xl border border-[#b8d2ff] bg-white px-4 text-sm text-gray-700 focus:outline-none">
         </div>
-        <!-- BUTTON -->
         <button
             id="copy-btn"
             onclick="copyBookingLink()"
@@ -57,7 +60,6 @@ function copyBookingLink() {
             if (window.lucide) lucide.createIcons()
         }, 2000)
     }).catch(() => {
-        // Fallback untuk browser yang tidak support clipboard API
         input.select()
         document.execCommand('copy')
         input.blur()

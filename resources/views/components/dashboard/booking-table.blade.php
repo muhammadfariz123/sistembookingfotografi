@@ -1,17 +1,25 @@
-<div x-data="bookingTable()" @reload-bookings.window="loadBookings()"
+{{-- resources/views/components/dashboard/booking-table.blade.php --}}
+{{-- 
+    [PENJELASAN UNTUK SIDANG]
+    Tabel Booking bertindak sebagai pusat informasi (Storage/Output TPS).
+    Optimalisasi Sistem: Fitur Long Polling (query ke database setiap 1 detik) telah dicabut
+    demi prinsip Clean Code & efisiensi server. Sebagai gantinya, tabel ini diperbarui 
+    (reactive) secara asinkron via Alpine.js Event Dispatcher hanya saat terjadi perubahan data.
+--}}
+<div x-data="bookingTable()" 
+    @reload-bookings.window="loadBookings()"
     @filter-changed.window="applyFilter($event.detail)"
     class="bg-white rounded-[28px] shadow-sm mt-7 border border-gray-100 overflow-hidden">
 
     <div x-show="loading" class="h-[320px] flex flex-col items-center justify-center gap-3">
-        <svg class="animate-spin w-8 h-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none"
-            viewBox="0 0 24 24">
+        <svg class="animate-spin w-8 h-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
         </svg>
         <p class="text-[14px] text-gray-400">Memuat data booking...</p>
     </div>
 
-    <div x-show="!loading" class="overflow-x-auto">
+    <div x-show="!loading" x-cloak class="overflow-x-auto">
         <table class="w-full min-w-[900px]">
             <thead>
                 <tr class="text-left text-gray-500 text-sm border-b border-gray-100">
@@ -31,42 +39,30 @@
                                 <p class="font-bold text-[15px] text-gray-900" x-text="booking.client_name"></p>
                                 <p class="text-[13px] text-gray-500 mt-0.5" x-text="booking.client_contact || ''"></p>
                                 <div x-show="booking.client_address" class="flex items-center gap-1 mt-1">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-gray-400 shrink-0"
-                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                     </svg>
                                     <p class="text-[12px] text-gray-400" x-text="booking.client_address"></p>
                                 </div>
                             </td>
                             <td class="px-8 py-6 align-top">
-                                <p class="font-semibold text-[14px] text-gray-900"
-                                    x-text="booking.service_type?.name || '-'"></p>
-                                <p class="text-[13px] text-gray-500 mt-0.5" x-text="formatCurrency(booking.unit_price)">
-                                </p>
-                                <p x-show="booking.service_type?.description"
-                                    class="text-[12px] text-gray-400 mt-1 max-w-[200px] line-clamp-2"
-                                    x-text="booking.service_type?.description"></p>
+                                <p class="font-semibold text-[14px] text-gray-900" x-text="booking.service_type?.name || '-'"></p>
+                                <p class="text-[13px] text-gray-500 mt-0.5" x-text="formatCurrency(booking.unit_price)"></p>
+                                <p x-show="booking.service_type?.description" class="text-[12px] text-gray-400 mt-1 max-w-[200px] line-clamp-2" x-text="booking.service_type?.description"></p>
                             </td>
                             <td class="px-8 py-6 align-top whitespace-nowrap">
                                 <template x-if="booking.booking_date && !booking.start_date">
                                     <div>
-                                        <p class="text-[14px] font-medium text-gray-800"
-                                            x-text="formatDate(booking.booking_date)"></p>
-                                        <p x-show="booking.booking_time" class="text-[12px] text-gray-500 mt-0.5"
-                                            x-text="booking.booking_time"></p>
+                                        <p class="text-[14px] font-medium text-gray-800" x-text="formatDate(booking.booking_date)"></p>
+                                        <p x-show="booking.booking_time" class="text-[12px] text-gray-500 mt-0.5" x-text="booking.booking_time"></p>
                                     </div>
                                 </template>
                                 <template x-if="booking.start_date">
                                     <div>
-                                        <p class="text-[14px] font-medium text-gray-800"
-                                            x-text="formatDate(booking.start_date)"></p>
-                                        <p class="text-[12px] text-gray-500 mt-0.5">s/d <span
-                                                x-text="formatDate(booking.end_date)"></span></p>
-                                        <p x-show="booking.booking_time" class="text-[12px] text-gray-400"
-                                            x-text="booking.booking_time"></p>
+                                        <p class="text-[14px] font-medium text-gray-800" x-text="formatDate(booking.start_date)"></p>
+                                        <p class="text-[12px] text-gray-500 mt-0.5">s/d <span x-text="formatDate(booking.end_date)"></span></p>
+                                        <p x-show="booking.booking_time" class="text-[12px] text-gray-400" x-text="booking.booking_time"></p>
                                     </div>
                                 </template>
                                 <template x-if="!booking.booking_date && !booking.start_date">
@@ -74,58 +70,37 @@
                                 </template>
                             </td>
                             <td class="px-8 py-6 align-top">
-                                <span :class="statusClass(booking.status)"
-                                    class="inline-flex items-center px-3 py-1 rounded-full text-[12px] font-semibold">
+                                <span :class="statusClass(booking.status)" class="inline-flex items-center px-3 py-1 rounded-full text-[12px] font-semibold">
                                     <span x-text="booking.status"></span>
                                 </span>
                             </td>
                             <td class="px-8 py-6 align-top">
-                                <span :class="paymentClass(booking.payment_status)"
-                                    class="inline-flex items-center px-3 py-1 rounded-full text-[12px] font-semibold mb-2">
+                                <span :class="paymentClass(booking.payment_status)" class="inline-flex items-center px-3 py-1 rounded-full text-[12px] font-semibold mb-2">
                                     <span x-text="paymentLabel(booking.payment_status)"></span>
                                 </span>
                                 <div class="space-y-0.5 mt-1">
-                                    <p class="text-[13px] text-gray-600">
-                                        Total: <span class="font-semibold text-gray-800"
-                                            x-text="formatCurrency(booking.total)"></span>
-                                    </p>
-                                    <p class="text-[13px] text-gray-500">
-                                        Dibayar: <span x-text="formatCurrency(booking.paid_amount)"></span>
-                                    </p>
-                                    <p x-show="booking.remaining > 0" class="text-[13px] font-semibold text-red-500">
-                                        Sisa: <span x-text="formatCurrency(booking.remaining)"></span>
-                                    </p>
+                                    <p class="text-[13px] text-gray-600">Total: <span class="font-semibold text-gray-800" x-text="formatCurrency(booking.total)"></span></p>
+                                    <p class="text-[13px] text-gray-500">Dibayar: <span x-text="formatCurrency(booking.paid_amount)"></span></p>
+                                    <p x-show="booking.remaining > 0" class="text-[13px] font-semibold text-red-500">Sisa: <span x-text="formatCurrency(booking.remaining)"></span></p>
                                 </div>
                             </td>
                             <td class="px-8 py-6 align-top">
                                 <div class="flex items-center gap-2">
-                                    <button type="button" @click="openInvoice(booking)"
-                                        class="w-9 h-9 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center transition"
-                                        title="Generate Invoice">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
-                                            viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    <button type="button" @click="openInvoice(booking)" class="w-9 h-9 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center transition" title="Generate Invoice">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                         </svg>
                                     </button>
 
-                                    <a :href="`/bookings/${booking.id}/edit`"
-                                        class="w-9 h-9 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-600 flex items-center justify-center transition"
-                                        title="Edit">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
-                                            viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    <a :href="`/bookings/${booking.id}/edit`" class="w-9 h-9 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-600 flex items-center justify-center transition" title="Edit">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                         </svg>
                                     </a>
 
-                                    <button type="button" @click="deleteBooking(booking)"
-                                        class="w-9 h-9 rounded-xl bg-red-50 hover:bg-red-100 text-red-500 flex items-center justify-center transition"
-                                        title="Hapus">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
-                                            viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    <button type="button" @click="deleteBooking(booking)" class="w-9 h-9 rounded-xl bg-red-50 hover:bg-red-100 text-red-500 flex items-center justify-center transition" title="Hapus">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                         </svg>
                                     </button>
                                 </div>
@@ -138,15 +113,11 @@
                     <tr>
                         <td colspan="6">
                             <div class="h-[320px] flex flex-col items-center justify-center px-4 text-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-14 h-14 text-gray-300 mb-4" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-14 h-14 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                 </svg>
-                                <h1 class="text-[20px] sm:text-[24px] font-bold text-gray-400">Belum ada data booking
-                                </h1>
-                                <p class="text-gray-400 mt-2 text-[13px] sm:text-[14px]">Klik Tambah Booking untuk
-                                    memulai</p>
+                                <h1 class="text-[20px] sm:text-[24px] font-bold text-gray-400">Belum ada data booking</h1>
+                                <p class="text-gray-400 mt-2 text-[13px] sm:text-[14px]">Klik Tambah Booking untuk memulai</p>
                             </div>
                         </td>
                     </tr>
@@ -156,22 +127,15 @@
                     <tr>
                         <td colspan="6">
                             <div class="h-[320px] flex flex-col items-center justify-center px-4 text-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-14 h-14 text-gray-300 mb-4" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-14 h-14 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                 </svg>
-                                <h1 class="text-[18px] sm:text-[20px] font-bold text-gray-400">Tidak ada hasil ditemukan
-                                </h1>
+                                <h1 class="text-[18px] sm:text-[20px] font-bold text-gray-400">Tidak ada hasil ditemukan</h1>
                                 <template x-if="activeSearch.trim()">
-                                    <p class="text-gray-400 mt-2 text-[13px] sm:text-[14px]">
-                                        Tidak ada booking yang cocok dengan "<span class="font-semibold text-gray-600"
-                                            x-text="activeSearch"></span>"
-                                    </p>
+                                    <p class="text-gray-400 mt-2 text-[13px] sm:text-[14px]">Tidak ada booking yang cocok dengan "<span class="font-semibold text-gray-600" x-text="activeSearch"></span>"</p>
                                 </template>
                                 <template x-if="!activeSearch.trim()">
-                                    <p class="text-gray-400 mt-2 text-[13px] sm:text-[14px]">Coba ubah filter status,
-                                        pembayaran, atau bulan</p>
+                                    <p class="text-gray-400 mt-2 text-[13px] sm:text-[14px]">Coba ubah filter status, pembayaran, atau bulan</p>
                                 </template>
                             </div>
                         </td>
@@ -187,9 +151,6 @@
         return {
             bookings: [],
             loading: true,
-            pollingInterval: null,
-            lastCount: 0,
-            isFetching: false,
             activeStatus: 'semua',
             activePayment: 'semua',
             activeMonth: '',
@@ -197,67 +158,22 @@
             activeSearch: '',
 
             init() {
-                this.loadBookings(false).then(() => {
-                    this.startPolling()
-                })
-            },
-
-            startPolling() {
-                // Polling count setiap 1 detik
-                this.pollingInterval = setInterval(() => {
-                    this.checkCount()
-                }, 1000)
-            },
-
-            async checkCount() {
-                if (this.isFetching) return
-
-                try {
-                    const res = await fetch('/bookings/count', {
-                        headers: { 'Accept': 'application/json' }
-                    })
-                    const result = await res.json()
-                    const count = result.count ?? 0
-
-                    if (count !== this.lastCount) {
-                        const isNew = count > this.lastCount
-
-                        await this.loadBookings(true)
-                        window.dispatchEvent(new CustomEvent('reload-bookings'))
-
-                        if (isNew) {
-                            Swal.fire({
-                                toast: true,
-                                position: 'top-end',
-                                icon: 'success',
-                                title: '🔔 Booking baru masuk!',
-                                showConfirmButton: false,
-                                timer: 3000,
-                                timerProgressBar: true,
-                                customClass: { popup: 'rounded-[20px]' }
-                            })
-                        }
-                    }
-                } catch (e) {
-                    // Abaikan error jaringan
-                }
+                // Diinisialisasi sekali saat pertama komponen dimuat (menghapus setInterval)
+                this.loadBookings()
             },
 
             async loadBookings(silent = false) {
                 if (!silent) this.loading = true
-                this.isFetching = true
                 try {
                     const res = await fetch('/bookings', {
                         headers: { 'Accept': 'application/json' }
                     })
                     const result = await res.json()
                     this.bookings = result.data ?? []
-                    this.lastCount = this.bookings.length
                 } catch (e) {
                     this.bookings = []
                 } finally {
                     if (!silent) this.loading = false
-                    this.isFetching = false
                 }
             },
 
@@ -311,7 +227,6 @@
                 window.dispatchEvent(new CustomEvent('open-invoice', { detail: booking }))
             },
 
-
             formatDate(dateStr) {
                 if (!dateStr) return '-'
                 return new Intl.DateTimeFormat('id-ID', {
@@ -363,6 +278,7 @@
                     customClass: { popup: 'rounded-[28px]' }
                 })
                 if (!confirm.isConfirmed) return
+                
                 try {
                     const res = await fetch(`/bookings/${booking.id}`, {
                         method: 'DELETE',
@@ -374,15 +290,12 @@
                     const data = await res.json()
                     if (!res.ok) {
                         Swal.fire({
-                            icon: 'error', title: 'Gagal!',
-                            text: data.message ?? 'Gagal menghapus.',
-                            confirmButtonColor: '#2563eb',
-                            customClass: { popup: 'rounded-[28px]' }
+                            icon: 'error', title: 'Gagal!', text: data.message ?? 'Gagal menghapus.',
+                            confirmButtonColor: '#2563eb', customClass: { popup: 'rounded-[28px]' }
                         })
                         return
                     }
                     this.bookings = this.bookings.filter(b => b.id !== booking.id)
-                    this.lastCount = this.bookings.length
                     Swal.fire({
                         icon: 'success', title: 'Dihapus!', text: data.message,
                         confirmButtonColor: '#2563eb', timer: 2000,
@@ -393,10 +306,8 @@
                     })
                 } catch (err) {
                     Swal.fire({
-                        icon: 'error', title: 'Gagal!',
-                        text: 'Gagal terhubung ke server.',
-                        confirmButtonColor: '#2563eb',
-                        customClass: { popup: 'rounded-[28px]' }
+                        icon: 'error', title: 'Gagal!', text: 'Gagal terhubung ke server.',
+                        confirmButtonColor: '#2563eb', customClass: { popup: 'rounded-[28px]' }
                     })
                 }
             }

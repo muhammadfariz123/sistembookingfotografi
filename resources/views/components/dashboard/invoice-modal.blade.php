@@ -1,10 +1,20 @@
 {{-- resources/views/components/dashboard/invoice-modal.blade.php --}}
+{{-- 
+    [PENJELASAN UNTUK SIDANG]
+    Komponen ini merepresentasikan Tahap OUTPUT dalam arsitektur TPS. 
+    Sistem mengambil (fetch) data transaksi yang sudah valid dari database,
+    lalu merendernya menjadi format dokumen (Invoice) tanpa mengharuskan admin
+    mengetik ulang data klien (menghilangkan redundansi data).
+--}}
 <div x-data="invoiceModal()" @open-invoice.window="openModal($event.detail)" x-show="show" x-cloak x-transition.opacity
     class="fixed inset-0 z-[60]">
+    
     <div @click="show = false" class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+    
     <div class="relative min-h-screen flex items-center justify-center p-4">
         <div @click.stop
             class="bg-white w-full max-w-[860px] rounded-[22px] shadow-2xl overflow-hidden max-h-[95vh] flex flex-col">
+            
             <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between shrink-0 bg-white">
                 <h2 class="text-[18px] font-bold text-gray-900">Generate Invoice</h2>
                 <div class="flex items-center gap-2">
@@ -32,6 +42,12 @@
             </div>
 
             <div x-show="!loading" class="flex-1 overflow-y-auto no-scrollbar">
+                
+                {{-- 
+                    PANEL PENGATURAN DINAMIS (UCD Concept)
+                    Admin bisa mengubah tipe tagihan (DP/Lunas) dan menyesuaikan persentase DP 
+                    secara langsung tanpa mengubah data asli di database.
+                --}}
                 <div class="px-6 py-5 border-b border-gray-100 bg-gray-50/50">
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="text-[15px] font-bold text-gray-800">Pengaturan Invoice</h3>
@@ -98,8 +114,7 @@
                                 <div>
                                     <p class="text-[13px] font-medium text-gray-600 mb-2">Nominal DP (Rp)</p>
                                     <div class="relative">
-                                        <input
-                                            type="text"
+                                        <input type="text"
                                             :value="dpNominalDisplay"
                                             @input="handleDpNominalInput($event.target)"
                                             @focus="handleDpNominalFocus($event.target)"
@@ -203,6 +218,10 @@
                     </div>
                 </div>
 
+                {{-- 
+                    AREA PRINT / PREVIEW DOKUMEN
+                    Bagian ini akan diambil HTML-nya oleh Javascript untuk dikirim ke dialog Print Browser.
+                --}}
                 <div id="invoice-preview" class="px-8 py-8 bg-white mx-auto w-full max-w-[794px] box-border transition-all">
                     <div class="flex items-start justify-between mb-6">
                         <div>
@@ -286,9 +305,10 @@
                                 </div>
                             </template>
                             <div class="flex justify-between border-t border-gray-200 pt-2 mt-2">
-                                <span class="text-gray-700 font-medium">Total keseluruhan:</span>
+                                <span class="text-gray-700 font-medium">Total Keseluruhan:</span>
                                 <span class="font-bold text-gray-900" x-text="formatRp(booking?.total ?? 0)"></span>
                             </div>
+                            
                             <template x-if="invoiceType === 'dp'">
                                 <div>
                                     <div class="flex justify-between text-blue-600">
@@ -377,29 +397,37 @@
 <script>
 function invoiceModal() {
     return {
-        show:               false,
-        loading:            false,
-        booking:            null,
-        company:            null,
-        invoiceType:        'dp',
-        dpMethod:           'percent',
-        dpPercent:          30,
-        dpNominal:          0,
-        dpNominalFocused:   false,
-        invoiceNumber:      '',
-        invoiceDate:        '',
-        invoiceDue:         '',
+        // State Manajemen Modal
+        show: false,
+        loading: false,
+        booking: null,
+        company: null,
+        
+        // State Konfigurasi Invoice
+        invoiceType: 'dp',
+        dpMethod: 'percent',
+        dpPercent: 30,
+        dpNominal: 0,
+        dpNominalFocused: false,
+        
+        // State Identitas Dokumen
+        invoiceNumber: '',
+        invoiceDate: '',
+        invoiceDue: '',
 
+        // Fungsi yang dipanggil saat tombol "Print Invoice" di klik pada tabel
         async openModal(bookingData) {
             this.show    = true
             this.loading = true
             this.booking = null
             this.company = null
             try {
+                // Fetch data terbaru khusus untuk booking ini
                 const res    = await fetch(`/invoices/${bookingData.id}`, {
                     headers: { 'Accept': 'application/json' }
                 })
                 const result = await res.json()
+                
                 if (result.success) {
                     this.booking     = result.booking
                     this.company     = result.company
@@ -407,13 +435,17 @@ function invoiceModal() {
                     this.dpMethod    = 'percent'
                     this.dpPercent   = 30
                     this.dpNominal   = Math.round((result.booking.total ?? 0) * 0.3)
+                    
+                    // Logic Penentuan Tanggal & Nomor Invoice Otomatis
                     const today = new Date()
                     const y = today.getFullYear()
                     const m = String(today.getMonth() + 1).padStart(2, '0')
                     const d = String(today.getDate()).padStart(2, '0')
                     const rand = Math.random().toString(36).substring(2, 7).toUpperCase()
+                    
                     this.invoiceNumber = `INV-${y}${m}${d}-${rand}`
                     this.invoiceDate   = `${y}-${m}-${d}`
+                    
                     const due = new Date(today)
                     due.setDate(due.getDate() + 7)
                     this.invoiceDue = due.toISOString().substring(0, 10)
@@ -426,6 +458,7 @@ function invoiceModal() {
             }
         },
 
+        // Getter: Hitung nominal DP final
         get dpAmount() {
             const total = this.booking?.total ?? 0
             if (this.dpMethod === 'percent') {
@@ -434,18 +467,21 @@ function invoiceModal() {
             return Math.min(this.dpNominal, total)
         },
 
+        // Getter: Tampilkan representasi persentase final
         get dpFinalPercent() {
             const total = this.booking?.total ?? 0
             if (total <= 0) return 0
             return Math.round((this.dpAmount / total) * 100)
         },
 
+        // Getter: Representasi persentase jika user mengetik nominal manual
         get dpNominalPercent() {
             const total = this.booking?.total ?? 0
             if (total <= 0) return 0
             return Math.round((this.dpNominal / total) * 100)
         },
 
+        // Getter: Format tampilan input Nominal DP
         get dpNominalDisplay() {
             if (this.dpNominalFocused) {
                 return this.dpNominal > 0 ? String(this.dpNominal) : ''
@@ -455,6 +491,7 @@ function invoiceModal() {
                 : ''
         },
 
+        // Getter: Nilai akhir yang harus dibayar klien di invoice ini
         get invoiceAmount() {
             switch (this.invoiceType) {
                 case 'dp':        return this.dpAmount
@@ -464,6 +501,7 @@ function invoiceModal() {
             }
         },
 
+        // Event Handlers untuk format input Nominal Rupiah
         handleDpNominalFocus(el) {
             this.dpNominalFocused = true
             this.$nextTick(() => {
@@ -471,7 +509,6 @@ function invoiceModal() {
                 el.select()
             })
         },
-
         handleDpNominalBlur(el) {
             this.dpNominalFocused = false
             const raw   = el.value.replace(/[^0-9]/g, '')
@@ -483,13 +520,13 @@ function invoiceModal() {
                     : ''
             })
         },
-
         handleDpNominalInput(el) {
             const raw   = el.value.replace(/[^0-9]/g, '')
             const total = this.booking?.total ?? 0
             this.dpNominal = raw === '' ? 0 : Math.min(parseInt(raw), total)
         },
 
+        // Handler tombol persentase instan (25%, 30%, 50%)
         setDpPreset(percent) {
             const total    = this.booking?.total ?? 0
             this.dpNominal = Math.round(total * percent / 100)
@@ -504,20 +541,20 @@ function invoiceModal() {
             this.dpNominalFocused = false
         },
 
+        // Utilities Format Teks
         formatRp(value) {
             return 'Rp ' + new Intl.NumberFormat('id-ID').format(Math.round(value || 0))
         },
-
         formatDateID(dateStr) {
             if (!dateStr) return '-'
             return new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(dateStr))
         },
-
         formatDateShort(dateStr) {
             if (!dateStr) return '-'
             return new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(dateStr))
         },
 
+        // FUNGSI OUTPUT: Mencetak HTML element menjadi file PDF via Browser
         printInvoice() {
             const content = document.getElementById('invoice-preview').innerHTML
             const win     = window.open('', '_blank')
