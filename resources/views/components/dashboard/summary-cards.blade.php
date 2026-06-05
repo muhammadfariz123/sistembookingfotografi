@@ -1,12 +1,5 @@
 {{-- resources/views/components/dashboard/summary-cards.blade.php --}}
-{{-- 
-    [PENJELASAN UNTUK SIDANG]
-    Sesuai konsep Dashboard pada Transaction Processing System (TPS), 
-    komponen ini bertugas mengambil data agregat (Summary) dari backend.
-    Kartu ini dirancang interaktif (User Centered Design), artinya ketika diklik, 
-    ia akan memancarkan event (CustomEvent) yang akan menyaring data pada Tabel di bawahnya.
---}}
-<div x-data="summaryCards()" @reload-bookings.window="load()">
+<div x-data="summaryCards()" @reload-bookings.window="load()" @reload-data-silent.window="load()">
 
     {{-- KELOMPOK: STATUS BOOKING --}}
     <div>
@@ -56,9 +49,8 @@ function summaryCards() {
         activePayment: 'semua',
         summary: { semua:0, dijadwalkan:0, selesai:0, dibatalkan:0, belum_bayar:0, dp:0, lunas:0 },
 
-        // Data konfigurasi tampilan untuk perulangan Alpine (Template)
         bookingCards: [
-            { key:'semua',       title:'Total Booking', icon:'users',          text:'text-blue-600',  bg:'bg-blue-100',  active:'border-blue-500 ring-1 ring-blue-200'  },
+            { key:'semua',       title:'Total Booking', icon:'users',         text:'text-blue-600',  bg:'bg-blue-100',  active:'border-blue-500 ring-1 ring-blue-200'  },
             { key:'dijadwalkan', title:'Dijadwalkan',   icon:'calendar-days',  text:'text-blue-600',  bg:'bg-blue-100',  active:'border-blue-500 ring-1 ring-blue-200'  },
             { key:'selesai',     title:'Selesai',       icon:'check-circle-2', text:'text-green-600', bg:'bg-green-100', active:'border-green-500 ring-1 ring-green-200' },
             { key:'dibatalkan',  title:'Dibatalkan',    icon:'x-circle',       text:'text-red-600',   bg:'bg-red-100',   active:'border-red-500 ring-1 ring-red-200'   },
@@ -71,15 +63,12 @@ function summaryCards() {
 
         init() {
             this.load()
-            
-            // Sync status aktif ketika filter diubah dari komponen Filter Panel
             window.addEventListener('filter-changed', (e) => {
                 if (e.detail.status  !== undefined) this.activeStatus  = e.detail.status
                 if (e.detail.payment !== undefined) this.activePayment = e.detail.payment
             })
         },
 
-        // Request (GET) ke BookingController untuk mendapatkan ringkasan angka
         async load() {
             try {
                 const res = await fetch('/bookings', { headers: { 'Accept': 'application/json' } })
@@ -96,12 +85,10 @@ function summaryCards() {
                         lunas:       r.summary.lunas       ?? 0,
                     }
                 }
-                // Render ikon Lucide setelah data DOM dimuat ulang
                 this.$nextTick(() => { if (window.lucide) lucide.createIcons() })
             } catch {}
         },
 
-        // Memancarkan sinyal ke Tabel Booking ketika Kartu ini diklik
         filterByStatus(key) {
             this.activeStatus = key
             window.dispatchEvent(new CustomEvent('filter-changed', { detail: { status: key } }))

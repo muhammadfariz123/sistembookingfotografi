@@ -9,11 +9,6 @@
        booking-table   → tabel data booking + polling realtime
        booking-calendar→ kalender booking
        invoice-modal   → generate & download invoice
-     
-     JS di sini: dashboardApp()
-       Hanya menangani: viewMode, kalender helpers
-       Semua filter sudah pindah ke filter-panel
-       Summary sudah pindah ke summary-cards
      ================================================ --}}
 <x-app-layout>
     <div x-data="dashboardApp()"
@@ -43,17 +38,46 @@
 
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
-    // dashboardApp() — minimal, hanya kelola viewMode dan kalender
     function dashboardApp() {
         return {
             viewMode: 'table',
 
-            // Kalender helpers — dipakai booking-calendar.blade.php
+            // Kalender helpers
             currentDate: new Date(),
             monthNames: ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'],
 
             init() {
                 this.$nextTick(() => { if (window.lucide) lucide.createIcons() })
+                
+                // === SMART POLLING 1 DETIK ===
+                // Mengambil data senyap setiap 1 detik HANYA jika layar admin sedang dilihat
+                let pollInterval;
+                const startPolling = () => {
+                    if(!pollInterval) {
+                        pollInterval = setInterval(() => {
+                            if(document.visibilityState === 'visible') {
+                                window.dispatchEvent(new CustomEvent('reload-data-silent'));
+                            }
+                        }, 5000); // 1000 ms = 1 detik (Sensasi Real-time)
+                    }
+                };
+                
+                const stopPolling = () => {
+                    clearInterval(pollInterval);
+                    pollInterval = null;
+                };
+
+                // Deteksi jika admin pindah tab/minimize browser untuk menghemat server
+                document.addEventListener('visibilitychange', () => {
+                    if(document.visibilityState === 'visible') {
+                        window.dispatchEvent(new CustomEvent('reload-data-silent')); 
+                        startPolling();
+                    } else {
+                        stopPolling(); // Server diistirahatkan
+                    }
+                });
+
+                startPolling();
             },
 
             get calendarTitle() {

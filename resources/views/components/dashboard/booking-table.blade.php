@@ -1,13 +1,7 @@
 {{-- resources/views/components/dashboard/booking-table.blade.php --}}
-{{-- 
-    [PENJELASAN UNTUK SIDANG]
-    Tabel Booking bertindak sebagai pusat informasi (Storage/Output TPS).
-    Optimalisasi Sistem: Fitur Long Polling (query ke database setiap 1 detik) telah dicabut
-    demi prinsip Clean Code & efisiensi server. Sebagai gantinya, tabel ini diperbarui 
-    (reactive) secara asinkron via Alpine.js Event Dispatcher hanya saat terjadi perubahan data.
---}}
 <div x-data="bookingTable()" 
     @reload-bookings.window="loadBookings()"
+    @reload-data-silent.window="loadBookings(true)"
     @filter-changed.window="applyFilter($event.detail)"
     class="bg-white rounded-[28px] shadow-sm mt-7 border border-gray-100 overflow-hidden">
 
@@ -87,21 +81,13 @@
                             <td class="px-8 py-6 align-top">
                                 <div class="flex items-center gap-2">
                                     <button type="button" @click="openInvoice(booking)" class="w-9 h-9 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center transition" title="Generate Invoice">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                        </svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                                     </button>
-
                                     <a :href="`/bookings/${booking.id}/edit`" class="w-9 h-9 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-600 flex items-center justify-center transition" title="Edit">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                        </svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                                     </a>
-
                                     <button type="button" @click="deleteBooking(booking)" class="w-9 h-9 rounded-xl bg-red-50 hover:bg-red-100 text-red-500 flex items-center justify-center transition" title="Hapus">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                     </button>
                                 </div>
                             </td>
@@ -113,30 +99,19 @@
                     <tr>
                         <td colspan="6">
                             <div class="h-[320px] flex flex-col items-center justify-center px-4 text-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-14 h-14 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                                </svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-14 h-14 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 012-2h2a2 2 0 012 2" /></svg>
                                 <h1 class="text-[20px] sm:text-[24px] font-bold text-gray-400">Belum ada data booking</h1>
-                                <p class="text-gray-400 mt-2 text-[13px] sm:text-[14px]">Klik Tambah Booking untuk memulai</p>
                             </div>
                         </td>
                     </tr>
                 </template>
-
+                
                 <template x-if="!loading && filteredBookings.length === 0 && bookings.length > 0">
                     <tr>
                         <td colspan="6">
                             <div class="h-[320px] flex flex-col items-center justify-center px-4 text-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-14 h-14 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-14 h-14 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                                 <h1 class="text-[18px] sm:text-[20px] font-bold text-gray-400">Tidak ada hasil ditemukan</h1>
-                                <template x-if="activeSearch.trim()">
-                                    <p class="text-gray-400 mt-2 text-[13px] sm:text-[14px]">Tidak ada booking yang cocok dengan "<span class="font-semibold text-gray-600" x-text="activeSearch"></span>"</p>
-                                </template>
-                                <template x-if="!activeSearch.trim()">
-                                    <p class="text-gray-400 mt-2 text-[13px] sm:text-[14px]">Coba ubah filter status, pembayaran, atau bulan</p>
-                                </template>
                             </div>
                         </td>
                     </tr>
@@ -158,7 +133,6 @@
             activeSearch: '',
 
             init() {
-                // Diinisialisasi sekali saat pertama komponen dimuat (menghapus setInterval)
                 this.loadBookings()
             },
 
@@ -223,22 +197,12 @@
                 return result
             },
 
-            openInvoice(booking) {
-                window.dispatchEvent(new CustomEvent('open-invoice', { detail: booking }))
-            },
-
+            openInvoice(booking) { window.dispatchEvent(new CustomEvent('open-invoice', { detail: booking })) },
             formatDate(dateStr) {
                 if (!dateStr) return '-'
-                return new Intl.DateTimeFormat('id-ID', {
-                    weekday: 'short', day: 'numeric', month: 'long', year: 'numeric'
-                }).format(new Date(dateStr))
+                return new Intl.DateTimeFormat('id-ID', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(dateStr))
             },
-
-            formatCurrency(value) {
-                return new Intl.NumberFormat('id-ID', {
-                    style: 'currency', currency: 'IDR', minimumFractionDigits: 0
-                }).format(value || 0)
-            },
+            formatCurrency(value) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value || 0) },
 
             statusClass(status) {
                 switch (status) {
@@ -247,7 +211,6 @@
                     default: return 'bg-blue-100 text-blue-700'
                 }
             },
-
             paymentClass(status) {
                 switch (status) {
                     case 'Lunas': return 'bg-green-100 text-green-700'
@@ -255,7 +218,6 @@
                     default: return 'bg-yellow-100 text-yellow-700'
                 }
             },
-
             paymentLabel(status) {
                 switch (status) {
                     case 'Lunas': return 'Lunas'
@@ -288,13 +250,8 @@
                         }
                     })
                     const data = await res.json()
-                    if (!res.ok) {
-                        Swal.fire({
-                            icon: 'error', title: 'Gagal!', text: data.message ?? 'Gagal menghapus.',
-                            confirmButtonColor: '#2563eb', customClass: { popup: 'rounded-[28px]' }
-                        })
-                        return
-                    }
+                    if (!res.ok) throw new Error(data.message)
+                    
                     this.bookings = this.bookings.filter(b => b.id !== booking.id)
                     Swal.fire({
                         icon: 'success', title: 'Dihapus!', text: data.message,
@@ -306,7 +263,7 @@
                     })
                 } catch (err) {
                     Swal.fire({
-                        icon: 'error', title: 'Gagal!', text: 'Gagal terhubung ke server.',
+                        icon: 'error', title: 'Gagal!', text: err.message || 'Gagal terhubung ke server.',
                         confirmButtonColor: '#2563eb', customClass: { popup: 'rounded-[28px]' }
                     })
                 }
