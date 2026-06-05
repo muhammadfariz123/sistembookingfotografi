@@ -1,12 +1,10 @@
 {
-  "php": {
-    "extensions": [
-      "pdo",
-      "pdo_pgsql",
-      "gd",
-      "zip",
-      "mbstring",
-      "bcmath"
-    ]
-  }
+  "phpExtensions": [
+    "pdo",
+    "pdo_pgsql",
+    "gd",
+    "zip",
+    "mbstring",
+    "bcmath"
+  ]
 }
