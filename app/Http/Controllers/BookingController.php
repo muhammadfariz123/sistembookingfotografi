@@ -3,12 +3,14 @@
 
 namespace App\Http\Controllers;
 
+
 use App\Http\Requests\BookingRequest;
 use App\Models\Booking;
 use App\Models\ServiceType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-
+use Maatwebsite\Excel\Facades\Excel;  
+use App\Exports\BookingExport;
 class BookingController extends Controller
 {
     /**
@@ -224,5 +226,10 @@ class BookingController extends Controller
             'success' => true,
             'message' => "Booking \"{$clientName}\" berhasil dihapus.",
         ]);
+    }
+
+    public function export(Request $request)
+    {
+        return Excel::download(new BookingExport($request->all()), 'Data_Booking.xlsx');
     }
 }

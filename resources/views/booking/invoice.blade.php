@@ -9,6 +9,22 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen bg-gray-100 font-sans antialiased">
+    
+    @php 
+        $tglLayanan = $booking->booking_date ?? $booking->start_date; 
+        
+        // Logika Jatuh Tempo Pembayaran
+        $jatuhTempo = null;
+        if ($booking->payment_status === 'Belum Bayar') {
+            // [PERBAIKAN Sesuai Request]: 
+            // Jika belum bayar DP, jatuh temponya SELALU HARI INI
+            $jatuhTempo = now();
+        } elseif ($booking->payment_status === 'Down Payment' && $tglLayanan) {
+            // Sedang cicil/pelunasan: Bebas (tidak dipatok Hari H)
+            // Jadi kita biarkan $jatuhTempo = null agar tidak muncul tanggal jatuh tempo di UI
+        }
+    @endphp
+
     {{-- TOPBAR --}}
     <div class="sticky top-0 z-50 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between shadow-sm hide-on-print">
         <h1 class="text-[16px] font-bold text-gray-900">Dokumen Invoice</h1>
@@ -38,9 +54,11 @@
             </svg>
             <p class="text-sm text-blue-700">
                 @if($booking->payment_status === 'Belum Bayar')
-                    Mohon segera lakukan pembayaran <strong>DP {{ $dpPercent }}%</strong> (maks. 2 hari setelah invoice ini dibuat) untuk mengamankan jadwal acara Anda.
+                    Mohon segera lakukan pembayaran <strong>DP {{ $dpPercent }}%</strong> 
+                    <strong>(maksimal hari ini juga)</strong>
+                    untuk mengamankan jadwal acara Anda.
                 @elseif($booking->payment_status === 'Down Payment')
-                    Mohon lakukan <strong>Pelunasan</strong> sisa tagihan maksimal H-7 sebelum tanggal pelaksanaan acara.
+                    Mohon lakukan <strong>Pelunasan</strong> sisa tagihan.
                 @endif
             </p>
         </div>
@@ -100,19 +118,6 @@
                     <p class="text-[13px] text-gray-600">{{ $booking->client_address }}</p>
                 </div>
                 <div class="text-right space-y-1.5">
-                    @php 
-                        $tglLayanan = $booking->booking_date ?? $booking->start_date; 
-                        
-                        // Logika Jatuh Tempo Sesuai Instruksi Klien Skripsi
-                        $jatuhTempo = null;
-                        if ($booking->payment_status === 'Belum Bayar') {
-                            // Belum bayar DP: Jatuh tempo 2 hari sejak hari ini
-                            $jatuhTempo = now()->addDays(2);
-                        } elseif ($booking->payment_status === 'Down Payment' && $tglLayanan) {
-                            // Sedang cicil/pelunasan: Jatuh tempo H-7 Acara
-                            $jatuhTempo = \Carbon\Carbon::parse($tglLayanan)->subDays(7);
-                        }
-                    @endphp
 
                     <div class="flex items-center gap-8 justify-end">
                         <span class="text-[12px] text-gray-500">Tanggal Invoice</span>
@@ -217,7 +222,7 @@
                                     <span class="font-bold">Rp {{ number_format($dpAmount, 0, ',', '.') }}</span>
                                 </div>
                                 <div class="flex justify-between border-t border-gray-200 pt-1 mt-1 text-gray-600">
-                                    <span>Sisa (Pelunasan H-7):</span>
+                                    <span>Sisa:</span>
                                     <span class="font-semibold">Rp {{ number_format($sisaAfterDp, 0, ',', '.') }}</span>
                                 </div>
                             
@@ -228,7 +233,7 @@
                                     <span>Rp {{ number_format($booking->paid_amount, 0, ',', '.') }}</span>
                                 </div>
                                 <div class="flex justify-between border-t border-gray-200 pt-1 mt-1 text-red-600">
-                                    <span class="font-bold">Sisa Pelunasan (H-7):</span>
+                                    <span class="font-bold">Sisa Pelunasan:</span>
                                     <span class="font-bold">Rp {{ number_format($booking->remaining, 0, ',', '.') }}</span>
                                 </div>
                             @endif

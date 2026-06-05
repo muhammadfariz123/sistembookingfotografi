@@ -46,22 +46,29 @@
                                 <p x-show="booking.service_type?.description" class="text-[12px] text-gray-400 mt-1 max-w-[200px] line-clamp-2" x-text="booking.service_type?.description"></p>
                             </td>
                             <td class="px-8 py-6 align-top whitespace-nowrap">
-                                <template x-if="booking.booking_date && !booking.start_date">
+                                
+                                {{-- [PERBAIKAN]: Tampil 1 tanggal jika start_date === end_date (Satu hari) --}}
+                                <template x-if="(booking.booking_date || booking.start_date) && (!booking.start_date || !booking.end_date || booking.start_date.substring(0,10) === booking.end_date.substring(0,10))">
                                     <div>
-                                        <p class="text-[14px] font-medium text-gray-800" x-text="formatDate(booking.booking_date)"></p>
+                                        <p class="text-[14px] font-medium text-gray-800" x-text="formatDate(booking.booking_date || booking.start_date)"></p>
                                         <p x-show="booking.booking_time" class="text-[12px] text-gray-500 mt-0.5" x-text="booking.booking_time"></p>
                                     </div>
                                 </template>
-                                <template x-if="booking.start_date">
+                                
+                                {{-- [PERBAIKAN]: Tampil s/d HANYA JIKA start_date BERBEDA dari end_date (Multi-day sejati) --}}
+                                <template x-if="booking.start_date && booking.end_date && booking.start_date.substring(0,10) !== booking.end_date.substring(0,10)">
                                     <div>
                                         <p class="text-[14px] font-medium text-gray-800" x-text="formatDate(booking.start_date)"></p>
                                         <p class="text-[12px] text-gray-500 mt-0.5">s/d <span x-text="formatDate(booking.end_date)"></span></p>
                                         <p x-show="booking.booking_time" class="text-[12px] text-gray-400" x-text="booking.booking_time"></p>
                                     </div>
                                 </template>
+                                
+                                {{-- Jika sama sekali tidak ada tanggal --}}
                                 <template x-if="!booking.booking_date && !booking.start_date">
                                     <p class="text-[13px] text-gray-400">-</p>
                                 </template>
+
                             </td>
                             <td class="px-8 py-6 align-top">
                                 <span :class="statusClass(booking.status)" class="inline-flex items-center px-3 py-1 rounded-full text-[12px] font-semibold">

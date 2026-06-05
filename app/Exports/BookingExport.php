@@ -78,8 +78,7 @@ class BookingExport implements
             'Kontak Klien',
             'Alamat Klien',
             'Jenis Layanan',
-            'Quantity',
-            'Harga per Unit',
+            'Harga Paket',
             'Subtotal',
             'Tanggal Booking',
             'Waktu Booking',
@@ -109,14 +108,15 @@ class BookingExport implements
         }
 
         $waktu    = $booking->booking_time ? substr($booking->booking_time, 0, 5) : '-';
-        $subtotal = ($booking->unit_price ?? 0) * ($booking->quantity ?? 1);
+        
+        // Subtotal sekarang murni mengambil dari unit_price, tanpa perkalian quantity
+        $subtotal = $booking->unit_price ?? 0;
 
         return [
             $booking->client_name         ?? '-',
             $booking->client_contact      ?? '-',
             $booking->client_address      ?? '-',
             $booking->serviceType?->name  ?? '-',
-            $booking->quantity            ?? 1,
             'Rp ' . number_format($booking->unit_price  ?? 0, 0, ',', '.'),
             'Rp ' . number_format($subtotal,               0, ',', '.'),
             $tanggal,
@@ -139,19 +139,18 @@ class BookingExport implements
             'B' => 20,  // Kontak Klien
             'C' => 25,  // Alamat Klien
             'D' => 20,  // Jenis Layanan
-            'E' => 10,  // Quantity
-            'F' => 18,  // Harga per Unit
-            'G' => 18,  // Subtotal
-            'H' => 30,  // Tanggal Booking
-            'I' => 12,  // Waktu Booking
-            'J' => 14,  // Status
-            'K' => 18,  // Status Pembayaran
-            'L' => 20,  // Total Keseluruhan
-            'M' => 18,  // Sudah Dibayar
-            'N' => 18,  // Sisa Pembayaran
-            'O' => 30,  // Catatan
-            'P' => 22,  // Dibuat Pada
-            'Q' => 22,  // Diupdate Pada
+            'E' => 18,  // Harga Paket
+            'F' => 18,  // Subtotal
+            'G' => 30,  // Tanggal Booking
+            'H' => 12,  // Waktu Booking
+            'I' => 14,  // Status
+            'J' => 18,  // Status Pembayaran
+            'K' => 20,  // Total Keseluruhan
+            'L' => 18,  // Sudah Dibayar
+            'M' => 18,  // Sisa Pembayaran
+            'N' => 30,  // Catatan
+            'O' => 22,  // Dibuat Pada
+            'P' => 22,  // Diupdate Pada
         ];
     }
 }

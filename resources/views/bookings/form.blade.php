@@ -125,35 +125,32 @@
                             Booking lebih dari 1 hari
                         </label>
                         
-                        <template x-if="!multiDay">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-[14px] font-medium text-gray-700 mb-2">Tanggal <span class="text-red-500">*</span></label>
-                                    <input type="date" x-model="bookingDate" required class="w-full h-[48px] rounded-xl border border-gray-300 px-4 text-[14px] outline-none shadow-sm focus:ring-2 focus:ring-blue-500/20">
-                                </div>
-                                <div>
-                                    <label class="block text-[14px] font-medium text-gray-700 mb-2">Waktu <span class="text-gray-400 font-normal">(Opsional)</span></label>
-                                    <input type="time" x-model="bookingTime" class="w-full h-[48px] rounded-xl border border-gray-300 px-4 text-[14px] outline-none shadow-sm focus:ring-2 focus:ring-blue-500/20">
-                                </div>
+                        <div x-show="!multiDay" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[14px] font-medium text-gray-700 mb-2">Tanggal <span class="text-red-500">*</span></label>
+                                <input type="date" x-model="bookingDate" :disabled="multiDay" :required="!multiDay" class="w-full h-[48px] rounded-xl border border-gray-300 px-4 text-[14px] outline-none shadow-sm focus:ring-2 focus:ring-blue-500/20">
                             </div>
-                        </template>
+                            <div>
+                                <label class="block text-[14px] font-medium text-gray-700 mb-2">Waktu <span class="text-gray-400 font-normal">(Opsional)</span></label>
+                                <input type="time" x-model="bookingTime" :disabled="multiDay" class="w-full h-[48px] rounded-xl border border-gray-300 px-4 text-[14px] outline-none shadow-sm focus:ring-2 focus:ring-blue-500/20">
+                            </div>
+                        </div>
                         
-                        <template x-if="multiDay">
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div>
-                                    <label class="block text-[14px] font-medium text-gray-700 mb-2">Mulai <span class="text-red-500">*</span></label>
-                                    <input type="date" x-model="startDate" required class="w-full h-[48px] rounded-xl border border-gray-300 px-4 text-[14px] outline-none shadow-sm focus:ring-2 focus:ring-blue-500/20">
-                                </div>
-                                <div>
-                                    <label class="block text-[14px] font-medium text-gray-700 mb-2">Selesai <span class="text-red-500">*</span></label>
-                                    <input type="date" x-model="endDate" required class="w-full h-[48px] rounded-xl border border-gray-300 px-4 text-[14px] outline-none shadow-sm focus:ring-2 focus:ring-blue-500/20">
-                                </div>
-                                <div>
-                                    <label class="block text-[14px] font-medium text-gray-700 mb-2">Waktu <span class="text-gray-400 font-normal">(Opsional)</span></label>
-                                    <input type="time" x-model="bookingTime" class="w-full h-[48px] rounded-xl border border-gray-300 px-4 text-[14px] outline-none shadow-sm focus:ring-2 focus:ring-blue-500/20">
-                                </div>
+                        <div x-show="multiDay" style="display: none;" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-[14px] font-medium text-gray-700 mb-2">Mulai <span class="text-red-500">*</span></label>
+                                <input type="date" x-model="startDate" :disabled="!multiDay" :required="multiDay" class="w-full h-[48px] rounded-xl border border-gray-300 px-4 text-[14px] outline-none shadow-sm focus:ring-2 focus:ring-blue-500/20">
                             </div>
-                        </template>
+                            <div>
+                                <label class="block text-[14px] font-medium text-gray-700 mb-2">Selesai <span class="text-red-500">*</span></label>
+                                <input type="date" x-model="endDate" :disabled="!multiDay" :required="multiDay" class="w-full h-[48px] rounded-xl border border-gray-300 px-4 text-[14px] outline-none shadow-sm focus:ring-2 focus:ring-blue-500/20">
+                            </div>
+                            <div>
+                                <label class="block text-[14px] font-medium text-gray-700 mb-2">Waktu <span class="text-gray-400 font-normal">(Opsional)</span></label>
+                                <input type="time" x-model="bookingTime" :disabled="!multiDay" class="w-full h-[48px] rounded-xl border border-gray-300 px-4 text-[14px] outline-none shadow-sm focus:ring-2 focus:ring-blue-500/20">
+                            </div>
+                        </div>
+
                         <div x-show="totalDurasi > 0" x-transition class="mt-4 bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 shadow-sm">
                             <span class="text-[13px] font-semibold text-blue-600">Total durasi: <span x-text="totalDurasi + ' hari'"></span></span>
                         </div>
@@ -197,14 +194,39 @@
                         </div>
                     </div>
 
+                    {{-- [PERBAIKAN]: RINGKASAN BIAYA (Sesuai Proposal Skripsi 3.1 - 3.5) --}}
                     <div x-show="showSummary" x-transition class="bg-gray-50 border border-gray-200 rounded-2xl p-5 text-[14px]">
                         <p class="text-[12px] font-bold text-gray-400 uppercase mb-4 tracking-wider">Ringkasan Biaya</p>
-                        <div class="flex justify-between py-2 border-b border-gray-200"><span class="text-gray-500 font-medium">Subtotal:</span><span class="font-bold text-gray-800" x-text="formattedSubtotal"></span></div>
+                        
+                        {{-- 3.1 Subtotal = P --}}
+                        <div class="flex justify-between py-2 border-b border-gray-200">
+                            <span class="text-gray-500 font-medium">Subtotal:</span>
+                            <span class="font-bold text-gray-800" x-text="formattedSubtotal"></span>
+                        </div>
+                        
+                        {{-- 3.2 Nd = Subtotal x D/100 --}}
                         <template x-if="discountValue > 0">
-                            <div class="flex justify-between py-2 border-b border-gray-200"><span class="text-gray-500 font-medium">Diskon:</span><span class="font-bold text-red-500" x-text="'- ' + formattedDiscountAmount"></span></div>
+                            <div class="flex justify-between py-2 border-b border-gray-200">
+                                <span class="text-gray-500 font-medium">Diskon (<span x-text="discountValue"></span>%):</span>
+                                <span class="font-bold text-red-500" x-text="'- ' + formattedDiscountAmount"></span>
+                            </div>
                         </template>
-                        <div class="flex justify-between py-2 border-b border-gray-200"><span class="text-gray-700 font-semibold">Total Keseluruhan:</span><span class="font-bold text-blue-600" x-text="formattedGrandTotal"></span></div>
-                        <div class="flex justify-between py-2"><span class="text-gray-500 font-medium">Sisa Pembayaran:</span><span class="font-bold text-red-500" x-text="formattedRemaining"></span></div>
+                        
+                        {{-- 3.3 Total = Subtotal - Nd --}}
+                        <div class="flex justify-between py-2 border-b border-gray-200">
+                            <span class="text-gray-700 font-semibold">Total Keseluruhan:</span>
+                            <span class="font-bold text-gray-900" x-text="formattedGrandTotal"></span>
+                        </div>
+                        
+                        {{-- 3.4 & 3.5 Sudah Dibayar dan Sisa --}}
+                        <div class="flex justify-between py-2 border-b border-gray-200">
+                            <span class="text-gray-500 font-medium">Sudah Dibayar:</span>
+                            <span class="font-bold text-emerald-600" x-text="formattedPaidAmount"></span>
+                        </div>
+                        <div class="flex justify-between py-2">
+                            <span class="text-gray-500 font-medium">Sisa Pembayaran:</span>
+                            <span class="font-bold text-red-500" x-text="formattedRemaining"></span>
+                        </div>
                     </div>
                     
                     <div>
@@ -302,6 +324,7 @@
                 }
             },
             
+            // Rumusan matematika sesuai skripsi 3.1 - 3.5
             get subtotal()   { return this.unitPrice },
             get discountAmount() { return Math.round(this.subtotal * (this.discountValue / 100)); },
             get grandTotal() { return Math.max(this.subtotal - this.discountAmount, 0) },
@@ -325,6 +348,7 @@
                 if (!this.serviceSearch.trim()) return this.services
                 return this.services.filter(s => s.name.toLowerCase().includes(this.serviceSearch.toLowerCase()))
             },
+            
             get formattedSubtotal()       { return this.formatCurrency(this.subtotal) },
             get formattedDiscountAmount() { return this.formatCurrency(this.discountAmount) },
             get formattedGrandTotal()     { return this.formatCurrency(this.grandTotal) },
@@ -464,12 +488,20 @@
                 })
 
                 if (booking.start_date) {
-                    this.multiDay = true; 
-                    this.startDate = String(booking.start_date).substring(0, 10)
-                    this.endDate = String(booking.end_date ?? '').substring(0, 10); 
+                    const sDate = String(booking.start_date).substring(0, 10);
+                    const eDate = String(booking.end_date ?? '').substring(0, 10);
+                    
+                    if (sDate === eDate) {
+                        this.multiDay = false;
+                        this.bookingDate = sDate;
+                    } else {
+                        this.multiDay = true; 
+                        this.startDate = sDate;
+                        this.endDate = eDate; 
+                    }
                 } else {
                     this.multiDay = false; 
-                    this.bookingDate = String(booking.booking_date ?? '').substring(0, 10)
+                    this.bookingDate = String(booking.booking_date ?? '').substring(0, 10);
                 }
 
                 this.discountValue = parseFloat(booking.discount_percent) || 0;

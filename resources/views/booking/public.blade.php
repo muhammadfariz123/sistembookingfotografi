@@ -145,11 +145,11 @@
                                 <div class="space-y-2 border-t border-white/20 pt-3 text-[12px] opacity-90">
                                     <p class="flex items-start gap-2">
                                         <span class="font-bold mt-0.5">•</span>
-                                        <span>DP Minimal 30%: <b class="font-bold text-yellow-300" x-text="formatCurrency(estimatedTotal * 0.3)"></b> (Jatuh tempo 1-2 hari setelah Invoice dikirim)</span>
+                                        <span>DP Minimal 30%: <b class="font-bold text-yellow-300" x-text="formatCurrency(estimatedTotal * 0.3)"></b> (Wajib dibayarkan hari ini untuk mengunci jadwal)</span>
                                     </p>
                                     <p class="flex items-start gap-2">
                                         <span class="font-bold mt-0.5">•</span>
-                                        <span>Pelunasan Sisa Tagihan wajib diselesaikan <b class="font-bold text-yellow-300">maksimal H-7</b> sebelum hari acara.</span>
+                                        <span>Pelunasan sisa tagihan dapat diselesaikan kemudian.</span>
                                     </p>
                                 </div>
                             </div>
@@ -171,29 +171,30 @@
                     </label>
                 </div>
                 
+                {{-- [PERBAIKAN]: Menambah atribut :disabled agar input yang hidden tidak ikut terkirim --}}
                 <div x-show="!multiDay" class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">Tanggal Acara <span class="text-red-500">*</span></label>
-                        <input type="date" name="booking_date" :required="!multiDay" value="{{ now()->format('Y-m-d') }}" min="{{ now()->format('Y-m-d') }}" class="w-full h-[44px] rounded-xl border border-gray-300 px-4 text-sm">
+                        <input type="date" name="booking_date" :disabled="multiDay" :required="!multiDay" value="{{ now()->format('Y-m-d') }}" min="{{ now()->format('Y-m-d') }}" class="w-full h-[44px] rounded-xl border border-gray-300 px-4 text-sm">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">Waktu Mulai</label>
-                        <input type="time" name="booking_time" class="w-full h-[44px] rounded-xl border border-gray-300 px-4 text-sm">
+                        <input type="time" name="booking_time" :disabled="multiDay" class="w-full h-[44px] rounded-xl border border-gray-300 px-4 text-sm">
                     </div>
                 </div>
                 
                 <div x-show="multiDay" class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4" style="display: none;">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">Tanggal Mulai <span class="text-red-500">*</span></label>
-                        <input type="date" name="start_date" :required="multiDay" value="{{ now()->format('Y-m-d') }}" min="{{ now()->format('Y-m-d') }}" class="w-full h-[44px] rounded-xl border border-gray-300 px-4 text-sm">
+                        <input type="date" name="start_date" :disabled="!multiDay" :required="multiDay" value="{{ now()->format('Y-m-d') }}" min="{{ now()->format('Y-m-d') }}" class="w-full h-[44px] rounded-xl border border-gray-300 px-4 text-sm">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">Tanggal Selesai <span class="text-red-500">*</span></label>
-                        <input type="date" name="end_date" :required="multiDay" value="{{ now()->format('Y-m-d') }}" min="{{ now()->format('Y-m-d') }}" class="w-full h-[44px] rounded-xl border border-gray-300 px-4 text-sm">
+                        <input type="date" name="end_date" :disabled="!multiDay" :required="multiDay" value="{{ now()->format('Y-m-d') }}" min="{{ now()->format('Y-m-d') }}" class="w-full h-[44px] rounded-xl border border-gray-300 px-4 text-sm">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">Waktu Mulai</label>
-                        <input type="time" name="booking_time" class="w-full h-[44px] rounded-xl border border-gray-300 px-4 text-sm">
+                        <input type="time" name="booking_time" :disabled="!multiDay" class="w-full h-[44px] rounded-xl border border-gray-300 px-4 text-sm">
                     </div>
                 </div>
             </div>

@@ -71,6 +71,9 @@ Route::middleware(['auth'])->group(function () {
     | Bookings
     |--------------------------------------------------------------------------
     */
+    // [PERBAIKAN]: Menambahkan rute export Excel di sini
+    Route::get('/bookings/export', [BookingController::class, 'export'])->name('bookings.export');
+    
     Route::get('/bookings/create', [BookingController::class, 'create'])->name('bookings.create');
     Route::get('/bookings/{booking}/edit', [BookingController::class, 'edit'])->name('bookings.edit');
     Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');

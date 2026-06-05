@@ -31,7 +31,7 @@
 
                 {{-- Download Excel — export semua data booking --}}
                 <div class="relative group">
-                    <a href="{{ route('financial.index', ['export' => 1]) }}"
+                    <a href="{{ route('bookings.export') }}"
                         class="cursor-pointer hover:text-blue-600 transition block">
                         <i data-lucide="download" style="width:18px;height:18px;"></i>
                     </a>
@@ -95,7 +95,7 @@
                 </a>
 
                 {{-- Download Excel mobile --}}
-                <a href="{{ route('financial.index', ['export' => 1]) }}"
+                <a href="{{ route('bookings.export') }}"
                     class="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition">
                     <i data-lucide="download" style="width:18px;height:18px;"></i>
                     <span>Unduh Excel</span>
