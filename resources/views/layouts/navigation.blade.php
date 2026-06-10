@@ -1,6 +1,6 @@
 {{-- LUCIDE ICONS via CDN --}}
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-<nav x-data="{ open: false }" class="bg-white border-b border-gray-200 w-full">
+<nav x-data="{ open: false }" class="bg-white border-b border-gray-200 w-full sticky top-0 z-50">
     <div class="w-full px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between py-3">
             {{-- KIRI --}}
