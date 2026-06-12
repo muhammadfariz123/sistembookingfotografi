@@ -3,35 +3,35 @@
      Dashboard — hanya memanggil komponen
      
      Komponen dan tanggung jawabnya:
-       summary-cards   → fetch summary, kartu status booking & pembayaran
-       booking-link    → link untuk klien
-       filter-panel    → search, filter, toggle tabel/kalender, tombol aksi
-       booking-table   → tabel data booking + polling realtime
-       booking-calendar→ kalender booking
-       invoice-modal   → generate & download invoice
+       dashboard-header → fetch summary, kartu status, filter, pencarian & aksi
+       booking-table    → tabel data booking + polling realtime
+       booking-calendar → kalender booking
+       invoice-modal    → generate & download invoice
      ================================================ --}}
 <x-app-layout>
     <div x-data="dashboardApp()"
          @set-view-mode.window="viewMode = $event.detail"
          class="px-4 sm:px-6 lg:px-7 py-7 bg-[#f5f7fb] min-h-screen overflow-x-hidden">
 
-        {{-- Kartu summary: status booking + status pembayaran --}}
-        <x-dashboard.summary-cards />
+        {{-- 1. Komponen Gabungan: Kartu Summary, Filter, Pencarian & Tombol Aksi --}}
+        <x-dashboard.dashboard-header />
 
-        {{-- Filter, toolbar, link klien --}}
-        <x-dashboard.filter-panel />
+        {{-- 2. Area Tabel & Kalender (Diberi id="tabel-booking" agar auto-scroll berfungsi) --}}
+        <div id="tabel-booking" class="mt-7">
+            
+            {{-- Tabel booking --}}
+            <div x-show="viewMode === 'table'" x-transition>
+                <x-dashboard.booking-table />
+            </div>
 
-        {{-- Tabel booking --}}
-        <div x-show="viewMode === 'table'" x-transition class="mt-7">
-            <x-dashboard.booking-table />
+            {{-- Kalender booking --}}
+            <div x-show="viewMode === 'calendar'" x-transition x-cloak>
+                <x-dashboard.booking-calendar />
+            </div>
+
         </div>
 
-        {{-- Kalender booking --}}
-        <div x-show="viewMode === 'calendar'" x-transition class="mt-7" x-cloak>
-            <x-dashboard.booking-calendar />
-        </div>
-
-        {{-- Modal: invoice --}}
+        {{-- 3. Modal: generate invoice --}}
         <x-dashboard.invoice-modal />
 
     </div>
@@ -49,8 +49,8 @@
             init() {
                 this.$nextTick(() => { if (window.lucide) lucide.createIcons() })
                 
-                // === SMART POLLING 1 DETIK ===
-                // Mengambil data senyap setiap 1 detik HANYA jika layar admin sedang dilihat
+                // === SMART POLLING ===
+                // Mengambil data senyap setiap 5 detik HANYA jika layar admin sedang dilihat
                 let pollInterval;
                 const startPolling = () => {
                     if(!pollInterval) {
@@ -58,7 +58,7 @@
                             if(document.visibilityState === 'visible') {
                                 window.dispatchEvent(new CustomEvent('reload-data-silent'));
                             }
-                        }, 5000); // 1000 ms = 1 detik (Sensasi Real-time)
+                        }, 5000); // 5000 ms = 5 detik
                     }
                 };
                 
