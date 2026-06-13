@@ -1,37 +1,25 @@
 {{-- resources/views/dashboard.blade.php --}}
 {{-- ================================================
-     Dashboard — hanya memanggil komponen
+     Dashboard — hanya memanggil komponen utama
      
      Komponen dan tanggung jawabnya:
-       dashboard-header → fetch summary, kartu status, filter, pencarian & aksi
+       dashboard-header → fetch summary, kartu status, pencarian & aksi
        booking-table    → tabel data booking + polling realtime
-       booking-calendar → kalender booking
        invoice-modal    → generate & download invoice
      ================================================ --}}
 <x-app-layout>
     <div x-data="dashboardApp()"
-         @set-view-mode.window="viewMode = $event.detail"
          class="px-4 sm:px-6 lg:px-7 py-7 bg-[#f5f7fb] min-h-screen overflow-x-hidden">
 
-        {{-- 1. Komponen Gabungan: Kartu Summary, Filter, Pencarian & Tombol Aksi --}}
+        {{-- 1. Komponen Header: Kartu Summary, Pencarian & Tombol Aksi --}}
         <x-dashboard.dashboard-header />
 
-        {{-- 2. Area Tabel & Kalender (Diberi id="tabel-booking" agar auto-scroll berfungsi) --}}
+        {{-- 2. Area Tabel Booking (Diberi id agar auto-scroll berfungsi) --}}
         <div id="tabel-booking" class="mt-7">
-            
-            {{-- Tabel booking --}}
-            <div x-show="viewMode === 'table'" x-transition>
-                <x-dashboard.booking-table />
-            </div>
-
-            {{-- Kalender booking --}}
-            <div x-show="viewMode === 'calendar'" x-transition x-cloak>
-                <x-dashboard.booking-calendar />
-            </div>
-
+            <x-dashboard.booking-table />
         </div>
 
-        {{-- 3. Modal: generate invoice --}}
+        {{-- 3. Modal: Generate Invoice --}}
         <x-dashboard.invoice-modal />
 
     </div>
@@ -40,13 +28,8 @@
     <script>
     function dashboardApp() {
         return {
-            viewMode: 'table',
-
-            // Kalender helpers
-            currentDate: new Date(),
-            monthNames: ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'],
-
             init() {
+                // Inisialisasi ikon Lucide
                 this.$nextTick(() => { if (window.lucide) lucide.createIcons() })
                 
                 // === SMART POLLING ===
@@ -77,29 +60,8 @@
                     }
                 });
 
-                startPolling();
-            },
-
-            get calendarTitle() {
-                return `Kalender ${this.monthNames[this.currentDate.getMonth()]} ${this.currentDate.getFullYear()}`
-            },
-            get calendarDates() {
-                const y = this.currentDate.getFullYear(), m = this.currentDate.getMonth()
-                let d = new Date(y, m, 1).getDay(); d = d === 0 ? 6 : d - 1
-                const total = new Date(y, m + 1, 0).getDate()
-                const dates = [...Array(d).fill(null)]
-                for (let i = 1; i <= total; i++) dates.push(i)
-                while (dates.length % 7) dates.push(null)
-                return dates
-            },
-            prevMonth() {
-                this.currentDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() - 1, 1)
-                this.$nextTick(() => { if (window.lucide) lucide.createIcons() })
-            },
-            nextMonth() {
-                this.currentDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() + 1, 1)
-                this.$nextTick(() => { if (window.lucide) lucide.createIcons() })
-            },
+                startPolling(); // Mulai polling saat pertama kali dimuat
+            }
         }
     }
 

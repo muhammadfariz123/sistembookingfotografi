@@ -6,17 +6,25 @@
      @sync-filter-payment.window="activePayment = $event.detail"
      class="bg-white rounded-[24px] shadow-sm border border-gray-100 p-5 lg:p-6 mb-7 w-full">
 
+    {{-- KONTANER UTAMA: Dibagi 2 Kolom, items-stretch memaksa tinggi SAMA RATA --}}
     <div class="flex flex-col lg:flex-row gap-6 lg:gap-8 items-stretch">
 
-        {{-- KOLOM KIRI (50%): SUMMARY CARDS --}}
+        {{-- ========================================== --}}
+        {{-- KOLOM KIRI (50%): SUMMARY CARDS COMPACT --}}
+        {{-- ========================================== --}}
         <div class="flex-1 min-w-0 flex flex-col justify-between gap-5">
+            
+            {{-- KELOMPOK 1: STATUS BOOKING --}}
             <div class="flex-1 flex flex-col">
                 <div class="flex items-center justify-between mb-3">
-                    <h2 class="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">Status Booking</h2>
+                    <h2 class="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+                        Status Booking
+                    </h2>
                     <span class="text-[10px] font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded border border-blue-100 flex items-center gap-1">
                         <i data-lucide="mouse-pointer-click" class="w-3 h-3"></i> Klik untuk filter
                     </span>
                 </div>
+                
                 <div class="grid grid-cols-2 gap-3 h-full">
                     <template x-for="item in bookingCards" :key="item.key">
                         <button @click="filterByStatus(item.key)"
@@ -34,14 +42,18 @@
                 </div>
             </div>
 
+            {{-- KELOMPOK 2: STATUS PEMBAYARAN --}}
             <div class="flex-1 flex flex-col">
                 <div class="flex items-center justify-between mb-3">
-                    <h2 class="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">Status Pembayaran</h2>
+                    <h2 class="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+                        Status Pembayaran
+                    </h2>
                     <span class="text-[10px] font-medium text-indigo-600 bg-indigo-50 px-2 py-1 rounded border border-indigo-100 flex items-center gap-1"
                           x-show="activeStatus !== 'semua'">
                         <i data-lucide="link" class="w-3 h-3"></i> Bisa dikombinasi
                     </span>
                 </div>
+
                 <div class="grid grid-cols-2 gap-3 h-full">
                     <template x-for="item in paymentCards" :key="item.key">
                         <button @click="filterByPayment(item.key)"
@@ -58,49 +70,40 @@
                     </template>
                 </div>
             </div>
+
         </div>
 
-        {{-- KOLOM KANAN (50%): NAVIGASI, PENCARIAN & AKSI --}}
+        {{-- ========================================== --}}
+        {{-- KOLOM KANAN (50%): LINK, PENCARIAN & AKSI --}}
+        {{-- ========================================== --}}
         <div class="flex-1 min-w-0 flex flex-col justify-between">
+            
+            {{-- BLOK ATAS KANAN: Link Booking Klien --}}
             <div class="w-full">
                 <x-dashboard.booking-link />
             </div>
-            
+
+            {{-- BLOK TENGAH KANAN: Pencarian Cepat (Dibuat full width) --}}
             <div class="flex flex-col gap-3 my-auto py-4 lg:py-0">
-                <div class="flex flex-col sm:flex-row gap-3 items-end">
-                    <div class="w-full sm:w-auto flex flex-col justify-end">
-                        <h2 class="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Navigasi Tampilan</h2>
-                        <div class="flex bg-gray-100 p-1 rounded-xl border border-gray-200 shrink-0 h-[46px]">
-                            <button @click="setView('table')" 
-                                :class="activeView === 'table' ? 'bg-white shadow-sm text-blue-600 font-bold' : 'text-gray-600 hover:bg-gray-200'"
-                                class="h-full px-5 rounded-lg text-[13px] flex flex-1 sm:flex-none items-center justify-center gap-2 transition-all">
-                                <i data-lucide="list" class="w-4 h-4"></i> Tabel
-                            </button>
-                            <button @click="setView('calendar')" 
-                                :class="activeView === 'calendar' ? 'bg-white shadow-sm text-blue-600 font-bold' : 'text-gray-600 hover:bg-gray-200'"
-                                class="h-full px-5 rounded-lg text-[13px] flex flex-1 sm:flex-none items-center justify-center gap-2 transition-all">
-                                <i data-lucide="calendar-days" class="w-4 h-4"></i> Kalender
-                            </button>
-                        </div>
-                    </div>
-                    <div class="w-full flex-1 flex flex-col justify-end">
-                        <h2 class="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2 hidden sm:block">Pencarian Cepat</h2>
-                        <div class="relative w-full h-[46px]">
-                            <i data-lucide="search" class="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
-                            <input type="text" x-model="search" @input.debounce.300ms="handleSearch()"
-                                placeholder="Cari klien, acara, kontak..."
-                                class="w-full h-full pl-10 pr-8 rounded-xl border border-gray-200 bg-gray-50 text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
-                            <button x-show="search.trim()" type="button" @click="search = ''; handleSearch()"
-                                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
-                        </div>
+                <div class="w-full flex flex-col justify-center">
+                    <h2 class="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Pencarian Cepat</h2>
+                    <div class="relative w-full h-[46px]">
+                        <i data-lucide="search" class="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                        <input type="text" x-model="search" @input.debounce.300ms="handleSearch()"
+                            placeholder="Cari nama klien, acara, atau kontak..."
+                            class="w-full h-full pl-10 pr-8 rounded-xl border border-gray-200 bg-gray-50 text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                        
+                        <button x-show="search.trim()" type="button" @click="search = ''; handleSearch()"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
                     </div>
                 </div>
             </div>
 
+            {{-- BLOK BAWAH KANAN: Tombol Tindakan Cepat --}}
             <div class="mt-auto">
                 <h2 class="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Tindakan Cepat</h2>
                 <div class="grid grid-cols-2 gap-3">
@@ -114,19 +117,18 @@
                     </a>
                 </div>
             </div>
+
         </div>
+
     </div>
 </div>
 
 <script>
 function dashboardHeader() {
     return {
-        activeView: 'table',
         activeStatus:  'semua',
         activePayment: 'semua',
         search: '',
-        filterMonth: '', 
-        sortBy: 'newest', 
         summary: { semua:0, dijadwalkan:0, selesai:0, dibatalkan:0, belum_bayar:0, dp:0, lunas:0 },
 
         bookingCards: [
@@ -179,12 +181,6 @@ function dashboardHeader() {
             }
         },
 
-        setView(mode) {
-            this.activeView = mode
-            window.dispatchEvent(new CustomEvent('set-view-mode', { detail: mode }))
-            this.scrollToTable()
-        },
-
         filterByStatus(key) {
             this.activeStatus = key
             this.emit()
@@ -210,8 +206,6 @@ function dashboardHeader() {
                     status: this.activeStatus,
                     payment: this.activePayment,
                     search: this.search,
-                    month: this.filterMonth, 
-                    sortBy: this.sortBy,     
                 }
             }))
         }

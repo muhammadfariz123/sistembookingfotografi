@@ -77,7 +77,7 @@ class BookingExport implements
             'Nama Klien',
             'Kontak Klien',
             'Alamat Klien',
-            'Jenis Layanan',
+            'Nama Layanan',
             'Harga Paket',
             'Subtotal',
             'Tanggal Booking',
