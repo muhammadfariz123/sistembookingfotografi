@@ -4,7 +4,8 @@
     x-init="loadBookings()"
     @reload-bookings.window="loadBookings()"
     @reload-data-silent.window="loadBookings(true)"
-    class="bg-white rounded-[28px] shadow-sm mt-7 border border-gray-100 p-5 overflow-hidden">
+    {{-- PERBAIKAN: Menghapus rounded, shadow, border, mt-7 agar menyatu dengan container Toolbar --}}
+    class="w-full">
 
     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 mb-5">
         <div>

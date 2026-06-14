@@ -10,30 +10,32 @@
 @endphp
 
 <div class="bg-[#edf4ff] border border-[#cfe0ff] rounded-[24px] p-4 sm:p-5 overflow-hidden">
-    <div class="flex flex-col lg:flex-row lg:items-center gap-4">
-        <div class="flex items-center gap-2 min-w-fit">
-            <i data-lucide="link-2" class="w-5 h-5 text-blue-600"></i>
-            <h3 class="text-[16px] font-semibold text-blue-600 whitespace-nowrap">
-                Link Booking Klien
-            </h3>
-        </div>
-        <div class="flex-1 min-w-0">
-            <input
-                type="text"
-                readonly
-                id="booking-link-input"
-                value="{{ $bookingUrl }}"
-                class="w-full h-[46px] rounded-2xl border border-[#b8d2ff] bg-white px-4 text-sm text-gray-700 focus:outline-none">
-        </div>
-        <button
-            id="copy-btn"
-            onclick="copyBookingLink()"
-            class="h-[46px] px-6 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm flex items-center justify-center gap-2 whitespace-nowrap shrink-0 transition">
-            <i data-lucide="copy" class="w-4 h-4"></i>
-            Copy Link
-        </button>
+    {{-- Header label --}}
+    <div class="flex items-center gap-2 mb-3">
+        <i data-lucide="link-2" class="w-5 h-5 text-blue-600 shrink-0"></i>
+        <h3 class="text-[16px] font-semibold text-blue-600">
+            Link Booking Klien
+        </h3>
     </div>
-    <p class="text-[13px] text-blue-600 mt-4">
+
+    {{-- URL input (full width, always readable) --}}
+    <input
+        type="text"
+        readonly
+        id="booking-link-input"
+        value="{{ $bookingUrl }}"
+        class="w-full h-[42px] rounded-2xl border border-[#b8d2ff] bg-white px-4 text-sm text-gray-700 focus:outline-none mb-3">
+
+    {{-- Copy button (full width below input) --}}
+    <button
+        id="copy-btn"
+        onclick="copyBookingLink()"
+        class="w-full h-[42px] rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm flex items-center justify-center gap-2 transition">
+        <i data-lucide="copy" class="w-4 h-4"></i>
+        Copy Link
+    </button>
+
+    <p class="text-[13px] text-blue-600 mt-3">
         Kirim link ini ke klien. Data booking yang diisi klien akan masuk ke dashboard admin ini.
     </p>
 </div>
