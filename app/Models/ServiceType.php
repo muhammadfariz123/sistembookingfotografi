@@ -32,4 +32,9 @@ class ServiceType extends Model
     {
         return $this->hasMany(Booking::class);
     }
+
+    public function galleries()
+    {
+        return $this->hasMany(ServiceGallery::class);
+    }
 }

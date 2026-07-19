@@ -41,12 +41,13 @@
                     <div>
                         <h4 class="font-bold text-blue-800 text-[14px]">Informasi Penting</h4>
                         <p class="text-[13px] text-blue-700 mt-1 leading-relaxed">
-                            Seluruh data pengaturan perusahaan (termasuk Logo, Alamat, dan Rekening Bank) akan ditampilkan secara langsung pada dokumen <b>Invoice</b> yang Anda cetak atau kirim ke Klien. Pastikan data yang dimasukkan akurat.
+                            Seluruh data pengaturan perusahaan (termasuk Logo, Alamat, dan Rekening Bank/QRIS) akan ditampilkan secara langsung pada dokumen <b>Invoice</b> yang Anda cetak atau kirim ke Klien. Pastikan data yang dimasukkan akurat.
                         </p>
                     </div>
                 </div>
 
-                <form action="{{ route('company-setting.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+                <form action="{{ route('company-setting.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6" 
+                      x-data="{ paymentMethod: '{{ old('payment_method', $setting->payment_method ?? 'bank_transfer') }}', fileName: '', qrisFileName: '' }">
                     @csrf
 
                     <div>
@@ -96,7 +97,7 @@
                                 @error('company_address')<p class="text-[12px] text-red-500 mt-1">{{ $message }}</p>@enderror
                             </div>
 
-                            <div x-data="{ fileName: '' }">
+                            <div>
                                 <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Logo Perusahaan</label>
                                 
                                 @if($setting->company_logo)
@@ -124,10 +125,23 @@
                     <div class="pt-8 border-t border-gray-100">
                         <h3 class="text-[16px] font-bold text-gray-800 mb-4 flex items-center gap-2">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-                            Informasi Rekening Bank
+                            Metode Pembayaran
                         </h3>
 
-                        <div class="space-y-5 bg-gray-50 rounded-2xl p-5 border border-gray-200">
+                        {{-- PILIHAN METODE PEMBAYARAN (Radio Button) --}}
+                        <div class="flex items-center gap-6 mb-6">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="payment_method" value="bank_transfer" x-model="paymentMethod" class="text-blue-600 focus:ring-blue-500 border-gray-300 w-4 h-4">
+                                <span class="text-[14px] font-medium text-gray-800">Transfer Bank Manual</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="payment_method" value="qris" x-model="paymentMethod" class="text-blue-600 focus:ring-blue-500 border-gray-300 w-4 h-4">
+                                <span class="text-[14px] font-medium text-gray-800">QRIS</span>
+                            </label>
+                        </div>
+
+                        {{-- SECTION TRANSFER BANK --}}
+                        <div x-show="paymentMethod === 'bank_transfer'" x-transition class="space-y-5 bg-gray-50 rounded-2xl p-5 border border-gray-200">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 <div>
                                     <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Nama Bank</label>
@@ -161,10 +175,37 @@
                             </div>
                         </div>
 
+                        {{-- SECTION QRIS --}}
+                        <div x-show="paymentMethod === 'qris'" x-transition style="display: none;" class="space-y-5 bg-gray-50 rounded-2xl p-5 border border-gray-200">
+                            <div>
+                                <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Gambar QRIS</label>
+                                
+                                @if($setting->qris_image)
+                                    <div class="mb-3 flex items-center gap-3">
+                                        <img src="{{ asset('storage/' . $setting->qris_image) }}" alt="QRIS" class="h-32 object-contain rounded-lg border border-gray-200 px-2 bg-white">
+                                        <span class="text-[12px] text-gray-500">QRIS saat ini</span>
+                                    </div>
+                                @endif
+                                
+                                <label class="block border-2 border-dashed border-gray-300 rounded-xl p-6 text-center text-gray-500 cursor-pointer hover:border-blue-400 hover:bg-blue-50/50 transition">
+                                    <div class="flex flex-col items-center justify-center gap-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                        </svg>
+                                        <span class="text-[14px] font-medium" x-text="qrisFileName ? qrisFileName : 'Upload gambar QRIS untuk ditampilkan ke pelanggan.'"></span>
+                                        <span class="text-[12px] text-gray-400">Format: JPG, PNG. Maksimal 5MB.</span>
+                                    </div>
+                                    <input type="file" name="qris_image" accept="image/*" @change="qrisFileName = $event.target.files[0].name" class="hidden">
+                                </label>
+                                @error('qris_image')<p class="text-[12px] text-red-500 mt-1">{{ $message }}</p>@enderror
+                            </div>
+                        </div>
+
+                        {{-- INSTRUKSI PEMBAYARAN KEDUANYA (UMUM) --}}
                         <div class="mt-5">
                             <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Instruksi Pembayaran</label>
-                            <textarea name="payment_instruction" rows="3" placeholder="Contoh: Pembayaran sah jika ditransfer ke rekening di atas."
-                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-[14px] resize-none shadow-sm">{{ old('payment_instruction', $setting->payment_instruction ?? 'Silakan transfer ke rekening di atas dan kirimkan bukti transfer untuk konfirmasi pembayaran.') }}</textarea>
+                            <textarea name="payment_instruction" rows="3" placeholder="Contoh: Pembayaran sah jika ditransfer ke rekening/QRIS di atas."
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-[14px] resize-none shadow-sm">{{ old('payment_instruction', $setting->payment_instruction ?? 'Silakan selesaikan pembayaran dan kirimkan bukti transfer.') }}</textarea>
                         </div>
                     </div>
 

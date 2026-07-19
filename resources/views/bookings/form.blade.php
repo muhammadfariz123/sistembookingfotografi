@@ -50,7 +50,6 @@
                             class="w-full h-[48px] rounded-xl border border-gray-300 px-4 text-[14px] focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none shadow-sm">
                     </div>
 
-                    {{-- BAGIAN DROPDOWN LAYANAN YANG SUDAH DIBERSIHKAN --}}
                     <div class="relative z-50">
                         <label class="block text-[14px] font-medium text-gray-700 mb-2">Paket Layanan <span class="text-red-500">*</span></label>
                         <input type="text" :value="selectedService" required tabindex="-1" class="absolute opacity-0 w-0 h-0 pointer-events-none">
@@ -130,15 +129,30 @@
                         <div>
                             <label class="block text-[14px] font-medium text-gray-700 mb-2">Status Jadwal</label>
                             <select x-model="status" class="w-full h-[48px] rounded-xl border border-gray-300 px-4 text-[14px] outline-none shadow-sm focus:ring-2 focus:ring-blue-500/20">
-                                <option>Dijadwalkan</option>
-                                <option>Selesai</option>
-                                <option>Dibatalkan</option>
+                                <option value="Dijadwalkan">Dijadwalkan</option>
+                                <option value="Pembayaran Tertunda">Pembayaran Tertunda</option>
+                                <option value="Proses Edit">Proses Edit</option>
+                                <option value="Selesai">Selesai</option>
+                                <option value="Dibatalkan">Dibatalkan</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-[14px] font-medium text-gray-700 mb-2">Status Pembayaran</label>
                             <input type="text" :value="paymentStatus" readonly :class="paymentStatusClass"
                                 class="w-full h-[48px] rounded-xl border px-4 text-[14px] font-medium cursor-default shadow-sm outline-none">
+                            
+                            {{-- TAMPILKAN TOMBOL LIHAT BUKTI BAYAR JIKA ADA --}}
+                            <template x-if="paymentProofUrl">
+                                <div class="mt-2 bg-blue-50 border border-blue-200 rounded-xl p-3 flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                                        <p class="text-xs font-bold text-gray-900">Bukti Transfer Ada</p>
+                                    </div>
+                                    <a :href="paymentProofUrl" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg shadow-sm transition">
+                                        Lihat Foto
+                                    </a>
+                                </div>
+                            </template>
                         </div>
                     </div>
                     
@@ -226,6 +240,8 @@
             services: rawServices || [], 
             selectedService: '', selectedServiceId: null,
             showServiceDropdown: false,
+
+            paymentProofUrl: null, // Tambahan untuk link foto bukti
             
             init() { 
                 if (!initialBooking && this.services.length > 0) {
@@ -244,7 +260,7 @@
             get grandTotal() { return Math.max(this.subtotal - this.discountAmount, 0) },
             get remaining()  { return Math.max(this.grandTotal - this.paidAmount, 0) },
             get paymentStatus() {
-                if (this.paidAmount <= 0) return 'Belum Bayar'
+                if (this.paidAmount <= 0) return 'Pending'
                 if (this.paidAmount >= this.grandTotal) return 'Lunas'
                 return 'Down Payment'
             },
@@ -307,7 +323,8 @@
                     unitPrice: parseInt(booking.unit_price) || 0, 
                     paidAmount: parseInt(booking.paid_amount) || 0,
                     notes: booking.notes ?? '', 
-                    showSummary: true 
+                    showSummary: true,
+                    paymentProofUrl: booking.payment_proof ? '/storage/' + booking.payment_proof : null
                 })
 
                 if (booking.start_date) {

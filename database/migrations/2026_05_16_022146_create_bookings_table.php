@@ -30,15 +30,19 @@ return new class extends Migration
 
             // Status
             $table->string('status')->default('Dijadwalkan');
-            // payment_status dihitung otomatis TPS, disimpan hasil kalkulasi
-            $table->string('payment_status')->default('Belum Bayar');
+            
+            // UBAH DEFAULT MENJADI 'Pending'
+            $table->string('payment_status')->default('Pending');
+            
+            // TAMBAHKAN KOLOM UNTUK BUKTI TRANSFER
+            $table->string('payment_proof')->nullable();
 
             // TPS — input
             $table->bigInteger('unit_price')->default(0);
             $table->decimal('discount_percent', 5, 2)->default(0);
             $table->bigInteger('paid_amount')->default(0);
 
-            // TPS — hasil kalkulasi otomatis (disimpan agar bisa query/filter)
+            // TPS — hasil kalkulasi otomatis
             $table->bigInteger('subtotal')->default(0);
             $table->bigInteger('discount_amount')->default(0);
             $table->bigInteger('total')->default(0);

@@ -4,7 +4,6 @@
     x-init="loadBookings()"
     @reload-bookings.window="loadBookings()"
     @reload-data-silent.window="loadBookings(true)"
-    {{-- PERBAIKAN: Menghapus rounded, shadow, border, mt-7 agar menyatu dengan container Toolbar --}}
     class="w-full">
 
     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 mb-5">
@@ -61,13 +60,14 @@
         <template x-if="bookings.length === 0">
             <div class="h-[320px] flex flex-col items-center justify-center px-4 text-center mt-4">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-14 h-14 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
                 <h1 class="text-[20px] sm:text-[24px] font-bold text-gray-400">Belum ada data booking</h1>
             </div>
         </template>
     </div>
 
+    {{-- Modal Detail Harian --}}
     <div x-show="showDetail" x-cloak x-transition.opacity class="fixed inset-0 z-50">
         <div @click="showDetail = false" class="absolute inset-0 bg-black/35 backdrop-blur-sm"></div>
         <div class="relative min-h-screen flex items-center justify-center p-4">
@@ -83,7 +83,16 @@
                                 <div class="flex-1 min-w-0">
                                     <p class="font-bold text-[14px] text-gray-900 truncate" x-text="booking.client_name"></p>
                                     <p class="text-[12px] text-gray-500 mt-0.5" x-text="booking.service_type?.name ?? '-'"></p>
-                                    <p x-show="booking.client_contact" class="text-[12px] text-gray-400" x-text="booking.client_contact"></p>
+                                    
+                                    {{-- PERBAIKAN: Menambahkan Waktu/Jam Booking di Modal Detail --}}
+                                    <div x-show="booking.booking_time" class="flex items-center gap-1.5 mt-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <p class="text-[12px] font-medium text-gray-600" x-text="booking.booking_time"></p>
+                                    </div>
+
+                                    <p x-show="booking.client_contact" class="text-[12px] text-gray-400 mt-0.5" x-text="booking.client_contact"></p>
                                 </div>
                                 <div class="flex flex-col items-end gap-1 shrink-0">
                                     <span :class="statusBadgeClass(booking.status)" class="text-[11px] font-semibold px-2 py-0.5 rounded-full" x-text="booking.status"></span>

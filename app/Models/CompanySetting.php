@@ -14,6 +14,8 @@ class CompanySetting extends Model
         'company_phone',
         'company_email',
         'company_logo',
+        'payment_method', // Tambahkan ini
+        'qris_image',
         'bank_name',
         'bank_account',
         'bank_holder',

@@ -13,12 +13,14 @@ class AdminSeeder extends Seeder
      */
     public function run(): void
     {
-        User::create([
-
-            'email' => 'admin@gmail.com',
-
-            'password' => Hash::make('password'),
-
-        ]);
+        User::updateOrCreate(
+            // Mencari user berdasarkan email ini
+            ['email' => 'warungkombas@gmail.com'],
+            
+            // Jika ada (atau belum ada), update/buat passwordnya
+            [
+                'password' => Hash::make('password123'),
+            ]
+        );
     }
 }

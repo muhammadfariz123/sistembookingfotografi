@@ -5,6 +5,36 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property int $service_type_id
+ * @property string $client_name
+ * @property string|null $client_contact
+ * @property string|null $client_email
+ * @property string|null $client_instagram
+ * @property string|null $client_address
+ * @property \Illuminate\Support\Carbon|null $booking_date
+ * @property \Illuminate\Support\Carbon|null $start_date
+ * @property \Illuminate\Support\Carbon|null $end_date
+ * @property string|null $booking_time
+ * @property string $status
+ * @property string $payment_status
+ * @property string|null $payment_type
+ * @property string|null $payment_proof
+ * @property int $unit_price
+ * @property float $discount_percent
+ * @property int $paid_amount
+ * @property int $subtotal
+ * @property int $discount_amount
+ * @property int $total
+ * @property int $remaining
+ * @property string|null $notes
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\ServiceType|null $serviceType
+ * @property-read \App\Models\User $user
+ */
 class Booking extends Model
 {
     use HasFactory;
@@ -14,6 +44,8 @@ class Booking extends Model
         'service_type_id',
         'client_name',
         'client_contact',
+        'client_email',
+        'client_instagram',
         'client_address',
         'booking_date',
         'start_date',
@@ -21,6 +53,8 @@ class Booking extends Model
         'booking_time',
         'status',
         'payment_status',
+        'payment_type',   // ← [FIX] wajib ditambahkan, ini yang hilang
+        'payment_proof',
         'unit_price',
         'discount_percent',
         'paid_amount',
@@ -32,16 +66,16 @@ class Booking extends Model
     ];
 
     protected $casts = [
-        'booking_date'     => 'date',
-        'start_date'       => 'date',
-        'end_date'         => 'date',
-        'unit_price'       => 'integer',
+        'booking_date' => 'date',
+        'start_date' => 'date',
+        'end_date' => 'date',
+        'unit_price' => 'integer',
         'discount_percent' => 'decimal:2',
-        'paid_amount'      => 'integer',
-        'subtotal'         => 'integer',
-        'discount_amount'  => 'integer',
-        'total'            => 'integer',
-        'remaining'        => 'integer',
+        'paid_amount' => 'integer',
+        'subtotal' => 'integer',
+        'discount_amount' => 'integer',
+        'total' => 'integer',
+        'remaining' => 'integer',
     ];
 
     // ── Relasi ──────────────────────────────────────────────────
@@ -86,7 +120,7 @@ class Booking extends Model
 
         // (3.5) Status pembayaran — otomatis
         if ($paidAmount <= 0) {
-            $paymentStatus = 'Belum Bayar';
+            $paymentStatus = 'Pending';
         } elseif ($paidAmount >= $total) {
             $paymentStatus = 'Lunas';
         } else {
@@ -94,11 +128,11 @@ class Booking extends Model
         }
 
         return [
-            'subtotal'        => $subtotal,
+            'subtotal' => $subtotal,
             'discount_amount' => $discountAmount,
-            'total'           => $total,
-            'remaining'       => $remaining,
-            'payment_status'  => $paymentStatus,
+            'total' => $total,
+            'remaining' => $remaining,
+            'payment_status' => $paymentStatus,
         ];
     }
 }
