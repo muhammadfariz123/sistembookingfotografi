@@ -11,101 +11,83 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <style>
-        /* Memaksa seluruh sistem menggunakan font Poppins agar konsisten */
-        body {
-            font-family: 'Poppins', sans-serif !important;
-        }
+        body { font-family: 'Poppins', sans-serif !important; }
+        [x-cloak] { display: none !important; }
+        /* Transisi agar pergerakan lebar sidebar halus */
+        .sidebar-transition { transition: width 0.3s ease-in-out; }
     </style>
 </head>
 
 <body class="antialiased bg-[#f5f7fb]">
-    <div class="min-h-screen">
+    
+    {{-- Wrapper Utama --}}
+    {{-- sidebarMobileOpen: Untuk HP (Muncul/Sembunyi) --}}
+    {{-- sidebarCollapsed: Untuk Desktop (Lebar Penuh vs Ikon Saja) --}}
+    <div x-data="{ sidebarMobileOpen: false, sidebarCollapsed: localStorage.getItem('sidebarCollapsed') === 'true' }" 
+         x-init="$watch('sidebarCollapsed', val => localStorage.setItem('sidebarCollapsed', val))"
+         class="flex h-screen overflow-hidden">
         
-        {{-- Navigasi Utama Admin --}}
+        {{-- Sidebar Kiri --}}
         @include('layouts.navigation')
 
-        {{-- Header Halaman (Opsional) --}}
-        @isset($header)
-            <header class="bg-white shadow-sm border-b border-gray-100">
-                <div class="max-w-7xl mx-auto py-5 px-4 sm:px-6 lg:px-8">
-                    {{ $header }}
+        {{-- Area Konten Utama (Kanan) --}}
+        <div class="relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
+            
+            {{-- Tombol Hamburger untuk Mobile --}}
+            <header class="lg:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-0 z-40 shadow-sm">
+                <div class="flex items-center gap-3">
+                    <button @click="sidebarMobileOpen = !sidebarMobileOpen" class="p-2 -ml-2 rounded-xl text-gray-600 hover:bg-gray-100 transition">
+                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
+                    <span class="font-extrabold text-[18px] text-blue-600">Rozi Photo</span>
                 </div>
             </header>
-        @endisset
 
-        {{-- Konten Utama (Slot) --}}
-        <main>
-            {{ $slot }}
-        </main>
+            {{-- Header Halaman --}}
+            @isset($header)
+                <header class="bg-white shadow-sm border-b border-gray-100 hidden lg:block">
+                    <div class="max-w-7xl mx-auto py-5 px-4 sm:px-6 lg:px-8">
+                        {{ $header }}
+                    </div>
+                </header>
+            @endisset
+
+            {{-- Konten Utama --}}
+            <main class="w-full">
+                {{ $slot }}
+            </main>
+            
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            /*
-            |--------------------------------------------------------------------------
-            | SUCCESS ALERT (GLOBAL)
-            |--------------------------------------------------------------------------
-            | Menangkap session 'success' dari controller dan menampilkannya sebagai popup
-            */
+            lucide.createIcons();
+            
             @if (session('success'))
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Berhasil',
-                    text: @json(session('success')),
-                    confirmButtonColor: '#2563eb',
-                    timer: 2500,
-                    showConfirmButton: false,
-                    customClass: { popup: 'rounded-[28px]' }
-                })
+                Swal.fire({ icon: 'success', title: 'Berhasil', text: @json(session('success')), confirmButtonColor: '#2563eb', timer: 2500, showConfirmButton: false, customClass: { popup: 'rounded-[28px]' } })
             @endif
 
-            /*
-            |--------------------------------------------------------------------------
-            | ERROR ALERT (GLOBAL)
-            |--------------------------------------------------------------------------
-            */
             @if (session('error'))
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Terjadi Kesalahan',
-                    text: @json(session('error')),
-                    confirmButtonColor: '#dc2626',
-                    customClass: { popup: 'rounded-[28px]' }
-                })
+                Swal.fire({ icon: 'error', title: 'Terjadi Kesalahan', text: @json(session('error')), confirmButtonColor: '#dc2626', customClass: { popup: 'rounded-[28px]' } })
             @endif
-        })
+        });
 
-        /*
-        |--------------------------------------------------------------------------
-        | DELETE CONFIRMATION GLOBAL
-        |--------------------------------------------------------------------------
-        | Fungsi ini dipanggil setiap kali tombol hapus ditekan untuk mencegah hapus tak disengaja.
-        */
+        document.addEventListener('alpine:updated', () => { lucide.createIcons(); });
+
         function confirmDelete(event, text = 'Data yang dihapus tidak bisa dikembalikan.') {
-            event.preventDefault()
-            Swal.fire({
-                title: 'Hapus data?',
-                text: text,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ef4444', 
-                cancelButtonColor: '#9ca3af',
-                confirmButtonText: 'Ya, Hapus',
-                cancelButtonText: 'Batal',
-                reverseButtons: true,
-                customClass: { popup: 'rounded-[28px]' }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    event.target.submit()
-                }
+            event.preventDefault();
+            Swal.fire({ title: 'Hapus data?', text: text, icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', cancelButtonColor: '#9ca3af', confirmButtonText: 'Ya, Hapus', cancelButtonText: 'Batal', reverseButtons: true, customClass: { popup: 'rounded-[28px]' } }).then((result) => {
+                if (result.isConfirmed) event.target.submit();
             })
-            return false
+            return false;
         }
     </script>
 </body>

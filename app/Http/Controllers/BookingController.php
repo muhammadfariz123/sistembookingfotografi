@@ -10,53 +10,42 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\BookingExport;
+use Carbon\Carbon;
 
 class BookingController extends Controller
 {
-    /**
-     * READ: Mengambil semua data Booking beserta Ringkasannya (Summary).
-     */
     public function index(Request $request)
     {
         if ($request->wantsJson()) {
-
-            // 1. Ambil semua data booking berdasarkan user yang login
             $bookings = Booking::where('user_id', Auth::id())
                 ->with('serviceType')
                 ->latest()
                 ->get();
 
-            // 2. Mapping data untuk dikirim sebagai JSON (Frontend)
             $mappedBookings = $bookings->map(function ($booking) {
+                $bookingCode = 'BKG-' . Carbon::parse($booking->created_at)->format('Ymd') . '-' . strtoupper(substr(md5($booking->id), 0, 4));
+
                 return [
                     'id' => $booking->id,
+                    'booking_code' => $bookingCode,
                     'client_name' => $booking->client_name,
                     'client_contact' => $booking->client_contact,
+                    'client_email' => $booking->client_email,
                     'client_address' => $booking->client_address,
                     'service_type' => $booking->serviceType ? [
                         'id' => $booking->serviceType->id,
                         'name' => $booking->serviceType->name,
-                        'description' => $booking->serviceType->description,
                         'price' => $booking->serviceType->price,
                     ] : null,
-                    'service_type_id' => $booking->service_type_id,
-
-                    // Komponen Keuangan
                     'unit_price' => (int) $booking->unit_price,
-                    'discount_percent' => (float) $booking->discount_percent,
-                    'discount_amount' => (int) $booking->discount_amount,
-                    'subtotal' => (int) $booking->subtotal,
                     'total' => (int) $booking->total,
                     'paid_amount' => (int) $booking->paid_amount,
                     'remaining' => (int) $booking->remaining,
-
-                    // Status
+                    'paid_at' => $booking->paid_at?->format('Y-m-d H:i:s'),
                     'payment_status' => $booking->payment_status,
                     'payment_type' => $booking->payment_type,
-                    'payment_proof' => $booking->payment_proof, // [PENTING] Tambahkan baris ini
+                    'payment_proof' => $booking->payment_proof,
                     'status' => $booking->status,
-
-                    // Waktu & Catatan
                     'booking_date' => $booking->booking_date?->format('Y-m-d'),
                     'start_date' => $booking->start_date?->format('Y-m-d'),
                     'end_date' => $booking->end_date?->format('Y-m-d'),
@@ -67,19 +56,60 @@ class BookingController extends Controller
                 ];
             });
 
-            // 3. Menghitung Ringkasan (Summary) berdasarkan Collection
-            // [DIUBAH]: Menambahkan pembayaran_tertunda, proses_edit, dan merubah belum_bayar jadi pending
-            $summary = [
-                'total' => $bookings->count(),
-                'dijadwalkan' => $bookings->where('status', 'Dijadwalkan')->count(),
-                'pembayaran_tertunda' => $bookings->where('status', 'Pembayaran Tertunda')->count(),
-                'proses_edit' => $bookings->where('status', 'Proses Edit')->count(),
-                'selesai' => $bookings->where('status', 'Selesai')->count(),
-                'dibatalkan' => $bookings->where('status', 'Dibatalkan')->count(),
+            $now = Carbon::now('Asia/Jakarta');
+            $currentMonth = $now->month;
+            $currentYear = $now->year;
+            $todayStr = $now->format('Y-m-d');
 
-                'pending' => $bookings->where('payment_status', 'Pending')->count(),
-                'dp' => $bookings->where('payment_status', 'Down Payment')->count(),
-                'lunas' => $bookings->where('payment_status', 'Lunas')->count(),
+            $lastMonthDate = $now->copy()->subMonth();
+            $lastMonth = $lastMonthDate->month;
+            $lastYear = $lastMonthDate->year;
+
+            $bookingsThisMonth = collect($mappedBookings)->filter(function ($b) use ($currentMonth, $currentYear) {
+                $date = Carbon::parse($b['created_at'])->timezone('Asia/Jakarta');
+                return $date->month == $currentMonth && $date->year == $currentYear;
+            });
+            $bookingThisMonthCount = $bookingsThisMonth->count();
+            $revenueThisMonth = $bookingsThisMonth->sum('paid_amount');
+
+            $bookingsLastMonth = collect($mappedBookings)->filter(function ($b) use ($lastMonth, $lastYear) {
+                $date = Carbon::parse($b['created_at'])->timezone('Asia/Jakarta');
+                return $date->month == $lastMonth && $date->year == $lastYear;
+            });
+            $bookingLastMonthCount = $bookingsLastMonth->count();
+            $revenueLastMonth = $bookingsLastMonth->sum('paid_amount');
+
+            $bookingGrowth = $bookingLastMonthCount > 0 ? (($bookingThisMonthCount - $bookingLastMonthCount) / $bookingLastMonthCount) * 100 : ($bookingThisMonthCount > 0 ? 100 : 0);
+            $revenueGrowth = $revenueLastMonth > 0 ? (($revenueThisMonth - $revenueLastMonth) / $revenueLastMonth) * 100 : ($revenueThisMonth > 0 ? 100 : 0);
+
+            $pendingBookings = collect($mappedBookings)->filter(function ($b) {
+                return in_array($b['payment_status'], ['Pending', 'Belum Bayar', 'Tunggu Konfirmasi']);
+            });
+
+            $todaySessions = collect($mappedBookings)->filter(function ($b) use ($todayStr) {
+                $tglLayanan = $b['booking_date'] ?? $b['start_date'];
+                return $tglLayanan === $todayStr && $b['status'] === 'Dijadwalkan';
+            });
+
+            $allTodaySessions = collect($mappedBookings)->filter(function ($b) use ($todayStr) {
+                $tglLayanan = $b['booking_date'] ?? $b['start_date'];
+                return $tglLayanan === $todayStr;
+            });
+            $todayConversionRate = $allTodaySessions->count() > 0 ? round(($todaySessions->count() / $allTodaySessions->count()) * 100) : 0;
+
+            $summary = [
+                'current_month_name' => $now->locale('id')->isoFormat('MMM'),
+                'today_date_name' => $now->locale('id')->isoFormat('dddd, D MMMM YYYY'),
+                'booking_this_month' => $bookingThisMonthCount,
+                'booking_growth' => round($bookingGrowth),
+                'revenue_this_month' => $revenueThisMonth,
+                'revenue_growth' => round($revenueGrowth),
+                'pending_count' => $pendingBookings->count(),
+                'pending_value' => $pendingBookings->sum('remaining'),
+                'today_session_count' => $todaySessions->count(),
+                'today_session_confirmed' => $todaySessions->count(),
+                'today_conversion_rate' => $todayConversionRate,
+                'today_schedules' => $todaySessions->sortBy('booking_time')->values()->toArray(),
             ];
 
             return response()->json([
@@ -91,93 +121,49 @@ class BookingController extends Controller
         return view('bookings.index');
     }
 
-    public function create()
+    public function listPage()
     {
-        $serviceTypes = ServiceType::where('user_id', Auth::id())->get();
-        return view('bookings.form', compact('serviceTypes'));
+        return view('bookings.list');
     }
+
+    public function calendarPage()
+    {
+        return view('bookings.calendar');
+    }
+
+    // [DIHAPUS]: public function create() sudah dibuang karena beralih ke form publik.
 
     public function edit(Booking $booking)
     {
-        if ($booking->user_id !== Auth::id())
-            abort(403);
-
+        if ($booking->user_id !== Auth::id()) abort(403);
         $serviceTypes = ServiceType::where('user_id', Auth::id())->get();
         return view('bookings.form', compact('booking', 'serviceTypes'));
     }
 
-    // Fungsi untuk menyetujui pembayaran
-    /**
-     * Menyetujui Bukti Pembayaran (Konfirmasi) dari Panel Admin
-     */
     public function approvePayment(Request $request, Booking $booking)
     {
-        if ($booking->user_id !== \Illuminate\Support\Facades\Auth::id())
-            abort(403);
+        if ($booking->user_id !== Auth::id()) abort(403);
 
         $type = strtoupper($booking->payment_type);
         $dpAmount = (int) ceil($booking->total * 0.3);
 
-        // Menentukan nominal transaksi saat ini dan total yang sudah dibayar keseluruhan
-        if ($type === 'PELUNASAN') {
-            $currentPaymentAmount = $booking->remaining > 0 ? $booking->remaining : ($booking->total - $dpAmount);
+        if ($type === 'PELUNASAN' || $type === 'LUNAS') {
             $totalPaid = $booking->total;
             $paymentStatus = 'Lunas';
-            $message = 'Pembayaran PELUNASAN berhasil dikonfirmasi!';
-        } elseif ($type === 'LUNAS') {
-            $currentPaymentAmount = $booking->total;
-            $totalPaid = $booking->total;
-            $paymentStatus = 'Lunas';
-            $message = 'Pembayaran LUNAS berhasil dikonfirmasi!';
+            $message = 'Pembayaran berhasil dikonfirmasi dan berstatus Lunas!';
         } else {
-            // DOWN PAYMENT (DP)
-            $currentPaymentAmount = $dpAmount;
             $totalPaid = $dpAmount;
             $paymentStatus = 'Down Payment';
             $message = 'Pembayaran DP 30% berhasil dikonfirmasi!';
         }
 
-        // Update database
         $booking->update([
             'payment_status' => $paymentStatus,
             'status' => 'Dijadwalkan',
             'paid_amount' => $totalPaid,
-            'remaining' => max($booking->total - $totalPaid, 0)
+            'remaining' => max($booking->total - $totalPaid, 0),
+            'paid_at' => Carbon::now('Asia/Jakarta'),
         ]);
-
-        // Generate parameter data pendukung
-        $bookingCode = 'BKG-' . \Carbon\Carbon::parse($booking->created_at)->format('Ymd') . '-' . strtoupper(substr(md5($booking->id), 0, 4));
-        $booking->load('serviceType'); // Load relasi paket
-
-        // ==========================================================
-        // 1. KIRIM EMAIL NOTIFIKASI INTERNAL KE ADMIN
-        // ==========================================================
-        try {
-            $adminUser = \Illuminate\Support\Facades\Auth::user();
-            \Illuminate\Support\Facades\Mail::to($adminUser->email)->send(
-                new \App\Mail\AdminPaymentApprovedNotification($booking, $bookingCode, $currentPaymentAmount)
-            );
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error("Gagal kirim email Admin: " . $e->getMessage());
-        }
-
-        // ==========================================================
-        // 2. KIRIM EMAIL KONFIRMASI KE CUSTOMER
-        // ==========================================================
-        if (!empty($booking->client_email)) {
-            try {
-                $companySetting = \App\Models\CompanySetting::where('user_id', $booking->user_id)->first();
-                $companyName = $companySetting->company_name ?? \Illuminate\Support\Facades\Auth::user()->name;
-                $companyPhone = $companySetting->company_phone ?? null;
-
-                \Illuminate\Support\Facades\Mail::to($booking->client_email)->send(
-                    new \App\Mail\PaymentConfirmedToCustomer($booking, $bookingCode, $companyName, $companyPhone, $currentPaymentAmount)
-                );
-            } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error("Gagal kirim email konfirmasi Customer: " . $e->getMessage());
-            }
-        }
-        // ==========================================================
 
         return response()->json([
             'success' => true,
@@ -185,59 +171,54 @@ class BookingController extends Controller
         ]);
     }
 
-    /**
-     * Menolak Bukti Pembayaran (Tolak) dari Panel Admin
-     */
     public function rejectPayment(Request $request, Booking $booking)
     {
-        if ($booking->user_id !== \Illuminate\Support\Facades\Auth::id())
-            abort(403);
+        if ($booking->user_id !== Auth::id()) abort(403);
 
-        // Menangkap alasan input penolakan dari modal admin panel
         $reason = $request->reason ?? 'Bukti transfer tidak valid/nominal tidak sesuai.';
-
-        // Update status pembayaran menjadi 'Ditolak' dan status jadwal menjadi 'Dibatalkan'
         $booking->update([
             'payment_status' => 'Ditolak',
             'status' => 'Dibatalkan',
             'notes' => $booking->notes . "\n\n[DITOLAK]: " . $reason
         ]);
 
-        // ==========================================================
-        // KIRIM EMAIL PEMBERITAHUAN PENOLAKAN KE CUSTOMER
-        // ==========================================================
-        if (!empty($booking->client_email)) {
-            try {
-                // Generate parameter data pendukung
-                $bookingCode = 'BKG-' . \Carbon\Carbon::parse($booking->created_at)->format('Ymd') . '-' . strtoupper(substr(md5($booking->id), 0, 4));
-                $companySetting = \App\Models\CompanySetting::where('user_id', $booking->user_id)->first();
-                $companyName = $companySetting->company_name ?? \Illuminate\Support\Facades\Auth::user()->name;
-                $companyPhone = $companySetting->company_phone ?? null;
-
-                // Load relasi serviceType
-                $booking->load('serviceType');
-
-                \Illuminate\Support\Facades\Mail::to($booking->client_email)->send(
-                    new \App\Mail\PaymentRejectedToCustomer($booking, $bookingCode, $companyName, $companyPhone, $reason)
-                );
-            } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error("Gagal kirim email penolakan ke Customer: " . $e->getMessage());
-            }
-        }
-        // ==========================================================
-
         return response()->json([
             'success' => true,
             'message' => 'Bukti pembayaran ditolak dan booking dibatalkan.'
         ]);
     }
+
+    public function updateNotes(Request $request, Booking $booking)
+    {
+        if ($booking->user_id !== Auth::id()) abort(403);
+
+        $request->validate(['notes' => 'nullable|string|max:2000']);
+        $booking->update(['notes' => $request->notes]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Catatan/Notes berhasil diperbarui.'
+        ]);
+    }
+
+    public function bulkDelete(Request $request)
+    {
+        $request->validate(['ids' => 'required|array', 'ids.*' => 'exists:bookings,id']);
+
+        Booking::where('user_id', Auth::id())
+            ->whereIn('id', $request->ids)
+            ->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => count($request->ids) . ' data transaksi berhasil dihapus.'
+        ]);
+    }
+
     public function store(BookingRequest $request)
     {
         $validated = $request->validated();
-
-        ServiceType::where('id', $validated['service_type_id'])
-            ->where('user_id', Auth::id())
-            ->firstOrFail();
+        ServiceType::where('id', $validated['service_type_id'])->where('user_id', Auth::id())->firstOrFail();
 
         $tps = Booking::calculateTps(
             unitPrice: (int) $validated['unit_price'],
@@ -245,29 +226,15 @@ class BookingController extends Controller
             paidAmount: (int) ($validated['paid_amount'] ?? 0),
         );
 
-        $booking = Booking::create([
+        $booking = Booking::create(array_merge($validated, [
             'user_id' => Auth::id(),
-            'service_type_id' => $validated['service_type_id'],
-            'client_name' => $validated['client_name'],
-            'client_contact' => $validated['client_contact'] ?? null,
-            'client_address' => $validated['client_address'] ?? null,
-            'booking_date' => $validated['booking_date'] ?? null,
-            'start_date' => $validated['start_date'] ?? null,
-            'end_date' => $validated['end_date'] ?? null,
-            'booking_time' => $validated['booking_time'] ?? null,
-            'status' => $validated['status'],
-            'unit_price' => $validated['unit_price'],
-            'discount_percent' => $validated['discount_percent'] ?? 0,
-            'paid_amount' => $validated['paid_amount'] ?? 0,
-
             'subtotal' => $tps['subtotal'],
             'discount_amount' => $tps['discount_amount'],
             'total' => $tps['total'],
             'remaining' => $tps['remaining'],
             'payment_status' => $tps['payment_status'],
-
-            'notes' => $validated['notes'] ?? null,
-        ]);
+            'paid_at' => $tps['payment_status'] === 'Lunas' ? Carbon::now('Asia/Jakarta') : null,
+        ]));
 
         return response()->json([
             'success' => true,
@@ -278,14 +245,10 @@ class BookingController extends Controller
 
     public function update(BookingRequest $request, Booking $booking)
     {
-        if ($booking->user_id !== Auth::id())
-            abort(403);
+        if ($booking->user_id !== Auth::id()) abort(403);
 
         $validated = $request->validated();
-
-        ServiceType::where('id', $validated['service_type_id'])
-            ->where('user_id', Auth::id())
-            ->firstOrFail();
+        ServiceType::where('id', $validated['service_type_id'])->where('user_id', Auth::id())->firstOrFail();
 
         $tps = Booking::calculateTps(
             unitPrice: (int) $validated['unit_price'],
@@ -293,28 +256,14 @@ class BookingController extends Controller
             paidAmount: (int) ($validated['paid_amount'] ?? 0),
         );
 
-        $booking->update([
-            'service_type_id' => $validated['service_type_id'],
-            'client_name' => $validated['client_name'],
-            'client_contact' => $validated['client_contact'] ?? null,
-            'client_address' => $validated['client_address'] ?? null,
-            'booking_date' => $validated['booking_date'] ?? null,
-            'start_date' => $validated['start_date'] ?? null,
-            'end_date' => $validated['end_date'] ?? null,
-            'booking_time' => $validated['booking_time'] ?? null,
-            'status' => $validated['status'],
-            'unit_price' => $validated['unit_price'],
-            'discount_percent' => $validated['discount_percent'] ?? 0,
-            'paid_amount' => $validated['paid_amount'] ?? 0,
-
+        $booking->update(array_merge($validated, [
             'subtotal' => $tps['subtotal'],
             'discount_amount' => $tps['discount_amount'],
             'total' => $tps['total'],
             'remaining' => $tps['remaining'],
             'payment_status' => $tps['payment_status'],
-
-            'notes' => $validated['notes'] ?? null,
-        ]);
+            'paid_at' => $tps['payment_status'] === 'Lunas' && !$booking->paid_at ? Carbon::now('Asia/Jakarta') : $booking->paid_at,
+        ]));
 
         return response()->json([
             'success' => true,
@@ -325,9 +274,7 @@ class BookingController extends Controller
 
     public function destroy(Booking $booking)
     {
-        if ($booking->user_id !== Auth::id())
-            abort(403);
-
+        if ($booking->user_id !== Auth::id()) abort(403);
         $clientName = $booking->client_name;
         $booking->delete();
 
@@ -336,7 +283,6 @@ class BookingController extends Controller
             'message' => "Booking \"{$clientName}\" berhasil dihapus.",
         ]);
     }
-
 
     public function export(Request $request)
     {
