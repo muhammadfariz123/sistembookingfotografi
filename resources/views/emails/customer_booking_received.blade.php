@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="utf-8">
     <style>
@@ -11,54 +12,65 @@
             padding: 24px 16px;
             margin: 0;
         }
+
         .container {
             max-width: 560px;
             margin: 0 auto;
             background: #ffffff;
             border-radius: 12px;
             border: 1px solid #e5e7eb;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
             overflow: hidden;
         }
+
         .top-bar {
             height: 4px;
             background-color: #f59e0b;
         }
+
         .sender-header {
             padding: 20px 28px 16px 28px;
         }
+
         .sender-header .sender-name {
             font-size: 17px;
             font-weight: 700;
             color: #d97706;
         }
+
         .sender-header .sender-via {
             font-size: 13px;
             color: #9ca3af;
             margin-top: 2px;
         }
+
         .hero {
             background-color: #111827;
             padding: 18px 28px;
         }
+
         .hero h2 {
             margin: 0;
             color: #ffffff;
             font-size: 17px;
             font-weight: 700;
         }
+
         .hero .booking-code-text {
             font-size: 13px;
             color: #9ca3af;
             margin-top: 6px;
         }
+
         .hero .booking-code-highlight {
             font-weight: 700;
             color: #ffffff;
         }
+
         .content {
             padding: 24px 28px 8px 28px;
         }
+
         .content p {
             margin: 0 0 14px 0;
             font-size: 14px;
@@ -69,6 +81,7 @@
             padding: 18px 28px;
             border-top: 1px solid #e5e7eb;
         }
+
         .section-label {
             font-size: 11px;
             font-weight: 600;
@@ -77,6 +90,7 @@
             color: #9ca3af;
             margin-bottom: 8px;
         }
+
         .badge {
             display: inline-block;
             padding: 5px 12px;
@@ -92,11 +106,13 @@
             width: 100%;
             border-collapse: collapse;
         }
+
         .col-table td {
             vertical-align: top;
             width: 50%;
             padding-right: 12px;
         }
+
         .field-label {
             font-size: 11px;
             font-weight: 600;
@@ -105,11 +121,13 @@
             color: #9ca3af;
             margin-bottom: 4px;
         }
+
         .field-value {
             font-size: 14px;
             color: #111827;
             font-weight: 500;
         }
+
         .field-value a {
             color: #111827;
             text-decoration: none;
@@ -146,12 +164,16 @@
             color: #374151;
             border: 1px solid #e5e7eb;
         }
+
         .track-link {
             color: #2563eb;
             text-decoration: none;
             font-weight: 500;
         }
-        .track-link:hover { text-decoration: underline; }
+
+        .track-link:hover {
+            text-decoration: underline;
+        }
 
         .footer {
             font-size: 13px;
@@ -160,9 +182,13 @@
             border-top: 1px solid #e5e7eb;
             text-align: center;
         }
-        .footer p { margin: 0 0 6px 0; }
+
+        .footer p {
+            margin: 0 0 6px 0;
+        }
     </style>
 </head>
+
 <body>
     @php
         $tglLayanan = $booking->booking_date ?? $booking->start_date;
@@ -170,10 +196,10 @@
 
         // Konversi waktu ke Asia/Jakarta agar akurat menjadi WIB, lalu tambah 10 menit
         $batasWaktu = \Carbon\Carbon::parse($booking->created_at)
-                        ->timezone('Asia/Jakarta')
-                        ->addMinutes(10)
-                        ->locale('id')
-                        ->isoFormat('D MMM YYYY HH:mm');
+            ->timezone('Asia/Jakarta')
+            ->addMinutes(10)
+            ->locale('id')
+            ->isoFormat('D MMM YYYY HH:mm');
     @endphp
 
     <div class="container">
@@ -181,18 +207,20 @@
 
         <div class="sender-header">
             <div class="sender-name">{{ $companyName }}</div>
-            <div class="sender-via">via BookPhoto</div>
         </div>
 
         <div class="hero">
             <h2>Booking kamu kami terima 🎉</h2>
-            <div class="booking-code-text">Kode booking: <span class="booking-code-highlight">{{ $bookingCode }}</span></div>
+            <div class="booking-code-text">Kode booking: <span class="booking-code-highlight">{{ $bookingCode }}</span>
+            </div>
         </div>
 
         <div class="content">
-            <p>Halo {{ $booking->client_name }}, terima kasih sudah booking di {{ $companyName }}. Saat ini booking kamu <strong>belum dianggap fix</strong> karena masih menunggu pembayaran.</p>
+            <p>Halo {{ $booking->client_name }}, terima kasih sudah booking di {{ $companyName }}. Saat ini booking kamu
+                <strong>belum dianggap fix</strong> karena masih menunggu pembayaran.</p>
 
-            <p>Saat ini booking kamu berstatus menunggu pembayaran. Silakan lanjutkan proses pembayaran melalui halaman yang baru saja terbuka.</p>
+            <p>Saat ini booking kamu berstatus menunggu pembayaran. Silakan lanjutkan proses pembayaran melalui halaman
+                yang baru saja terbuka.</p>
 
             <p>Batas waktu pembayaran: <strong>{{ $batasWaktu }} WIB</strong>.</p>
         </div>
@@ -260,7 +288,8 @@
                     </td>
                     <td>
                         <div class="field-label">Total Tagihan</div>
-                        <div class="field-value total-highlight">Rp {{ number_format($booking->total, 0, ',', '.') }}</div>
+                        <div class="field-value total-highlight">Rp {{ number_format($booking->total, 0, ',', '.') }}
+                        </div>
                     </td>
                 </tr>
             </table>
@@ -272,12 +301,14 @@
         </div>
 
         <p class="notice-text">
-            Jika pembayaran tidak kami terima sampai batas waktu yang tertera, sistem akan otomatis membatalkan booking ini dan slot akan dibuka kembali untuk klien lain.
+            Jika pembayaran tidak kami terima sampai batas waktu yang tertera, sistem akan otomatis membatalkan booking
+            ini dan slot akan dibuka kembali untuk klien lain.
         </p>
 
         <div class="track-box">
             Kamu bisa cek status booking & link file hasil foto (nantinya) di:
-            <a href="https://fariz.bookphoto.id/booking/track" class="track-link" target="_blank">https://fariz.bookphoto.id/booking/track</a>
+            <a href="https://fariz.bookphoto.id/booking/track" class="track-link"
+                target="_blank">https://fariz.bookphoto.id/booking/track</a>
         </div>
 
         <div class="footer">
@@ -289,4 +320,5 @@
         </div>
     </div>
 </body>
+
 </html>

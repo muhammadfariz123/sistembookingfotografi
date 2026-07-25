@@ -1,3 +1,4 @@
+{{-- resources/views/booking/pembayaran.blade.php --}}
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -187,26 +188,35 @@
 
             @if($booking->payment_status !== 'Lunas' && $booking->payment_status !== 'Tunggu Konfirmasi')
                 
+                {{-- LOGIKA DINAMIS QRIS ATAU TRANSFER BANK --}}
                 @if($companySetting?->payment_method === 'qris' && $companySetting?->qris_image)
                     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6 text-center">
                         <h3 class="font-bold text-gray-900 mb-4 text-[15px]">Scan QRIS untuk Membayar</h3>
-                        <img src="{{ Storage::url($companySetting->qris_image) }}" alt="QRIS" class="w-64 h-64 object-contain mx-auto border border-gray-200 rounded-xl p-3 mb-3">
-                        
+                        <div class="bg-white p-2 rounded-xl inline-block border border-gray-200 shadow-sm mb-3">
+                            <img src="{{ asset('storage/' . $companySetting->qris_image) }}" alt="QRIS" class="w-64 h-64 object-contain">
+                        </div>
+                        <p class="text-sm text-gray-500">Gunakan aplikasi M-Banking atau e-Wallet Anda untuk melakukan pembayaran.</p>
                     </div>
                 @else
                     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
                         <h3 class="font-bold text-gray-900 mb-4 text-[15px]">Transfer Bank</h3>
-                        <div class="space-y-3">
-                            @if($companySetting?->bank_name)
+                        <div class="space-y-4">
+                            @if($companySetting?->bank_name && $companySetting?->bank_account)
                                 <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm">
                                     <p class="text-gray-500 mb-1">Bank <span class="font-bold text-gray-900">{{ $companySetting->bank_name }}</span></p>
                                     <p class="text-lg font-bold text-gray-900 tracking-wider mb-1">{{ $companySetting->bank_account }}</p>
+                                    @if($companySetting->bank_holder)
+                                        <p class="text-[13px] text-gray-600">a.n <span class="font-semibold text-gray-800">{{ $companySetting->bank_holder }}</span></p>
+                                    @endif
                                 </div>
                             @endif
-                            @if($companySetting?->bank_name_2)
+                            @if($companySetting?->bank_name_2 && $companySetting?->bank_account_2)
                                 <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm">
                                     <p class="text-gray-500 mb-1">Bank <span class="font-bold text-gray-900">{{ $companySetting->bank_name_2 }}</span></p>
                                     <p class="text-lg font-bold text-gray-900 tracking-wider mb-1">{{ $companySetting->bank_account_2 }}</p>
+                                    @if($companySetting->bank_holder_2)
+                                        <p class="text-[13px] text-gray-600">a.n <span class="font-semibold text-gray-800">{{ $companySetting->bank_holder_2 }}</span></p>
+                                    @endif
                                 </div>
                             @endif
                         </div>

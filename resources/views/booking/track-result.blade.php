@@ -1,3 +1,4 @@
+{{-- resources/views/booking/track-result.blade.php --}}
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -102,7 +103,7 @@
                     </div>
                     <div>
                         <h2 class="text-[18px] font-extrabold text-gray-900">Menunggu Konfirmasi</h2>
-                        <p class="text-[13px] text-gray-500 mt-0.5">Booking kamu sedang menunggu konfirmasi dari studio.</p>
+                        <p class="text-[13px] text-gray-500 mt-0.5">Booking kamu sedang menunggu konfirmasi dari Admin.</p>
                     </div>
                 </div>
             @elseif($statusPembayaran === 'Pending' || $statusPembayaran === 'Belum Bayar')
@@ -168,7 +169,7 @@
                     @elseif($selisihHari === 0)
                         <span class="text-emerald-500 font-bold text-[12px] mt-0.5">HARI INI</span>
                     @endif
-                    <span class="text-gray-600 text-[13px] mt-0.5">{{ $booking->booking_time ? \Carbon\Carbon::parse($booking->booking_time)->format('H:i') . ' - ' . \Carbon\Carbon::parse($booking->booking_time)->addHours(1)->format('H:i') : '-' }}</span>
+                    <span class="text-gray-600 text-[13px] mt-0.5">{{ $booking->booking_time ? \Carbon\Carbon::parse($booking->booking_time)->format('H:i') : '-' }}</span>
                 </div>
             </div>
 
@@ -176,17 +177,48 @@
             
             <div class="timeline-container">
                 @php
-                    $now = \Carbon\Carbon::now();
-                    // PERBAIKAN ERROR "Double time specification"
-                    // Memastikan kita hanya mengambil Y-m-d (Tanggal saja) dari kolom booking_date yang mungkin memiliki "00:00:00"
+                    // Pastikan zona waktu sinkron dengan WIB
+                    $now = \Carbon\Carbon::now()->timezone('Asia/Jakarta'); 
+                    
                     $tglHanyaTanggal = \Carbon\Carbon::parse($booking->booking_date ?? $booking->start_date)->format('Y-m-d');
                     $jamHanyaWaktu = $booking->booking_time ? \Carbon\Carbon::parse($booking->booking_time)->format('H:i:s') : '00:00:00';
+                    $hasTime = !empty($booking->booking_time); // Cek apakah ada jam yang diinput
                     
-                    // Gabungkan dengan aman
-                    $startSesi = \Carbon\Carbon::parse($tglHanyaTanggal . ' ' . $jamHanyaWaktu);
+                    $startSesi = \Carbon\Carbon::parse($tglHanyaTanggal . ' ' . $jamHanyaWaktu, 'Asia/Jakarta');
                     $endSesi = $startSesi->copy()->addHour(); // Asumsi durasi sesi 1 jam
+                    
+                    // --- LOGIKA PROGRESS KETAT ---
+                    // 1. Cek apakah Admin SUDAH ACC Pembayaran
+                    $isPaymentApproved = in_array($statusPembayaran, ['Lunas', 'Down Payment']);
+                    
+                    // 2. Jadwal Dikonfirmasi (Hanya menyala JIKA payment_approved)
+                    $isJadwalDikonfirmasi = $isPaymentApproved && in_array($statusJadwal, ['Dijadwalkan', 'Proses Edit', 'Selesai']);
+                    
+                    // 3. Sesi Foto (Hanya dicek JIKA Jadwal sudah Dikonfirmasi)
+                    $isSesiAktif = false;
+                    $isSesiSelesai = false;
+                    
+                    if ($isJadwalDikonfirmasi) {
+                        if (in_array($statusJadwal, ['Proses Edit', 'Selesai'])) {
+                            $isSesiSelesai = true;
+                        } elseif ($hasTime) { // Hanya berjalan otomatis jika ada data jam booking_time
+                            if ($now->greaterThan($endSesi)) {
+                                $isSesiSelesai = true;
+                            } elseif ($now->greaterThanOrEqualTo($startSesi) && $now->lessThanOrEqualTo($endSesi)) {
+                                $isSesiAktif = true;
+                            }
+                        }
+                    }
+
+                    // 4. Proses Editing
+                    $isEditAktif = $isJadwalDikonfirmasi && $statusJadwal === 'Proses Edit';
+                    $isEditSelesai = $isJadwalDikonfirmasi && $statusJadwal === 'Selesai';
+                    
+                    // 5. Hasil Selesai
+                    $isAllSelesai = $isJadwalDikonfirmasi && $statusJadwal === 'Selesai';
                 @endphp
 
+                {{-- STEP 1: Booking Masuk (Selalu Menyala) --}}
                 <div class="timeline-item completed">
                     <div class="timeline-dot"></div>
                     <h4 class="font-bold text-gray-900 text-[14px]">Booking Masuk</h4>
@@ -194,25 +226,29 @@
                     <p class="text-[12px] text-gray-500">Formulir berhasil diterima</p>
                 </div>
 
-                <div class="timeline-item {{ in_array($statusJadwal, ['Dijadwalkan', 'Proses Edit', 'Selesai']) ? 'completed' : '' }}">
+                {{-- STEP 2: Jadwal Dikonfirmasi --}}
+                <div class="timeline-item {{ $isJadwalDikonfirmasi ? 'completed' : '' }}">
                     <div class="timeline-dot"></div>
                     <h4 class="font-bold text-gray-900 text-[14px]">Jadwal Dikonfirmasi</h4>
                     <p class="text-[12px] text-gray-500">Admin mengkonfirmasi jadwal sesi</p>
                 </div>
 
-                <div class="timeline-item {{ $now->greaterThan($endSesi) ? 'completed' : ($now->between($startSesi, $endSesi) ? 'active' : '') }}">
+                {{-- STEP 3: Sesi Foto --}}
+                <div class="timeline-item {{ $isSesiSelesai ? 'completed' : ($isSesiAktif ? 'active' : '') }}">
                     <div class="timeline-dot"></div>
                     <h4 class="font-bold text-gray-900 text-[14px]">Sesi Foto</h4>
                     <p class="text-[12px] text-gray-500">{{ \Carbon\Carbon::parse($tglHanyaTanggal)->locale('id')->isoFormat('D MMM YYYY') }} · {{ \Carbon\Carbon::parse($jamHanyaWaktu)->format('H:i') }}</p>
                 </div>
 
-                <div class="timeline-item {{ $statusJadwal === 'Selesai' ? 'completed' : ($statusJadwal === 'Proses Edit' ? 'active' : '') }}">
+                {{-- STEP 4: Proses Editing --}}
+                <div class="timeline-item {{ $isEditSelesai ? 'completed' : ($isEditAktif ? 'active' : '') }}">
                     <div class="timeline-dot"></div>
                     <h4 class="font-bold text-gray-900 text-[14px]">Proses Editing</h4>
                     <p class="text-[12px] text-gray-500">Foto sedang diedit oleh tim kami</p>
                 </div>
 
-                <div class="timeline-item {{ $statusJadwal === 'Selesai' ? 'completed' : '' }}">
+                {{-- STEP 5: Hasil Dikirim --}}
+                <div class="timeline-item {{ $isAllSelesai ? 'completed' : '' }}">
                     <div class="timeline-dot"></div>
                     <h4 class="font-bold text-gray-900 text-[14px]">Hasil Dikirim</h4>
                     <p class="text-[12px] text-gray-500">Link hasil siap untuk diunduh</p>

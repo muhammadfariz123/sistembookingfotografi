@@ -1,5 +1,4 @@
 <?php
-// database/migrations/xxxx_create_company_settings_table.php
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -13,6 +12,8 @@ return new class extends Migration {
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('company_name')->nullable();
             $table->text('company_address')->nullable();
+            $table->string('payment_method')->default('bank_transfer'); // Ditambahkan dari alter
+            $table->string('qris_image')->nullable(); // Ditambahkan dari alter
             $table->string('company_phone')->nullable();
             $table->string('company_email')->nullable();
             $table->string('company_logo')->nullable();

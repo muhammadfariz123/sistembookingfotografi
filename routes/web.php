@@ -21,45 +21,25 @@ Route::get('/', function () {
 });
 
 // ── Public booking routes (tidak perlu login) ───────────────────────────
-Route::get('/booking/{ownerId}', [PublicBookingController::class, 'show'])
-    ->name('booking.public.show');
-
-Route::get('/booking/{ownerId}/form/{serviceId?}', [PublicBookingController::class, 'bookingForm'])
-    ->name('booking.public.form');
-
-Route::post('/booking/{ownerId}', [PublicBookingController::class, 'store'])
-    ->name('booking.public.store');
-
-Route::get('/booking/{ownerId}/pembayaran/{bookingId}', [PublicBookingController::class, 'pembayaran'])
-    ->name('booking.public.pembayaran');
-
-Route::post('/booking/{ownerId}/pembayaran/{bookingId}/upload-proof', [PublicBookingController::class, 'uploadProof'])
-    ->name('booking.public.upload-proof');
+Route::get('/booking/{ownerId}', [PublicBookingController::class, 'show'])->name('booking.public.show');
+Route::get('/booking/{ownerId}/form/{serviceId?}', [PublicBookingController::class, 'bookingForm'])->name('booking.public.form');
+Route::post('/booking/{ownerId}', [PublicBookingController::class, 'store'])->name('booking.public.store');
+Route::get('/booking/{ownerId}/pembayaran/{bookingId}', [PublicBookingController::class, 'pembayaran'])->name('booking.public.pembayaran');
+Route::post('/booking/{ownerId}/pembayaran/{bookingId}/upload-proof', [PublicBookingController::class, 'uploadProof'])->name('booking.public.upload-proof');
 
 Route::get('/booking/{ownerId}/pembayaran/{bookingId}/upload-proof', function ($ownerId, $bookingId) {
-    return redirect()->route('booking.public.pembayaran', [
-        'ownerId' => $ownerId,
-        'bookingId' => $bookingId,
-    ]);
+    return redirect()->route('booking.public.pembayaran', ['ownerId' => $ownerId, 'bookingId' => $bookingId]);
 });
 
-Route::get('/booking/{ownerId}/payment-success/{bookingId}', [PublicBookingController::class, 'paymentSuccess'])
-    ->name('booking.public.payment-success');
+Route::get('/booking/{ownerId}/payment-success/{bookingId}', [PublicBookingController::class, 'paymentSuccess'])->name('booking.public.payment-success');
+Route::get('/cek-booking', [PublicBookingController::class, 'checkPage'])->name('booking.check.page');
+Route::get('/cek-booking/result', [PublicBookingController::class, 'checkResult'])->name('booking.check.result');
+Route::get('/booking/{ownerId}/service/{serviceId}', [PublicBookingController::class, 'serviceDetail'])->name('booking.service.detail');
+Route::get('/booking/{ownerId}/service/{serviceId}/gallery', [PublicBookingController::class, 'serviceGallery'])->name('booking.service.gallery');
+Route::get('/booking/{ownerId}/services', [PublicBookingController::class, 'allServices'])->name('booking.services.all');
 
-Route::get('/cek-booking', [PublicBookingController::class, 'checkPage'])
-    ->name('booking.check.page');
-
-Route::get('/cek-booking/result', [PublicBookingController::class, 'checkResult'])
-    ->name('booking.check.result');
-
-Route::get('/booking/{ownerId}/service/{serviceId}', [PublicBookingController::class, 'serviceDetail'])
-    ->name('booking.service.detail');
-
-Route::get('/booking/{ownerId}/service/{serviceId}/gallery', [PublicBookingController::class, 'serviceGallery'])
-    ->name('booking.service.gallery');
-
-Route::get('/booking/{ownerId}/services', [PublicBookingController::class, 'allServices'])
-    ->name('booking.services.all');
+// Pindahkan Route Invoice ke sini agar Klien bisa akses Bukti Pembayaran
+Route::get('/invoices/{booking}', [InvoiceController::class, 'show'])->name('invoice.show');
 
 
 /*
@@ -68,65 +48,37 @@ Route::get('/booking/{ownerId}/services', [PublicBookingController::class, 'allS
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth'])->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
 
-    Route::get('/dashboard', [DashboardController::class, 'index'])
-        ->name('dashboard');
-
-    Route::get('/transactions', [TransactionController::class, 'index'])
-        ->name('transactions.index');
-
-    /*
-    |--------------------------------------------------------------------------
-    | Financial Dashboard
-    |--------------------------------------------------------------------------
-    */
+    // Financial Dashboard
     Route::get('/financial', [FinancialController::class, 'index'])->name('financial.index');
     Route::post('/financial/income', [FinancialController::class, 'storeIncome'])->name('financial.income.store');
     Route::post('/financial/expense', [FinancialController::class, 'storeExpense'])->name('financial.expense.store');
     Route::delete('/financial/income/{income}', [FinancialController::class, 'destroyIncome'])->name('financial.income.destroy');
     Route::delete('/financial/expense/{expense}', [FinancialController::class, 'destroyExpense'])->name('financial.expense.destroy');
 
-    /*
-    |--------------------------------------------------------------------------
-    | Service Types
-    |--------------------------------------------------------------------------
-    */
+    // Service Types
     Route::resource('service-types', ServiceTypeController::class);
     Route::delete('/service-galleries/{gallery}', [ServiceTypeController::class, 'destroyGallery'])->name('service-galleries.destroy');
 
-    /*
-    |--------------------------------------------------------------------------
-    | Bookings (Admin Panel)
-    |--------------------------------------------------------------------------
-    */
+    // Bookings (Admin Panel)
     Route::post('/bookings/bulk-delete', [BookingController::class, 'bulkDelete'])->name('bookings.bulkDelete');
     Route::get('/bookings/list', [BookingController::class, 'listPage'])->name('bookings.listPage');
     Route::get('/bookings/calendar', [BookingController::class, 'calendarPage'])->name('bookings.calendar');
-    
     Route::get('/bookings/export', [BookingController::class, 'export'])->name('bookings.export');
-    
-    // PERHATIAN: method create() sudah dihapus dari Controller, jadi rute bookings.create dihapus.
-    // Jika masih butuh tombol edit jadwal dari admin, biarkan rute edit & update ini:
     Route::get('/bookings/{booking}/edit', [BookingController::class, 'edit'])->name('bookings.edit');
-    
     Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');
     Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
     Route::put('/bookings/{booking}', [BookingController::class, 'update'])->name('bookings.update');
     Route::delete('/bookings/{booking}', [BookingController::class, 'destroy'])->name('bookings.destroy');
-    
     Route::post('/bookings/{booking}/approve-payment', [BookingController::class, 'approvePayment'])->name('bookings.approve-payment');
     Route::post('/bookings/{booking}/reject-payment', [BookingController::class, 'rejectPayment'])->name('bookings.reject-payment');
     Route::post('/bookings/{booking}/update-notes', [BookingController::class, 'updateNotes'])->name('bookings.update-notes');
 
-    /*
-    |--------------------------------------------------------------------------
-    | Company Settings & Invoice
-    |--------------------------------------------------------------------------
-    */
+    // Company Settings
     Route::get('/company-setting', [CompanySettingController::class, 'edit'])->name('company-setting.edit');
     Route::post('/company-setting', [CompanySettingController::class, 'store'])->name('company-setting.store');
-
-    Route::get('/invoices/{booking}', [InvoiceController::class, 'show'])->name('invoice.show');
 });
 
 require __DIR__ . '/auth.php';

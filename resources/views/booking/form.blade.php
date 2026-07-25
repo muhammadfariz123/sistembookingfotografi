@@ -17,17 +17,14 @@
 </head>
 <body class="min-h-screen bg-gray-50 text-gray-800 antialiased relative">
     <x-customer-navbar :owner="$owner" :companySetting="$companySetting" :ownerId="$ownerId" showHome="true" />
-
     <div class="max-w-3xl mx-auto px-4 py-10" x-data="bookingWizard('{{ $selectedService->id ?? old('service_type_id', '') }}', {{ $selectedService->price ?? 0 }}, '{{ $selectedService->name ?? '' }}')">
         <div class="text-center mb-10">
             <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Form Booking</h1>
             <p class="text-gray-500 mt-2 text-sm">Lengkapi 4 tahapan di bawah ini untuk menyelesaikan pesanan Anda.</p>
         </div>
-
         <div class="relative mb-12 px-2 sm:px-8">
             <div class="absolute left-0 top-4 w-full h-[2px] bg-gray-200 z-0"></div>
             <div class="absolute left-0 top-4 h-[2px] bg-brand z-0 transition-all duration-500" :style="'width: ' + ((step - 1) / 3) * 100 + '%'"></div>
-
             <div class="relative z-10 flex justify-between">
                 <div class="flex flex-col items-center bg-gray-50 px-2 cursor-pointer" @click="if(step > 1) step = 1">
                     <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs transition-colors duration-300" :class="step >= 1 ? 'bg-brand text-white' : 'bg-gray-200 text-gray-400'">1</div>
@@ -47,7 +44,6 @@
                 </div>
             </div>
         </div>
-
         @if($errors->any())
             <div class="bg-red-50 border border-red-200 rounded-xl px-5 py-4 mb-6">
                 <ul class="text-sm text-red-600 space-y-1">
@@ -57,17 +53,15 @@
                 </ul>
             </div>
         @endif
-
         <div x-show="errorMsg" style="display: none;" class="bg-red-50 border border-red-200 text-red-600 rounded-xl px-5 py-3 mb-6 text-sm font-medium" x-transition>
             <span x-text="errorMsg"></span>
         </div>
-
         <form method="POST" action="{{ route('booking.public.store', $ownerId) }}" id="booking-form" class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 sm:p-8">
             @csrf
-
             {{-- INPUT INI YANG MEMBAWA PILIHAN BAYAR (DP/LUNAS) KE CONTROLLER --}}
             <input type="hidden" name="payment_type" id="hidden_payment_type" :value="paymentOption">
-
+            {{-- INPUT INI YANG MEMBAWA WAKTU BOOKING (FORMAT 24 JAM / WIB) KE CONTROLLER --}}
+            <input type="hidden" name="booking_time" :value="bookingTime">
             {{-- STEP 1: PILIH PAKET --}}
             <div x-show="step === 1" x-transition.opacity>
                 <div class="mb-6">
@@ -102,7 +96,6 @@
                     <button type="button" @click="nextStep()" class="bg-brand hover:opacity-90 text-white px-6 py-2.5 rounded-lg font-bold transition flex items-center gap-2 text-sm">Lanjut: Pilih Jadwal &rarr;</button>
                 </div>
             </div>
-
             {{-- STEP 2: TANGGAL & WAKTU --}}
             <div x-show="step === 2" x-transition.opacity style="display: none;">
                 <div class="mb-6">
@@ -121,8 +114,23 @@
                         <input type="date" name="booking_date" x-model="bookingDate" :disabled="multiDay" :required="!multiDay" min="{{ now()->format('Y-m-d') }}" class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Waktu Mulai (Opsional)</label>
-                        <input type="time" name="booking_time" x-model="bookingTime" :disabled="multiDay" class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm">
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Waktu Mulai (WIB)</label>
+                        <div class="flex items-center gap-2">
+                            <select x-model="bookingHour" :disabled="multiDay" class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm">
+                                <option value="">Jam</option>
+                                <template x-for="h in hourOptions" :key="h">
+                                    <option :value="h" x-text="h"></option>
+                                </template>
+                            </select>
+                            <span class="text-gray-400 font-bold">:</span>
+                            <select x-model="bookingMinute" :disabled="multiDay" class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm">
+                                <option value="">Menit</option>
+                                <template x-for="m in minuteOptions" :key="m">
+                                    <option :value="m" x-text="m"></option>
+                                </template>
+                            </select>
+                            <span class="text-xs font-semibold text-gray-500 shrink-0 whitespace-nowrap">WIB</span>
+                        </div>
                     </div>
                 </div>
                 <div x-show="multiDay" class="grid grid-cols-1 sm:grid-cols-3 gap-5" style="display: none;">
@@ -135,8 +143,23 @@
                         <input type="date" name="end_date" x-model="endDate" :disabled="!multiDay" :required="multiDay" min="{{ now()->format('Y-m-d') }}" class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Waktu Mulai</label>
-                        <input type="time" name="booking_time" x-model="bookingTime" :disabled="!multiDay" class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm">
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Waktu Mulai (WIB)</label>
+                        <div class="flex items-center gap-2">
+                            <select x-model="bookingHour" :disabled="!multiDay" class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm">
+                                <option value="">Jam</option>
+                                <template x-for="h in hourOptions" :key="h">
+                                    <option :value="h" x-text="h"></option>
+                                </template>
+                            </select>
+                            <span class="text-gray-400 font-bold">:</span>
+                            <select x-model="bookingMinute" :disabled="!multiDay" class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm">
+                                <option value="">Menit</option>
+                                <template x-for="m in minuteOptions" :key="m">
+                                    <option :value="m" x-text="m"></option>
+                                </template>
+                            </select>
+                            <span class="text-xs font-semibold text-gray-500 shrink-0 whitespace-nowrap">WIB</span>
+                        </div>
                     </div>
                 </div>
                 <div class="mt-8 flex justify-between items-center">
@@ -144,7 +167,6 @@
                     <button type="button" @click="nextStep()" class="bg-brand hover:opacity-90 text-white px-6 py-2.5 rounded-lg font-bold transition flex items-center gap-2 text-sm">Lanjut: Info Klien &rarr;</button>
                 </div>
             </div>
-
             {{-- STEP 3: INFO KLIEN --}}
             <div x-show="step === 3" x-transition.opacity style="display: none;">
                 <div class="mb-6">
@@ -184,14 +206,12 @@
                     <button type="button" @click="nextStep()" class="bg-brand hover:opacity-90 text-white px-6 py-2.5 rounded-lg font-bold transition flex items-center gap-2 text-sm">Lanjut: Konfirmasi &rarr;</button>
                 </div>
             </div>
-
             {{-- STEP 4: KONFIRMASI BOOKING --}}
             <div x-show="step === 4" x-transition.opacity style="display: none;">
                 <div class="mb-6">
                     <h2 class="text-lg font-bold text-gray-900">Konfirmasi Booking</h2>
                     <p class="text-gray-500 text-sm mt-1">Cek kembali detail booking sebelum melanjutkan ke pembayaran.</p>
                 </div>
-
                 <div class="mb-6">
                     <p class="text-sm font-semibold text-gray-700 mb-3">Pilihan Pembayaran</p>
                     <div class="space-y-3">
@@ -210,7 +230,6 @@
                                 <p class="font-bold text-brand text-sm" x-text="formatCurrency(unitPrice)"></p>
                             </div>
                         </label>
-
                         <label class="block cursor-pointer">
                             <input type="radio" value="DP" x-model="paymentOption" class="sr-only peer">
                             <div class="border rounded-xl p-4 flex justify-between items-center transition" :class="paymentOption === 'DP' ? 'border-brand bg-white shadow-sm' : 'border-gray-200 bg-white hover:border-gray-300'">
@@ -228,7 +247,6 @@
                         </label>
                     </div>
                 </div>
-
                 <div class="bg-gray-50 rounded-xl border border-gray-200 p-5 sm:p-6 mb-6">
                     <div class="space-y-3 text-sm text-gray-900">
                         <div class="flex justify-between items-start gap-4"><span class="text-gray-500 font-medium shrink-0">Nama</span><span class="font-bold text-right" x-text="clientName"></span></div>
@@ -236,6 +254,7 @@
                         <div class="flex justify-between items-start gap-4"><span class="text-gray-500 font-medium shrink-0">WhatsApp</span><span class="font-bold text-right" x-text="clientContact"></span></div>
                         <div class="border-t border-gray-200 my-3"></div>
                         <div class="flex justify-between items-start gap-4"><span class="text-gray-500 font-medium shrink-0">Jadwal</span><span class="font-bold text-right" x-text="scheduleText"></span></div>
+                        <div class="flex justify-between items-start gap-4"><span class="text-gray-500 font-medium shrink-0">Waktu</span><span class="font-bold text-right" x-text="(bookingTime || '-') + (bookingTime ? ' WIB' : '')"></span></div>
                         <div class="flex justify-between items-start gap-4"><span class="text-gray-500 font-medium shrink-0">Paket</span><span class="font-bold text-right" x-text="selectedServiceName"></span></div>
                         <div class="flex justify-between items-start gap-4"><span class="text-gray-500 font-medium shrink-0">Harga Paket</span><span class="font-bold text-right" x-text="formatCurrency(unitPrice)"></span></div>
                         <div class="border-t border-gray-200 my-3"></div>
@@ -245,7 +264,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="bg-gray-50 rounded-xl border border-gray-200 p-4 mb-8">
                     <label class="flex items-start gap-3 cursor-pointer">
                         <input type="checkbox" x-model="agreeTnC" class="mt-0.5 w-5 h-5 rounded border-gray-300 text-brand focus:ring-brand">
@@ -255,7 +273,6 @@
                         </div>
                     </label>
                 </div>
-
                 <div class="flex justify-between">
                     <button type="button" @click="prevStep()" class="border border-gray-300 text-gray-600 hover:bg-gray-50 px-5 py-2.5 rounded-lg font-semibold transition text-sm">&larr; Kembali</button>
                     <button type="button" @click="submitForm()" class="bg-brand hover:opacity-90 text-white px-6 py-2.5 rounded-lg font-bold transition shadow-sm text-sm flex items-center gap-2"
@@ -264,7 +281,6 @@
                 </div>
             </div>
         </form>
-
         <div x-show="showTermsModal" class="fixed inset-0 z-[100] flex items-center justify-center px-4" style="display: none;">
             <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" @click="showTermsModal = false"></div>
             <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 sm:p-8 z-10">
@@ -279,22 +295,30 @@
             </div>
         </div>
     </div>
-
     <x-customer-footer :owner="$owner" :companySetting="$companySetting" />
-
     <script>
         function bookingWizard(initialId = '', initialPrice = 0, initialName = '') {
             return {
                 step: 1, errorMsg: '',
                 selectedServiceId: String(initialId), unitPrice: Number(initialPrice), selectedServiceName: initialName,
-                multiDay: false, bookingDate: '', startDate: '', endDate: '', bookingTime: '',
+                multiDay: false, bookingDate: '', startDate: '', endDate: '',
+
+                // Waktu booking: sekarang menggunakan dropdown Jam/Menit format 24 jam (WIB),
+                // bukan lagi native <input type="time"> yang bisa tampil AM/PM tergantung locale browser.
+                bookingHour: '',
+                bookingMinute: '',
+                hourOptions: Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0')),
+                minuteOptions: ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'],
+                get bookingTime() {
+                    return (this.bookingHour && this.bookingMinute) ? `${this.bookingHour}:${this.bookingMinute}` : '';
+                },
+
                 clientName: '{{ old('client_name') }}', clientContact: '{{ old('client_contact') }}',
                 clientEmail: '{{ old('client_email') }}', clientInstagram: '{{ old('client_instagram') }}',
                 clientAddress: '{{ old('client_address') }}', notes: '{{ old('notes') }}',
                 
                 paymentOption: 'DP', 
                 agreeTnC: false, showTermsModal: false,
-
                 selectService(id, price, name) {
                     this.selectedServiceId = String(id); this.unitPrice = price; this.selectedServiceName = name; this.errorMsg = '';
                 },

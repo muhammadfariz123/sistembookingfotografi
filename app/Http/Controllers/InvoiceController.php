@@ -1,33 +1,28 @@
 <?php
-// app/Http/Controllers/InvoiceController.php
 
 namespace App\Http\Controllers;
 
 use App\Models\Booking;
 use App\Models\CompanySetting;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class InvoiceController extends Controller
 {
     /**
-     * Ambil data booking + company setting untuk generate invoice
+     * Tampilkan halaman Bukti Pembayaran (Invoice)
      */
     public function show(Booking $booking)
     {
-        // Pastikan booking milik user yang login
-        if ($booking->user_id !== Auth::id()) {
-            abort(403);
-        }
+        // Load relasi ke layanan, transaksi riwayat, dan data admin/user
+        $booking->load(['serviceType', 'transactions', 'user']);
 
-        $booking->load('serviceType');
+        // Ambil data profil studio/admin
+        $company = CompanySetting::where('user_id', $booking->user_id)->first();
 
-        $company = CompanySetting::where('user_id', Auth::id())->first();
+        // Generate kembali Kode Booking
+        $bookingCode = 'BKG-' . Carbon::parse($booking->created_at)->format('Ymd') . '-' . strtoupper(substr(md5($booking->id), 0, 4));
 
-        return response()->json([
-            'success' => true,
-            'booking' => $booking,
-            'company' => $company,
-        ]);
+        return view('booking.invoice', compact('booking', 'company', 'bookingCode'));
     }
 }

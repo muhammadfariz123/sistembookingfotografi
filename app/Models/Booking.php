@@ -89,6 +89,10 @@ class Booking extends Model
         return $this->belongsTo(ServiceType::class);
     }
 
+    public function transactions()
+    {
+        return $this->hasMany(PaymentTransaction::class);
+    }
     // ── TPS Processing — Rumus 3.1 s/d 3.5 ─────────────────────
     /**
      * Jalankan semua kalkulasi TPS dan kembalikan array hasil.

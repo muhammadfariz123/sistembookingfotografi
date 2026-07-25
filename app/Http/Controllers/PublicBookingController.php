@@ -69,10 +69,8 @@ class PublicBookingController extends Controller
             ->where('user_id', $owner->id)
             ->firstOrFail();
 
-        // Hitung nominal TPS (Kondisi Awal: Belum bayar)
         $tpsData = Booking::calculateTps((int) $service->price, 0, 0);
 
-        // Buat record booking ke Database
         $booking = Booking::create([
             'user_id' => $owner->id,
             'service_type_id' => $service->id,
@@ -87,7 +85,7 @@ class PublicBookingController extends Controller
             'booking_time' => $validated['booking_time'] ?? null,
             'notes' => $validated['notes'] ?? null,
 
-            'status' => 'Pembayaran Tertunda',
+            'status' => 'Pending Bayar',
             'payment_status' => 'Pending',
             'payment_type' => $validated['payment_type'],
 
@@ -100,33 +98,36 @@ class PublicBookingController extends Controller
             'remaining' => $tpsData['remaining'],
         ]);
 
+        // Generate Booking Code & Transaksi Pertama
+        $bookingCodeFormatted = 'BKG-' . Carbon::parse($booking->created_at)->format('Ymd') . '-' . strtoupper(substr(md5($booking->id), 0, 4));
 
-        // ==========================================================
-        // 1. KIRIM EMAIL NOTIFIKASI KE CUSTOMER
-        // ==========================================================
+        $amountExpected = ($validated['payment_type'] === 'LUNAS') ? $tpsData['total'] : (int) ceil($tpsData['total'] * 0.3);
+
+        // Buat Baris Transaksi di Tabel payment_transactions
+        \App\Models\PaymentTransaction::create([
+            'booking_id' => $booking->id,
+            'user_id' => $owner->id,
+            'transaction_id' => $bookingCodeFormatted . '-' . $validated['payment_type'] . '-' . time(),
+            'payment_type' => $validated['payment_type'] === 'LUNAS' ? 'LUNAS' : 'DP',
+            'amount' => $amountExpected,
+            'payment_status' => 'Pending',
+        ]);
+
         if (!empty($validated['client_email'])) {
             try {
-                // [PENTING]: Gunakan created_at, bukan now()
-                $bookingCode = 'BKG-' . \Carbon\Carbon::parse($booking->created_at)->format('Ymd') . '-' . strtoupper(substr(md5($booking->id), 0, 4));
-                $companySetting = \App\Models\CompanySetting::where('user_id', $owner->id)->first();
-
-                // MENGAMBIL COMPANY NAME DAN COMPANY PHONE DARI SETTING DATABASE
+                $companySetting = CompanySetting::where('user_id', $owner->id)->first();
                 $companyName = $companySetting->company_name ?? $owner->name;
                 $companyPhone = $companySetting->company_phone ?? null;
-
-                // WAJIB LOAD RELASI AGAR NAMA PAKET MUNCUL DI BLADE EMAIL
                 $booking->load('serviceType');
 
                 \Illuminate\Support\Facades\Mail::to($validated['client_email'])->send(
-                    new \App\Mail\CustomerBookingReceived($booking, $bookingCode, $companyName, $companyPhone)
+                    new \App\Mail\CustomerBookingReceived($booking, $bookingCodeFormatted, $companyName, $companyPhone)
                 );
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::error("Gagal kirim email Customer: " . $e->getMessage());
             }
         }
-        // ==========================================================
 
-        // Redirect ke route pembayaran (Menangkap pilihan DP/LUNAS yang tersimpan di DB)
         return redirect()->route('booking.public.pembayaran', ['ownerId' => $ownerId, 'bookingId' => $booking->id])
             ->with('success', 'Booking berhasil! Silakan selesaikan pembayaran.');
     }
@@ -192,7 +193,7 @@ class PublicBookingController extends Controller
             // Kita membangun ulang kode dari masing-masing booking milik email tersebut
             // [PENTING]: Ini sudah menggunakan created_at
             $expectedCode = 'BKG-' . \Carbon\Carbon::parse($b->created_at)->format('Ymd') . '-' . strtoupper(substr(md5($b->id), 0, 4));
-            
+
             // Mencocokkan kode yang diketik customer dengan yang di database
             if ($expectedCode === $inputCode) {
                 $matchedBooking = $b;
@@ -223,7 +224,13 @@ class PublicBookingController extends Controller
 
         // Memanggil View track-result.blade.php
         return view('booking.track-result', compact(
-            'booking', 'owner', 'companySetting', 'bookingCode', 'amountToPay', 'ownerId', 'isLunas'
+            'booking',
+            'owner',
+            'companySetting',
+            'bookingCode',
+            'amountToPay',
+            'ownerId',
+            'isLunas'
         ));
     }
 
@@ -299,24 +306,40 @@ class PublicBookingController extends Controller
             'client_instagram' => $request->client_instagram,
         ];
 
-        // MENDETEKSI JIKA INI ADALAH UPLOAD BUKTI PELUNASAN
         $isPelunasanProcess = false;
         if ($booking->payment_status === 'Down Payment') {
             $updateData['payment_type'] = 'PELUNASAN';
             $isPelunasanProcess = true;
+
+            // Catat baris transaksi baru khusus PELUNASAN ke database
+            $bookingCodeFormatted = 'BKG-' . Carbon::parse($booking->created_at)->format('Ymd') . '-' . strtoupper(substr(md5($booking->id), 0, 4));
+            \App\Models\PaymentTransaction::create([
+                'booking_id' => $booking->id,
+                'user_id' => $ownerId,
+                'transaction_id' => $bookingCodeFormatted . '-PELUNASAN-' . time(),
+                'payment_type' => 'PELUNASAN',
+                'amount' => $booking->remaining > 0 ? $booking->remaining : ($booking->total - ceil($booking->total * 0.3)),
+                'payment_status' => 'Tunggu Konfirmasi',
+                'payment_proof' => $path,
+            ]);
+        } else {
+            // Update transaksi pertama yang tadinya Pending menjadi Tunggu Konfirmasi beserta bukti foto & file
+            $tx = \App\Models\PaymentTransaction::where('booking_id', $booking->id)->latest()->first();
+            if ($tx) {
+                $tx->update([
+                    'payment_status' => 'Tunggu Konfirmasi',
+                    'payment_proof' => $path,
+                ]);
+            }
         }
 
         $booking->update($updateData);
 
-        // ==========================================================
-        // PROSES KIRIM EMAIL NOTIFIKASI BUKTI TRANSFER KE ADMIN
-        // ==========================================================
         try {
             $owner = User::findOrFail($ownerId);
             $total = (int) $booking->total;
             $dpAmount = (int) ceil($total * 0.3);
 
-            // Menghitung nominal yang tepat untuk dikirim ke Email Admin
             if ($isPelunasanProcess || strtoupper($booking->payment_type) === 'PELUNASAN') {
                 $amountToPay = $booking->remaining > 0 ? $booking->remaining : ($total - $dpAmount);
             } elseif (strtoupper($booking->payment_type) === 'LUNAS') {
@@ -325,19 +348,14 @@ class PublicBookingController extends Controller
                 $amountToPay = $dpAmount;
             }
 
-            // [PENTING]: Gunakan created_at
-            $bookingCode = 'BKG-' . \Carbon\Carbon::parse($booking->created_at)->format('Ymd') . '-' . strtoupper(substr(md5($booking->id), 0, 4));
+            $bookingCode = 'BKG-' . Carbon::parse($booking->created_at)->format('Ymd') . '-' . strtoupper(substr(md5($booking->id), 0, 4));
 
             \Illuminate\Support\Facades\Mail::to($owner->email)->send(
                 new \App\Mail\PaymentProofSubmitted($booking, $bookingCode, $amountToPay)
             );
-
-            \Illuminate\Support\Facades\Log::info("Email bukti transfer sukses dikirim ke: " . $owner->email);
-
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error("Gagal kirim email upload bukti transfer: " . $e->getMessage());
         }
-        // ==========================================================
 
         return redirect()->route('booking.public.payment-success', ['ownerId' => $ownerId, 'bookingId' => $booking->id]);
     }
