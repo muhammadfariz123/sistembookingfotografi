@@ -42,6 +42,14 @@
 <body class="min-h-screen bg-gray-50 font-sans antialiased pb-12">
     @php
         $tglLayanan = $booking->booking_date ?? $booking->start_date;
+        
+        // Cek apakah ada riwayat transaksi yang baru di-upload dan sedang menunggu konfirmasi
+        $hasPendingTx = \App\Models\PaymentTransaction::where('booking_id', $booking->id)
+                            ->where('payment_status', 'Tunggu Konfirmasi')
+                            ->exists();
+        
+        // Flag utama: Aktif jika booking masih 'Tunggu Konfirmasi' ATAU ada pelunasan baru yang sedang diverifikasi
+        $isWaitingVerification = $hasPendingTx || $booking->payment_status === 'Tunggu Konfirmasi';
     @endphp
     
     {{-- TOPBAR --}}
@@ -62,18 +70,8 @@
         {{-- KARTU 1: ICON + PESAN --}}
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center mb-6 print-shadow-none relative overflow-hidden">
             
-            @if($booking->payment_status === 'Lunas' || $booking->payment_status === 'Down Payment')
-                <div class="w-16 h-16 bg-orange-50 text-brand rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                </div>
-                <p class="text-[11px] font-bold text-brand uppercase tracking-wider mb-2">Pembayaran Lunas!</p>
-                <h2 class="text-[22px] font-extrabold text-gray-900 mb-3">Booking Terkonfirmasi 🎉</h2>
-                <p class="text-[14px] text-gray-500 leading-relaxed px-2 mb-6">
-                    Pembayaran kamu sudah lunas dan jadwal sesi foto sudah terkunci. Sampai jumpa di hari sesi foto!
-                </p>
-            @else
+            @if($isWaitingVerification)
+                {{-- STATUS: MENUNGGU VERIFIKASI (Baik DP maupun Pelunasan) --}}
                 <div class="w-16 h-16 bg-orange-50 text-brand rounded-full flex items-center justify-center mx-auto mb-4">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -82,7 +80,46 @@
                 <p class="text-[11px] font-bold text-brand uppercase tracking-wider mb-2">Menunggu Verifikasi Admin</p>
                 <h2 class="text-[22px] font-extrabold text-gray-900 mb-3">Bukti Transfer Dikirim!</h2>
                 <p class="text-[14px] text-gray-500 leading-relaxed px-2 mb-6">
-                    Admin akan memverifikasi pembayaran kamu. Kamu akan mendapat notifikasi email setelah dikonfirmasi.
+                    Bukti transfer kamu sudah kami terima. Admin <strong>{{ $companySetting?->company_name ?? $owner->name }}</strong> akan memverifikasi pembayaran dalam 1×24 jam. Kamu akan mendapat notifikasi email setelah dikonfirmasi.
+                </p>
+
+            @elseif($booking->payment_status === 'Lunas')
+                {{-- STATUS: LUNAS PENUH --}}
+                <div class="w-16 h-16 bg-emerald-50 text-[#059669] rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+                <p class="text-[11px] font-bold text-[#059669] uppercase tracking-wider mb-2">Pembayaran Lunas!</p>
+                <h2 class="text-[22px] font-extrabold text-gray-900 mb-3">Booking Terkonfirmasi 🎉</h2>
+                <p class="text-[14px] text-gray-500 leading-relaxed px-2 mb-6">
+                    Pembayaran kamu sudah lunas dan jadwal sesi foto sudah terkunci. Sampai jumpa di hari sesi foto!
+                </p>
+
+            @elseif($booking->payment_status === 'Down Payment')
+                {{-- STATUS: DP SUDAH DI-ACC (Tapi belum lunas) --}}
+                <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+                <p class="text-[11px] font-bold text-blue-600 uppercase tracking-wider mb-2">DP Dikonfirmasi!</p>
+                <h2 class="text-[22px] font-extrabold text-gray-900 mb-3">Jadwal Terkunci 📅</h2>
+                <p class="text-[14px] text-gray-500 leading-relaxed px-2 mb-6">
+                    Pembayaran DP kamu sudah diverifikasi dan jadwal aman. Jangan lupa selesaikan sisa pelunasan sebelum atau saat hari H ya.
+                </p>
+
+            @else
+                {{-- STATUS: PENDING / BELUM BAYAR --}}
+                <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                </div>
+                <p class="text-[11px] font-bold text-red-500 uppercase tracking-wider mb-2">Belum Dibayar</p>
+                <h2 class="text-[22px] font-extrabold text-gray-900 mb-3">Selesaikan Pembayaran</h2>
+                <p class="text-[14px] text-gray-500 leading-relaxed px-2 mb-6">
+                    Harap segera selesaikan pembayaran dan upload bukti transfer agar jadwalmu segera dikonfirmasi.
                 </p>
             @endif
 
@@ -95,6 +132,15 @@
                     <span x-show="copied" x-cloak>Tersalin!</span>
                 </button>
             </div>
+
+            {{-- TOMBOL LUNASI PEMBAYARAN JIKA MASIH ADA SISA & BUKAN SEDANG DIVERIFIKASI --}}
+            @if(!$isWaitingVerification && ($booking->payment_status === 'Pending' || $booking->payment_status === 'Down Payment' || $booking->payment_status === 'Belum Bayar'))
+                <div class="mt-6 no-print">
+                    <a href="{{ route('booking.public.pembayaran', ['ownerId' => $ownerId, 'bookingId' => $booking->id]) }}" class="w-full bg-black text-white font-bold text-[13px] py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-800 transition">
+                        💳 {{ $booking->payment_status === 'Down Payment' ? 'Lunasi Pembayaran Sekarang' : 'Selesaikan Pembayaran' }}
+                    </a>
+                </div>
+            @endif
         </div>
 
         {{-- KARTU 2: RINGKASAN PEMBAYARAN --}}
@@ -125,7 +171,7 @@
             
             <div class="space-y-3.5 text-[14px] mb-5">
                 <div class="flex justify-between items-center">
-                    <span class="text-gray-500">Total dibayar</span>
+                    <span class="text-gray-500">Total Tagihan</span>
                     <span class="font-extrabold text-gray-900 text-[16px]">Rp {{ number_format($booking->total, 0, ',', '.') }}</span>
                 </div>
                 <div class="flex justify-between items-center">
@@ -133,21 +179,23 @@
                     @if($booking->payment_status === 'Lunas')
                         <span class="font-bold text-[#059669] bg-[#dcfce7] px-3 py-1 rounded-full text-[11px] uppercase tracking-wider">LUNAS</span>
                     @elseif($booking->payment_status === 'Down Payment')
-                        <span class="font-bold text-blue-700 bg-blue-100 px-3 py-1 rounded-full text-[11px] uppercase tracking-wider">DP (Uang Muka)</span>
+                        <span class="font-bold text-blue-700 bg-blue-100 px-3 py-1 rounded-full text-[11px] uppercase tracking-wider">DP (UANG MUKA)</span>
+                    @elseif($booking->payment_status === 'Tunggu Konfirmasi')
+                        <span class="font-bold text-orange-600 bg-orange-50 border border-orange-100 px-3 py-1 rounded-full text-[11px] uppercase tracking-wider">MENUNGGU VERIFIKASI</span>
                     @else
-                        <span class="font-bold text-orange-600 bg-orange-50 border border-orange-100 px-3 py-1 rounded-full text-[11px] uppercase tracking-wider">PENDING</span>
+                        <span class="font-bold text-red-600 bg-red-50 border border-red-100 px-3 py-1 rounded-full text-[11px] uppercase tracking-wider">PENDING</span>
                     @endif
                 </div>
             </div>
 
             {{-- TOMBOL UNDUH BUKTI PEMBAYARAN (Tampil jika Lunas / DP) --}}
             @if($booking->payment_status === 'Lunas' || $booking->payment_status === 'Down Payment')
-                <button onclick="window.print()" class="w-full flex items-center justify-center gap-2 bg-[#f0fdf4] hover:bg-[#dcfce7] text-[#059669] font-bold py-3 rounded-xl transition-colors text-[13px] border border-[#bbf7d0] no-print">
+                <a href="{{ route('invoice.show', $booking->id) }}" target="_blank" class="w-full flex items-center justify-center gap-2 bg-[#f0fdf4] hover:bg-[#dcfce7] text-[#059669] font-bold py-3 rounded-xl transition-colors text-[13px] border border-[#bbf7d0] no-print">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                     </svg>
                     Unduh Bukti Pembayaran
-                </button>
+                </a>
             @endif
         </div>
 
@@ -157,15 +205,15 @@
             <ol class="space-y-4">
                 <li class="flex items-start gap-3.5 text-[14px]">
                     <span class="flex-shrink-0 w-6 h-6 bg-orange-50 text-brand font-bold rounded-full flex items-center justify-center text-[12px] mt-0.5">1</span>
-                    <span class="text-gray-600 leading-snug">Simpan kode booking kamu sebagai referensi.</span>
+                    <span class="text-gray-600 leading-snug">Admin akan memeriksa bukti transfer kamu dalam <span class="font-semibold text-gray-800">1×24 jam</span>.</span>
                 </li>
                 <li class="flex items-start gap-3.5 text-[14px]">
                     <span class="flex-shrink-0 w-6 h-6 bg-orange-50 text-brand font-bold rounded-full flex items-center justify-center text-[12px] mt-0.5">2</span>
-                    <span class="text-gray-600 leading-snug">Admin akan menghubungi kamu untuk informasi teknis sesi foto.</span>
+                    <span class="text-gray-600 leading-snug">Kamu akan menerima email konfirmasi setelah admin memverifikasi pembayaran.</span>
                 </li>
                 <li class="flex items-start gap-3.5 text-[14px]">
                     <span class="flex-shrink-0 w-6 h-6 bg-orange-50 text-brand font-bold rounded-full flex items-center justify-center text-[12px] mt-0.5">3</span>
-                    <span class="text-gray-600 leading-snug">Pantau status booking melalui fitur <span class="font-semibold text-gray-800">Track Booking</span>.</span>
+                    <span class="text-gray-600 leading-snug">Pantau status booking via <span class="font-semibold text-gray-800">Track Booking</span>. Hubungi admin jika lebih dari 24 jam belum ada kabar.</span>
                 </li>
             </ol>
         </div>

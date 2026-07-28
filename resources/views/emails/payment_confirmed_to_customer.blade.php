@@ -101,7 +101,7 @@
 
             @if($isFullyPaid)
                 <div class="action-box text-center">
-                    <a href="{{ route('booking.public.show', $booking->user_id) }}" class="btn">Unduh bukti pembayaran</a>
+                    <a href="{{ route('invoice.show', $booking->id) }}" class="btn">Unduh bukti pembayaran</a>
                 </div>
                 <p>Terima kasih, pembayaran kamu sudah kami terima. Sampai ketemu di hari sesi foto! 🙌</p>
             @else

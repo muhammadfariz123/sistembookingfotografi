@@ -1,14 +1,21 @@
 <?php
 // app/Http/Controllers/BookingController.php
 namespace App\Http\Controllers;
+
 use App\Http\Requests\BookingRequest;
 use App\Models\Booking;
 use App\Models\ServiceType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\PaymentConfirmedToCustomer;
+use App\Mail\AdminPaymentApprovedNotification; // Import Mailable Admin
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\BookingExport;
 use Carbon\Carbon;
+
 class BookingController extends Controller
 {
     public function index(Request $request)
@@ -78,6 +85,7 @@ class BookingController extends Controller
                     'updated_at' => $updatedAtWib,
                 ];
             });
+
             $now = Carbon::now('Asia/Jakarta');
             $currentMonth = $now->month;
             $currentYear = $now->year;
@@ -85,32 +93,40 @@ class BookingController extends Controller
             $lastMonthDate = $now->copy()->subMonth();
             $lastMonth = $lastMonthDate->month;
             $lastYear = $lastMonthDate->year;
+
             $bookingsThisMonth = collect($mappedBookings)->filter(function ($b) use ($currentMonth, $currentYear) {
                 $date = Carbon::parse($b['created_at'])->timezone('Asia/Jakarta');
                 return $date->month == $currentMonth && $date->year == $currentYear;
             });
             $bookingThisMonthCount = $bookingsThisMonth->count();
             $revenueThisMonth = $bookingsThisMonth->sum('paid_amount');
+
             $bookingsLastMonth = collect($mappedBookings)->filter(function ($b) use ($lastMonth, $lastYear) {
                 $date = Carbon::parse($b['created_at'])->timezone('Asia/Jakarta');
                 return $date->month == $lastMonth && $date->year == $lastYear;
             });
             $bookingLastMonthCount = $bookingsLastMonth->count();
             $revenueLastMonth = $bookingsLastMonth->sum('paid_amount');
+
             $bookingGrowth = $bookingLastMonthCount > 0 ? (($bookingThisMonthCount - $bookingLastMonthCount) / $bookingLastMonthCount) * 100 : ($bookingThisMonthCount > 0 ? 100 : 0);
             $revenueGrowth = $revenueLastMonth > 0 ? (($revenueThisMonth - $revenueLastMonth) / $revenueLastMonth) * 100 : ($revenueThisMonth > 0 ? 100 : 0);
+
             $pendingBookings = collect($mappedBookings)->filter(function ($b) {
                 return in_array($b['payment_status'], ['Pending', 'Belum Bayar', 'Tunggu Konfirmasi']);
             });
+
             $todaySessions = collect($mappedBookings)->filter(function ($b) use ($todayStr) {
                 $tglLayanan = $b['booking_date'] ?? $b['start_date'];
                 return $tglLayanan === $todayStr && $b['status'] === 'Dijadwalkan';
             });
+
             $allTodaySessions = collect($mappedBookings)->filter(function ($b) use ($todayStr) {
                 $tglLayanan = $b['booking_date'] ?? $b['start_date'];
                 return $tglLayanan === $todayStr;
             });
+
             $todayConversionRate = $allTodaySessions->count() > 0 ? round(($todaySessions->count() / $allTodaySessions->count()) * 100) : 0;
+
             $summary = [
                 'current_month_name' => $now->locale('id')->isoFormat('MMM'),
                 'today_date_name' => $now->locale('id')->isoFormat('dddd, D MMMM YYYY'),
@@ -125,6 +141,7 @@ class BookingController extends Controller
                 'today_conversion_rate' => $todayConversionRate,
                 'today_schedules' => $todaySessions->sortBy('booking_time')->values()->toArray(),
             ];
+
             return response()->json([
                 'data' => $mappedBookings,
                 'summary' => $summary,
@@ -132,15 +149,17 @@ class BookingController extends Controller
         }
         return view('bookings.index');
     }
+
     public function listPage()
     {
         return view('bookings.list');
     }
+
     public function calendarPage()
     {
         return view('bookings.calendar');
     }
-    // [DIHAPUS]: public function create() sudah dibuang karena beralih ke form publik.
+
     public function edit(Booking $booking)
     {
         if ($booking->user_id !== Auth::id())
@@ -148,7 +167,8 @@ class BookingController extends Controller
         $serviceTypes = ServiceType::where('user_id', Auth::id())->get();
         return view('bookings.form', compact('booking', 'serviceTypes'));
     }
-   public function approvePayment(Request $request, $id)
+
+    public function approvePayment(Request $request, $id)
     {
         // Cari apakah $id merujuk ke Booking atau PaymentTransaction
         $booking = Booking::where('id', $id)->first();
@@ -163,8 +183,16 @@ class BookingController extends Controller
             return response()->json(['success' => false, 'message' => 'Data booking tidak ditemukan.'], 404);
         }
 
+        // Cari transaksi yang statusnya masih 'Tunggu Konfirmasi' untuk mengambil nominalnya
+        $pendingTx = \App\Models\PaymentTransaction::where('booking_id', $booking->id)
+            ->where('payment_status', 'Tunggu Konfirmasi')
+            ->first();
+
         $type = strtoupper($booking->payment_type);
         $dpAmount = (int) ceil($booking->total * 0.3);
+        
+        // Ambil nominal langsung dari tabel riwayat transaksi, jika gagal otomatis hitung matematis
+        $currentPaymentAmount = $pendingTx ? $pendingTx->amount : ($type === 'DP' ? $dpAmount : max($booking->total - $booking->paid_amount, 0));
 
         if ($type === 'PELUNASAN' || $type === 'LUNAS') {
             $totalPaid = $booking->total;
@@ -188,6 +216,45 @@ class BookingController extends Controller
         \App\Models\PaymentTransaction::where('booking_id', $booking->id)
             ->where('payment_status', 'Tunggu Konfirmasi')
             ->update(['payment_status' => 'Berhasil', 'paid_at' => Carbon::now('Asia/Jakarta')]);
+
+        // ==============================================================
+        // LOGIKA BARU: KIRIM EMAIL NOTIFIKASI
+        // ==============================================================
+        try {
+            // Generate ulang Booking Code persis seperti yang di UI
+            $bookingCode = 'BKG-' . Carbon::parse($booking->created_at)->format('Ymd') . '-' . strtoupper(substr(md5($booking->id), 0, 4));
+            
+            // Ambil data pemilik/studio (admin saat ini)
+            $owner = \App\Models\User::find($booking->user_id);
+            $companySetting = DB::table('company_settings')->where('user_id', $booking->user_id)->first();
+            
+            $companyName = $companySetting->company_name ?? $owner->name;
+            $companyPhone = $companySetting->whatsapp_number ?? $companySetting->phone_number ?? '';
+
+            // 1. Kirim Email ke Customer (Jika email diisi)
+            if (!empty($booking->client_email)) {
+                Mail::to($booking->client_email)->send(new PaymentConfirmedToCustomer(
+                    $booking,
+                    $bookingCode,
+                    $companyName,
+                    $companyPhone,
+                    $currentPaymentAmount
+                ));
+            }
+
+            // 2. Kirim Email Notifikasi ke Admin (Pemilik Studio)
+            if (!empty($owner->email)) {
+                Mail::to($owner->email)->send(new AdminPaymentApprovedNotification(
+                    $booking,
+                    $bookingCode,
+                    $currentPaymentAmount
+                ));
+            }
+
+        } catch (\Exception $e) {
+            // Jangan menggagalkan request jika email gagal, cukup catat di file .log
+            Log::error('Gagal mengirim email notifikasi: ' . $e->getMessage());
+        }
 
         return response()->json([
             'success' => true,
@@ -225,6 +292,7 @@ class BookingController extends Controller
             'message' => 'Bukti pembayaran ditolak dan booking dibatalkan.'
         ]);
     }
+
     public function updateNotes(Request $request, Booking $booking)
     {
         if ($booking->user_id !== Auth::id())
@@ -236,6 +304,7 @@ class BookingController extends Controller
             'message' => 'Catatan/Notes berhasil diperbarui.'
         ]);
     }
+
     public function bulkDelete(Request $request)
     {
         $request->validate(['ids' => 'required|array', 'ids.*' => 'exists:bookings,id']);
@@ -247,6 +316,7 @@ class BookingController extends Controller
             'message' => count($request->ids) . ' data transaksi berhasil dihapus.'
         ]);
     }
+
     public function store(BookingRequest $request)
     {
         $validated = $request->validated();
@@ -271,6 +341,7 @@ class BookingController extends Controller
             'data' => $booking->load('serviceType'),
         ], 201);
     }
+
     public function update(BookingRequest $request, Booking $booking)
     {
         if ($booking->user_id !== Auth::id())
@@ -296,6 +367,7 @@ class BookingController extends Controller
             'data' => $booking->fresh()->load('serviceType'),
         ]);
     }
+
     public function destroy(Booking $booking)
     {
         if ($booking->user_id !== Auth::id())
@@ -307,6 +379,7 @@ class BookingController extends Controller
             'message' => "Booking \"{$clientName}\" berhasil dihapus.",
         ]);
     }
+
     public function export(Request $request)
     {
         return Excel::download(new BookingExport($request->all()), 'Data_Booking.xlsx');

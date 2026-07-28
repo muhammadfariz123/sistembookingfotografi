@@ -1,3 +1,4 @@
+{{-- resources/views/booking/form.blade.php --}}
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -17,11 +18,13 @@
 </head>
 <body class="min-h-screen bg-gray-50 text-gray-800 antialiased relative">
     <x-customer-navbar :owner="$owner" :companySetting="$companySetting" :ownerId="$ownerId" showHome="true" />
+    
     <div class="max-w-3xl mx-auto px-4 py-10" x-data="bookingWizard('{{ $selectedService->id ?? old('service_type_id', '') }}', {{ $selectedService->price ?? 0 }}, '{{ $selectedService->name ?? '' }}')">
         <div class="text-center mb-10">
             <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Form Booking</h1>
             <p class="text-gray-500 mt-2 text-sm">Lengkapi 4 tahapan di bawah ini untuk menyelesaikan pesanan Anda.</p>
         </div>
+        
         <div class="relative mb-12 px-2 sm:px-8">
             <div class="absolute left-0 top-4 w-full h-[2px] bg-gray-200 z-0"></div>
             <div class="absolute left-0 top-4 h-[2px] bg-brand z-0 transition-all duration-500" :style="'width: ' + ((step - 1) / 3) * 100 + '%'"></div>
@@ -32,7 +35,7 @@
                 </div>
                 <div class="flex flex-col items-center bg-gray-50 px-2 cursor-pointer" @click="if(step > 2) step = 2">
                     <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs transition-colors duration-300" :class="step >= 2 ? 'bg-brand text-white' : 'bg-gray-200 text-gray-400'">2</div>
-                    <span class="text-xs mt-2 font-medium" :class="step >= 2 ? 'text-gray-900' : 'text-gray-400'">Tanggal & Slot</span>
+                    <span class="text-xs mt-2 font-medium" :class="step >= 2 ? 'text-gray-900' : 'text-gray-400'">Tanggal & Waktu</span>
                 </div>
                 <div class="flex flex-col items-center bg-gray-50 px-2 cursor-pointer" @click="if(step > 3) step = 3">
                     <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs transition-colors duration-300" :class="step >= 3 ? 'bg-brand text-white' : 'bg-gray-200 text-gray-400'">3</div>
@@ -44,6 +47,7 @@
                 </div>
             </div>
         </div>
+
         @if($errors->any())
             <div class="bg-red-50 border border-red-200 rounded-xl px-5 py-4 mb-6">
                 <ul class="text-sm text-red-600 space-y-1">
@@ -53,15 +57,16 @@
                 </ul>
             </div>
         @endif
+
         <div x-show="errorMsg" style="display: none;" class="bg-red-50 border border-red-200 text-red-600 rounded-xl px-5 py-3 mb-6 text-sm font-medium" x-transition>
             <span x-text="errorMsg"></span>
         </div>
+
         <form method="POST" action="{{ route('booking.public.store', $ownerId) }}" id="booking-form" class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 sm:p-8">
             @csrf
-            {{-- INPUT INI YANG MEMBAWA PILIHAN BAYAR (DP/LUNAS) KE CONTROLLER --}}
             <input type="hidden" name="payment_type" id="hidden_payment_type" :value="paymentOption">
-            {{-- INPUT INI YANG MEMBAWA WAKTU BOOKING (FORMAT 24 JAM / WIB) KE CONTROLLER --}}
             <input type="hidden" name="booking_time" :value="bookingTime">
+            
             {{-- STEP 1: PILIH PAKET --}}
             <div x-show="step === 1" x-transition.opacity>
                 <div class="mb-6">
@@ -96,11 +101,12 @@
                     <button type="button" @click="nextStep()" class="bg-brand hover:opacity-90 text-white px-6 py-2.5 rounded-lg font-bold transition flex items-center gap-2 text-sm">Lanjut: Pilih Jadwal &rarr;</button>
                 </div>
             </div>
+            
             {{-- STEP 2: TANGGAL & WAKTU --}}
             <div x-show="step === 2" x-transition.opacity style="display: none;">
                 <div class="mb-6">
                     <h2 class="text-lg font-bold text-gray-900">Pilih Tanggal & Waktu</h2>
-                    <p class="text-gray-500 text-sm mt-1">Pilih tanggal dan tentukan jam sesi yang tersedia.</p>
+                    <p class="text-gray-500 text-sm mt-1">Tentukan tanggal dan jam kedatangan (waktu standby fotografer).</p>
                 </div>
                 <div class="mb-6">
                     <label class="inline-flex items-center gap-3 cursor-pointer bg-gray-50 border border-gray-200 py-2.5 px-4 rounded-lg hover:bg-gray-100 transition">
@@ -108,65 +114,69 @@
                         <span class="text-sm font-semibold text-gray-700">Acara berlangsung lebih dari 1 hari</span>
                     </label>
                 </div>
+                
+                {{-- SATU HARI --}}
                 <div x-show="!multiDay" class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">Tanggal Acara <span class="text-red-500">*</span></label>
-                        <input type="date" name="booking_date" x-model="bookingDate" :disabled="multiDay" :required="!multiDay" min="{{ now()->format('Y-m-d') }}" class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm">
+                        <input type="date" name="booking_date" x-model="bookingDate" :disabled="multiDay" :required="!multiDay" :min="todayDate" class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Waktu Mulai (WIB)</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Waktu Mulai <span class="text-red-500">*</span></label>
                         <div class="flex items-center gap-2">
-                            <select x-model="bookingHour" :disabled="multiDay" class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm">
-                                <option value="">Jam</option>
-                                <template x-for="h in hourOptions" :key="h">
-                                    <option :value="h" x-text="h"></option>
+                            <select x-model="bookingHour" :disabled="multiDay" :required="!multiDay" class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm cursor-pointer">
+                                <option value="" disabled selected>Jam</option>
+                                <template x-for="i in 24">
+                                    <option :value="String(i-1).padStart(2, '0')" x-text="String(i-1).padStart(2, '0')"></option>
                                 </template>
                             </select>
-                            <span class="text-gray-400 font-bold">:</span>
-                            <select x-model="bookingMinute" :disabled="multiDay" class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm">
-                                <option value="">Menit</option>
-                                <template x-for="m in minuteOptions" :key="m">
-                                    <option :value="m" x-text="m"></option>
+                            <span class="font-bold text-gray-400">:</span>
+                            <select x-model="bookingMinute" :disabled="multiDay" :required="!multiDay" class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm cursor-pointer">
+                                <option value="" disabled selected>Menit</option>
+                                <template x-for="i in 12">
+                                    <option :value="String((i-1)*5).padStart(2, '0')" x-text="String((i-1)*5).padStart(2, '0')"></option>
                                 </template>
                             </select>
-                            <span class="text-xs font-semibold text-gray-500 shrink-0 whitespace-nowrap">WIB</span>
                         </div>
                     </div>
                 </div>
+
+                {{-- MULTI HARI --}}
                 <div x-show="multiDay" class="grid grid-cols-1 sm:grid-cols-3 gap-5" style="display: none;">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">Mulai <span class="text-red-500">*</span></label>
-                        <input type="date" name="start_date" x-model="startDate" :disabled="!multiDay" :required="multiDay" min="{{ now()->format('Y-m-d') }}" class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm">
+                        <input type="date" name="start_date" x-model="startDate" :disabled="!multiDay" :required="multiDay" :min="todayDate" class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">Selesai <span class="text-red-500">*</span></label>
-                        <input type="date" name="end_date" x-model="endDate" :disabled="!multiDay" :required="multiDay" min="{{ now()->format('Y-m-d') }}" class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm">
+                        <input type="date" name="end_date" x-model="endDate" :disabled="!multiDay" :required="multiDay" :min="startDate || todayDate" class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Waktu Mulai (WIB)</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Waktu Mulai <span class="text-red-500">*</span></label>
                         <div class="flex items-center gap-2">
-                            <select x-model="bookingHour" :disabled="!multiDay" class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm">
-                                <option value="">Jam</option>
-                                <template x-for="h in hourOptions" :key="h">
-                                    <option :value="h" x-text="h"></option>
+                            <select x-model="bookingHour" :disabled="!multiDay" :required="multiDay" class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm cursor-pointer">
+                                <option value="" disabled selected>Jam</option>
+                                <template x-for="i in 24">
+                                    <option :value="String(i-1).padStart(2, '0')" x-text="String(i-1).padStart(2, '0')"></option>
                                 </template>
                             </select>
-                            <span class="text-gray-400 font-bold">:</span>
-                            <select x-model="bookingMinute" :disabled="!multiDay" class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm">
-                                <option value="">Menit</option>
-                                <template x-for="m in minuteOptions" :key="m">
-                                    <option :value="m" x-text="m"></option>
+                            <span class="font-bold text-gray-400">:</span>
+                            <select x-model="bookingMinute" :disabled="!multiDay" :required="multiDay" class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm cursor-pointer">
+                                <option value="" disabled selected>Menit</option>
+                                <template x-for="i in 12">
+                                    <option :value="String((i-1)*5).padStart(2, '0')" x-text="String((i-1)*5).padStart(2, '0')"></option>
                                 </template>
                             </select>
-                            <span class="text-xs font-semibold text-gray-500 shrink-0 whitespace-nowrap">WIB</span>
                         </div>
                     </div>
                 </div>
+
                 <div class="mt-8 flex justify-between items-center">
                     <button type="button" @click="prevStep()" class="border border-gray-300 text-gray-600 hover:bg-gray-50 px-5 py-2.5 rounded-lg font-bold transition text-sm">&larr; Kembali</button>
                     <button type="button" @click="nextStep()" class="bg-brand hover:opacity-90 text-white px-6 py-2.5 rounded-lg font-bold transition flex items-center gap-2 text-sm">Lanjut: Info Klien &rarr;</button>
                 </div>
             </div>
+
             {{-- STEP 3: INFO KLIEN --}}
             <div x-show="step === 3" x-transition.opacity style="display: none;">
                 <div class="mb-6">
@@ -199,13 +209,14 @@
                 </div>
                 <div class="mb-5">
                     <label class="block text-sm font-medium text-gray-700 mb-1.5">Catatan Khusus</label>
-                    <textarea name="notes" x-model="notes" rows="3" placeholder="Permintaan khusus, tema, dll." class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm resize-none focus:border-brand focus:ring-brand shadow-sm"></textarea>
+                    <textarea name="notes" x-model="notes" rows="3" placeholder="Permintaan khusus, tema, durasi yang diinginkan dll." class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm resize-none focus:border-brand focus:ring-brand shadow-sm"></textarea>
                 </div>
                 <div class="mt-8 flex justify-between items-center">
                     <button type="button" @click="prevStep()" class="border border-gray-300 text-gray-600 hover:bg-gray-50 px-5 py-2.5 rounded-lg font-bold transition text-sm">&larr; Kembali</button>
                     <button type="button" @click="nextStep()" class="bg-brand hover:opacity-90 text-white px-6 py-2.5 rounded-lg font-bold transition flex items-center gap-2 text-sm">Lanjut: Konfirmasi &rarr;</button>
                 </div>
             </div>
+
             {{-- STEP 4: KONFIRMASI BOOKING --}}
             <div x-show="step === 4" x-transition.opacity style="display: none;">
                 <div class="mb-6">
@@ -254,7 +265,7 @@
                         <div class="flex justify-between items-start gap-4"><span class="text-gray-500 font-medium shrink-0">WhatsApp</span><span class="font-bold text-right" x-text="clientContact"></span></div>
                         <div class="border-t border-gray-200 my-3"></div>
                         <div class="flex justify-between items-start gap-4"><span class="text-gray-500 font-medium shrink-0">Jadwal</span><span class="font-bold text-right" x-text="scheduleText"></span></div>
-                        <div class="flex justify-between items-start gap-4"><span class="text-gray-500 font-medium shrink-0">Waktu</span><span class="font-bold text-right" x-text="(bookingTime || '-') + (bookingTime ? ' WIB' : '')"></span></div>
+                        <div class="flex justify-between items-start gap-4"><span class="text-gray-500 font-medium shrink-0">Waktu Mulai</span><span class="font-bold text-right" x-text="(bookingTime || '-')"></span></div>
                         <div class="flex justify-between items-start gap-4"><span class="text-gray-500 font-medium shrink-0">Paket</span><span class="font-bold text-right" x-text="selectedServiceName"></span></div>
                         <div class="flex justify-between items-start gap-4"><span class="text-gray-500 font-medium shrink-0">Harga Paket</span><span class="font-bold text-right" x-text="formatCurrency(unitPrice)"></span></div>
                         <div class="border-t border-gray-200 my-3"></div>
@@ -281,6 +292,7 @@
                 </div>
             </div>
         </form>
+
         <div x-show="showTermsModal" class="fixed inset-0 z-[100] flex items-center justify-center px-4" style="display: none;">
             <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" @click="showTermsModal = false"></div>
             <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 sm:p-8 z-10">
@@ -288,14 +300,20 @@
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
                 <h3 class="text-lg font-bold text-gray-900 leading-tight">Syarat dan Ketentuan</h3>
-                <div class="text-sm text-gray-600 mt-4 mb-6 leading-relaxed">
-                    Saya menyetujui syarat booking studio, ketentuan pembayaran, serta kebijakan reschedule.
+                <div class="text-sm text-gray-600 mt-4 mb-6 leading-relaxed space-y-2">
+                    <p>1. Pemesanan (booking) dianggap sah hanya jika pembayaran DP/Lunas telah dikonfirmasi oleh Admin.</p>
+                    <p>2. Diharapkan hadir tepat waktu sesuai waktu mulai yang dipilih. Keterlambatan dapat memotong durasi sesi foto Anda.</p>
+                    <p>3. Reschedule hanya dapat dilakukan maksimal H-3 sebelum tanggal pemotretan.</p>
+                    <p>4. Pembatalan sepihak oleh klien akan mengakibatkan uang muka (DP) hangus.</p>
+                    <p>5. Waktu pada sistem kami menggunakan Format 24 Jam.</p>
                 </div>
                 <div class="flex justify-end pt-2"><button type="button" @click="showTermsModal = false" class="border px-5 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50">Tutup</button></div>
             </div>
         </div>
     </div>
+    
     <x-customer-footer :owner="$owner" :companySetting="$companySetting" />
+    
     <script>
         function bookingWizard(initialId = '', initialPrice = 0, initialName = '') {
             return {
@@ -303,14 +321,23 @@
                 selectedServiceId: String(initialId), unitPrice: Number(initialPrice), selectedServiceName: initialName,
                 multiDay: false, bookingDate: '', startDate: '', endDate: '',
 
-                // Waktu booking: sekarang menggunakan dropdown Jam/Menit format 24 jam (WIB),
-                // bukan lagi native <input type="time"> yang bisa tampil AM/PM tergantung locale browser.
+                // LOKASI VARIABEL
+                get todayDate() {
+                    const d = new Date();
+                    const year = d.getFullYear();
+                    const month = String(d.getMonth() + 1).padStart(2, '0');
+                    const day = String(d.getDate()).padStart(2, '0');
+                    return `${year}-${month}-${day}`;
+                },
+
+                // Ganti dari text input ke state Jam dan Menit
                 bookingHour: '',
                 bookingMinute: '',
-                hourOptions: Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0')),
-                minuteOptions: ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'],
                 get bookingTime() {
-                    return (this.bookingHour && this.bookingMinute) ? `${this.bookingHour}:${this.bookingMinute}` : '';
+                    if (this.bookingHour && this.bookingMinute) {
+                        return `${this.bookingHour}:${this.bookingMinute}`;
+                    }
+                    return '';
                 },
 
                 clientName: '{{ old('client_name') }}', clientContact: '{{ old('client_contact') }}',
@@ -319,24 +346,69 @@
                 
                 paymentOption: 'DP', 
                 agreeTnC: false, showTermsModal: false,
+                
                 selectService(id, price, name) {
                     this.selectedServiceId = String(id); this.unitPrice = price; this.selectedServiceName = name; this.errorMsg = '';
                 },
+                
                 nextStep() {
                     if (this.step === 1 && !this.selectedServiceId) { this.showError('Pilih paket dahulu.'); return; }
-                    if (this.step === 2 && !this.multiDay && !this.bookingDate) { this.showError('Pilih tanggal.'); return; }
-                    if (this.step === 3 && (!this.clientName || !this.clientContact)) { this.showError('Isi kontak.'); return; }
+                    
+                    if (this.step === 2) {
+                        if (!this.multiDay && !this.bookingDate) { this.showError('Pilih tanggal acara.'); return; }
+                        if (this.multiDay && (!this.startDate || !this.endDate)) { this.showError('Pilih tanggal mulai dan selesai.'); return; }
+                        if (!this.bookingTime) { this.showError('Pilih jam dan menit waktu mulai.'); return; }
+                        
+                        // --- LOGIKA TIME BLOCKING JIKA BOOKING HARI INI ---
+                        let checkDate = this.multiDay ? this.startDate : this.bookingDate;
+                        if (checkDate === this.todayDate && this.bookingTime) {
+                            const now = new Date();
+                            
+                            // Hapus detik dan milidetik agar perhitungan dimulai persis di awal menit
+                            now.setSeconds(0, 0);
+                            
+                            const selectedTime = new Date(`${checkDate}T${this.bookingTime}:00`);
+                            
+                            // Set jeda kelonggaran menjadi 55 menit (agar booking 17:40 saat jam 16:41 bisa lolos)
+                            const bufferMinutes = 55;
+                            const minTime = new Date(now.getTime() + (bufferMinutes * 60 * 1000)); 
+                            
+                            if (selectedTime < minTime) {
+                                this.showError('Untuk booking hari ini, waktu mulai sesi harus minimal 1 jam dari waktu sekarang.');
+                                return;
+                            }
+                        }
+
+                        // Jika multiDay false, pastikan endDate kosong agar tidak bentrok
+                        if (!this.multiDay) {
+                            this.startDate = '';
+                            this.endDate = '';
+                        } else {
+                            this.bookingDate = '';
+                        }
+                    }
+                    
+                    if (this.step === 3 && (!this.clientName || !this.clientContact)) { this.showError('Isi kontak yang wajib (*).'); return; }
+                    
                     this.errorMsg = ''; this.step++; window.scrollTo({ top: 0, behavior: 'smooth' });
                 },
+                
                 prevStep() { if (this.step > 1) { this.step--; this.errorMsg = ''; window.scrollTo({ top: 0, behavior: 'smooth' }); } },
                 showError(msg) { this.errorMsg = msg; window.scrollTo({ top: 0, behavior: 'smooth' }); },
                 formatCurrency(value) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value || 0); },
-                get scheduleText() { return this.multiDay ? (this.startDate || '-') + ' s/d ' + (this.endDate || '-') : (this.bookingDate || '-'); },
+                
+                get scheduleText() { 
+                    if (this.multiDay) {
+                        return (this.startDate || '-') + ' s/d ' + (this.endDate || '-');
+                    }
+                    return (this.bookingDate || '-'); 
+                },
                 
                 submitForm() {
                     if (!this.agreeTnC) { this.showError('Centang persetujuan dahulu.'); return; }
-                    // Memastikan nilai dimasukkan secara paksa sesaat sebelum form dikirim
                     document.getElementById('hidden_payment_type').value = this.paymentOption;
+                    
+                    // Form akan otomatis menyertakan hidden input "booking_time" yang mengambil nilai get bookingTime()
                     document.getElementById('booking-form').submit();
                 }
             }

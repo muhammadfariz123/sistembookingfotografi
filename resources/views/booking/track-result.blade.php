@@ -27,12 +27,12 @@
             border-radius: 50%; background-color: #e5e7eb; border: 2px solid #ffffff; z-index: 10;
         }
         
-        /* State Timeline: Selesai / Aktif */
+        /* State Timeline: Selesai / Aktif (Hanya Bulatannya) */
         .timeline-item.completed .timeline-dot { background-color: #f59e0b; border-color: #fef3c7; }
         .timeline-item.active .timeline-dot { background-color: #f59e0b; box-shadow: 0 0 0 4px #fef3c7; }
         
-        /* Menyambung garis untuk item yang selesai */
-        .timeline-item.completed::before {
+        /* Menyambung garis HANYA JIKA tahap selanjutnya sudah aktif/selesai */
+        .timeline-item.connected-next::before {
             content: ''; position: absolute; left: -22px; top: 18px; bottom: -8px; width: 2px;
             background-color: #f59e0b; z-index: 5;
         }
@@ -218,8 +218,8 @@
                     $isAllSelesai = $isJadwalDikonfirmasi && $statusJadwal === 'Selesai';
                 @endphp
 
-                {{-- STEP 1: Booking Masuk (Selalu Menyala) --}}
-                <div class="timeline-item completed">
+                {{-- STEP 1: Booking Masuk (Selalu Menyala Bulatannya) --}}
+                <div class="timeline-item completed {{ $isJadwalDikonfirmasi ? 'connected-next' : '' }}">
                     <div class="timeline-dot"></div>
                     <h4 class="font-bold text-gray-900 text-[14px]">Booking Masuk</h4>
                     <p class="text-[12px] text-brand font-semibold mb-0.5">{{ $waktuPesan }}</p>
@@ -227,21 +227,21 @@
                 </div>
 
                 {{-- STEP 2: Jadwal Dikonfirmasi --}}
-                <div class="timeline-item {{ $isJadwalDikonfirmasi ? 'completed' : '' }}">
+                <div class="timeline-item {{ $isJadwalDikonfirmasi ? 'completed' : '' }} {{ ($isSesiAktif || $isSesiSelesai) ? 'connected-next' : '' }}">
                     <div class="timeline-dot"></div>
                     <h4 class="font-bold text-gray-900 text-[14px]">Jadwal Dikonfirmasi</h4>
                     <p class="text-[12px] text-gray-500">Admin mengkonfirmasi jadwal sesi</p>
                 </div>
 
                 {{-- STEP 3: Sesi Foto --}}
-                <div class="timeline-item {{ $isSesiSelesai ? 'completed' : ($isSesiAktif ? 'active' : '') }}">
+                <div class="timeline-item {{ $isSesiSelesai ? 'completed' : ($isSesiAktif ? 'active' : '') }} {{ ($isEditAktif || $isEditSelesai) ? 'connected-next' : '' }}">
                     <div class="timeline-dot"></div>
                     <h4 class="font-bold text-gray-900 text-[14px]">Sesi Foto</h4>
                     <p class="text-[12px] text-gray-500">{{ \Carbon\Carbon::parse($tglHanyaTanggal)->locale('id')->isoFormat('D MMM YYYY') }} · {{ \Carbon\Carbon::parse($jamHanyaWaktu)->format('H:i') }}</p>
                 </div>
 
                 {{-- STEP 4: Proses Editing --}}
-                <div class="timeline-item {{ $isEditSelesai ? 'completed' : ($isEditAktif ? 'active' : '') }}">
+                <div class="timeline-item {{ $isEditSelesai ? 'completed' : ($isEditAktif ? 'active' : '') }} {{ $isAllSelesai ? 'connected-next' : '' }}">
                     <div class="timeline-dot"></div>
                     <h4 class="font-bold text-gray-900 text-[14px]">Proses Editing</h4>
                     <p class="text-[12px] text-gray-500">Foto sedang diedit oleh tim kami</p>
