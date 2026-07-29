@@ -7,6 +7,10 @@
     <title>Form Booking — {{ $companySetting?->company_name ?? $owner->name }}</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800&display=swap" rel="stylesheet" />
+    
+    {{-- Flatpickr CSS untuk tampilan kalender/jam 24 format --}}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         body { font-family: 'Inter', sans-serif; }
@@ -106,7 +110,7 @@
             <div x-show="step === 2" x-transition.opacity style="display: none;">
                 <div class="mb-6">
                     <h2 class="text-lg font-bold text-gray-900">Pilih Tanggal & Waktu</h2>
-                    <p class="text-gray-500 text-sm mt-1">Tentukan tanggal dan jam kedatangan (waktu standby fotografer).</p>
+                    <p class="text-gray-500 text-sm mt-1">Tentukan tanggal acara dan jam berapa tim fotografer harus sudah <i>standby</i> di lokasi.</p>
                 </div>
                 <div class="mb-6">
                     <label class="inline-flex items-center gap-3 cursor-pointer bg-gray-50 border border-gray-200 py-2.5 px-4 rounded-lg hover:bg-gray-100 transition">
@@ -122,21 +126,22 @@
                         <input type="date" name="booking_date" x-model="bookingDate" :disabled="multiDay" :required="!multiDay" :min="todayDate" class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Waktu Mulai <span class="text-red-500">*</span></label>
-                        <div class="flex items-center gap-2">
-                            <select x-model="bookingHour" :disabled="multiDay" :required="!multiDay" class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm cursor-pointer">
-                                <option value="" disabled selected>Jam</option>
-                                <template x-for="i in 24">
-                                    <option :value="String(i-1).padStart(2, '0')" x-text="String(i-1).padStart(2, '0')"></option>
-                                </template>
-                            </select>
-                            <span class="font-bold text-gray-400">:</span>
-                            <select x-model="bookingMinute" :disabled="multiDay" :required="!multiDay" class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm cursor-pointer">
-                                <option value="" disabled selected>Menit</option>
-                                <template x-for="i in 12">
-                                    <option :value="String((i-1)*5).padStart(2, '0')" x-text="String((i-1)*5).padStart(2, '0')"></option>
-                                </template>
-                            </select>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Jam Fotografer Standby <span class="text-red-500">*</span></label>
+                        <div class="relative flex items-center">
+                            {{-- Flatpickr Time Input (Force 24H) --}}
+                            <input type="text" 
+                                x-model="bookingTime" 
+                                x-init="flatpickr($el, { enableTime: true, noCalendar: true, dateFormat: 'H:i', time_24hr: true, disableMobile: true, onChange: function(sd, ds) { bookingTime = ds } })" 
+                                :disabled="multiDay" 
+                                :required="!multiDay" 
+                                placeholder="-- : --"
+                                class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm pl-4 pr-[75px] cursor-pointer bg-white">
+                            
+                            {{-- Logo Jam & WIB absolute di kanan --}}
+                            <div class="absolute right-3 flex items-center gap-1.5 text-gray-400 pointer-events-none">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                <span class="text-xs font-bold">WIB</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -152,21 +157,22 @@
                         <input type="date" name="end_date" x-model="endDate" :disabled="!multiDay" :required="multiDay" :min="startDate || todayDate" class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Waktu Mulai <span class="text-red-500">*</span></label>
-                        <div class="flex items-center gap-2">
-                            <select x-model="bookingHour" :disabled="!multiDay" :required="multiDay" class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm cursor-pointer">
-                                <option value="" disabled selected>Jam</option>
-                                <template x-for="i in 24">
-                                    <option :value="String(i-1).padStart(2, '0')" x-text="String(i-1).padStart(2, '0')"></option>
-                                </template>
-                            </select>
-                            <span class="font-bold text-gray-400">:</span>
-                            <select x-model="bookingMinute" :disabled="!multiDay" :required="multiDay" class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm cursor-pointer">
-                                <option value="" disabled selected>Menit</option>
-                                <template x-for="i in 12">
-                                    <option :value="String((i-1)*5).padStart(2, '0')" x-text="String((i-1)*5).padStart(2, '0')"></option>
-                                </template>
-                            </select>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Jam Fotografer Standby <span class="text-red-500">*</span></label>
+                        <div class="relative flex items-center">
+                            {{-- Flatpickr Time Input (Multi Day) --}}
+                            <input type="text" 
+                                x-model="bookingTime" 
+                                x-init="flatpickr($el, { enableTime: true, noCalendar: true, dateFormat: 'H:i', time_24hr: true, disableMobile: true, onChange: function(sd, ds) { bookingTime = ds } })" 
+                                :disabled="!multiDay" 
+                                :required="multiDay" 
+                                placeholder="-- : --"
+                                class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm pl-4 pr-[75px] cursor-pointer bg-white">
+                            
+                            {{-- Logo Jam & WIB absolute di kanan --}}
+                            <div class="absolute right-3 flex items-center gap-1.5 text-gray-400 pointer-events-none">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                <span class="text-xs font-bold">WIB</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -181,36 +187,52 @@
             <div x-show="step === 3" x-transition.opacity style="display: none;">
                 <div class="mb-6">
                     <h2 class="text-lg font-bold text-gray-900">Informasi Klien</h2>
-                    <p class="text-gray-500 text-sm mt-1">Isi data diri kamu untuk konfirmasi booking.</p>
+                    <p class="text-gray-500 text-sm mt-1">Isi data diri dan detail lokasi acara untuk konfirmasi booking.</p>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Nama Lengkap <span class="text-red-500">*</span></label>
-                        <input type="text" name="client_name" x-model="clientName" required placeholder="Nama lengkap" class="w-full h-11 rounded-lg border border-gray-300 px-4 text-sm focus:border-brand focus:ring-brand shadow-sm">
+
+                {{-- Section 1: Data Diri Klien --}}
+                <div class="mb-8">
+                    <h3 class="text-[13px] font-bold text-gray-400 uppercase tracking-wider mb-4 border-b border-gray-200 pb-2">Data Diri Klien</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Nama Lengkap <span class="text-red-500">*</span></label>
+                            <input type="text" name="client_name" x-model="clientName" required placeholder="Nama lengkap" class="w-full h-11 rounded-lg border border-gray-300 px-4 text-sm focus:border-brand focus:ring-brand shadow-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">WhatsApp <span class="text-red-500">*</span></label>
+                            <input type="text" name="client_contact" x-model="clientContact" required placeholder="08xxxxxxxxxx" class="w-full h-11 rounded-lg border border-gray-300 px-4 text-sm focus:border-brand focus:ring-brand shadow-sm">
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">WhatsApp <span class="text-red-500">*</span></label>
-                        <input type="text" name="client_contact" x-model="clientContact" required placeholder="08xxxxxxxxxx" class="w-full h-11 rounded-lg border border-gray-300 px-4 text-sm focus:border-brand focus:ring-brand shadow-sm">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Email Aktif</label>
+                            <input type="email" name="client_email" x-model="clientEmail" placeholder="email@contoh.com" class="w-full h-11 rounded-lg border border-gray-300 px-4 text-sm focus:border-brand focus:ring-brand shadow-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Akun Instagram</label>
+                            <input type="text" name="client_instagram" x-model="clientInstagram" placeholder="@username" class="w-full h-11 rounded-lg border border-gray-300 px-4 text-sm focus:border-brand focus:ring-brand shadow-sm">
+                        </div>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Email Aktif</label>
-                        <input type="email" name="client_email" x-model="clientEmail" placeholder="email@contoh.com" class="w-full h-11 rounded-lg border border-gray-300 px-4 text-sm focus:border-brand focus:ring-brand shadow-sm">
+
+                {{-- Section 2: Waktu & Tempat Pelaksanaan --}}
+                <div class="mb-6">
+                    <h3 class="text-[13px] font-bold text-gray-400 uppercase tracking-wider mb-4 border-b border-gray-200 pb-2">Tempat & Pelaksanaan</h3>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Alamat Acara / Nama Gedung</label>
+                        <input type="text" name="client_address" x-model="clientAddress" placeholder="Ketik nama gedung atau alamat lengkap..." class="w-full h-11 rounded-lg border border-gray-300 px-4 text-sm focus:border-brand focus:ring-brand shadow-sm">
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Akun Instagram</label>
-                        <input type="text" name="client_instagram" x-model="clientInstagram" placeholder="@username" class="w-full h-11 rounded-lg border border-gray-300 px-4 text-sm focus:border-brand focus:ring-brand shadow-sm">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Link Google Maps (Opsional)</label>
+                        <input type="url" name="link_gmaps" x-model="linkGmaps" placeholder="https://maps.app.goo.gl/..." class="w-full h-11 rounded-lg border border-gray-300 px-4 text-sm focus:border-brand focus:ring-brand shadow-sm text-blue-600">
+                        <p class="text-[11px] text-gray-400 mt-1.5">Membantu tim kami tiba di lokasi lebih akurat.</p>
+                    </div>
+                    <div class="mb-5">
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Catatan Khusus</label>
+                        <textarea name="notes" x-model="notes" rows="3" placeholder="Permintaan khusus, tema dresscode, rundown singkat, dll." class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm resize-none focus:border-brand focus:ring-brand shadow-sm"></textarea>
                     </div>
                 </div>
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Lokasi Sesi / Alamat Acara</label>
-                    <input type="text" name="client_address" x-model="clientAddress" placeholder="Ketik alamat atau lokasi..." class="w-full h-11 rounded-lg border border-gray-300 px-4 text-sm focus:border-brand focus:ring-brand shadow-sm">
-                </div>
-                <div class="mb-5">
-                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Catatan Khusus</label>
-                    <textarea name="notes" x-model="notes" rows="3" placeholder="Permintaan khusus, tema, durasi yang diinginkan dll." class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm resize-none focus:border-brand focus:ring-brand shadow-sm"></textarea>
-                </div>
+
                 <div class="mt-8 flex justify-between items-center">
                     <button type="button" @click="prevStep()" class="border border-gray-300 text-gray-600 hover:bg-gray-50 px-5 py-2.5 rounded-lg font-bold transition text-sm">&larr; Kembali</button>
                     <button type="button" @click="nextStep()" class="bg-brand hover:opacity-90 text-white px-6 py-2.5 rounded-lg font-bold transition flex items-center gap-2 text-sm">Lanjut: Konfirmasi &rarr;</button>
@@ -265,7 +287,7 @@
                         <div class="flex justify-between items-start gap-4"><span class="text-gray-500 font-medium shrink-0">WhatsApp</span><span class="font-bold text-right" x-text="clientContact"></span></div>
                         <div class="border-t border-gray-200 my-3"></div>
                         <div class="flex justify-between items-start gap-4"><span class="text-gray-500 font-medium shrink-0">Jadwal</span><span class="font-bold text-right" x-text="scheduleText"></span></div>
-                        <div class="flex justify-between items-start gap-4"><span class="text-gray-500 font-medium shrink-0">Waktu Mulai</span><span class="font-bold text-right" x-text="(bookingTime || '-')"></span></div>
+                        <div class="flex justify-between items-start gap-4"><span class="text-gray-500 font-medium shrink-0">Waktu Standby</span><span class="font-bold text-right" x-text="(bookingTime || '-') + (bookingTime ? ' WIB' : '')"></span></div>
                         <div class="flex justify-between items-start gap-4"><span class="text-gray-500 font-medium shrink-0">Paket</span><span class="font-bold text-right" x-text="selectedServiceName"></span></div>
                         <div class="flex justify-between items-start gap-4"><span class="text-gray-500 font-medium shrink-0">Harga Paket</span><span class="font-bold text-right" x-text="formatCurrency(unitPrice)"></span></div>
                         <div class="border-t border-gray-200 my-3"></div>
@@ -314,6 +336,9 @@
     
     <x-customer-footer :owner="$owner" :companySetting="$companySetting" />
     
+    {{-- Script Flatpickr --}}
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    
     <script>
         function bookingWizard(initialId = '', initialPrice = 0, initialName = '') {
             return {
@@ -330,19 +355,13 @@
                     return `${year}-${month}-${day}`;
                 },
 
-                // Ganti dari text input ke state Jam dan Menit
-                bookingHour: '',
-                bookingMinute: '',
-                get bookingTime() {
-                    if (this.bookingHour && this.bookingMinute) {
-                        return `${this.bookingHour}:${this.bookingMinute}`;
-                    }
-                    return '';
-                },
+                // String Jam dari Flatpickr
+                bookingTime: '',
 
                 clientName: '{{ old('client_name') }}', clientContact: '{{ old('client_contact') }}',
                 clientEmail: '{{ old('client_email') }}', clientInstagram: '{{ old('client_instagram') }}',
                 clientAddress: '{{ old('client_address') }}', notes: '{{ old('notes') }}',
+                linkGmaps: '', // Tambahan untuk Link Maps
                 
                 paymentOption: 'DP', 
                 agreeTnC: false, showTermsModal: false,
@@ -357,7 +376,7 @@
                     if (this.step === 2) {
                         if (!this.multiDay && !this.bookingDate) { this.showError('Pilih tanggal acara.'); return; }
                         if (this.multiDay && (!this.startDate || !this.endDate)) { this.showError('Pilih tanggal mulai dan selesai.'); return; }
-                        if (!this.bookingTime) { this.showError('Pilih jam dan menit waktu mulai.'); return; }
+                        if (!this.bookingTime) { this.showError('Pilih jam standby fotografer.'); return; }
                         
                         // --- LOGIKA TIME BLOCKING JIKA BOOKING HARI INI ---
                         let checkDate = this.multiDay ? this.startDate : this.bookingDate;
@@ -369,12 +388,12 @@
                             
                             const selectedTime = new Date(`${checkDate}T${this.bookingTime}:00`);
                             
-                            // Set jeda kelonggaran menjadi 55 menit (agar booking 17:40 saat jam 16:41 bisa lolos)
-                            const bufferMinutes = 55;
+                            // Set jeda kelonggaran menjadi 30 menit (menggunakan buffer 25 menit agar sedikit luwes)
+                            const bufferMinutes = 25;
                             const minTime = new Date(now.getTime() + (bufferMinutes * 60 * 1000)); 
                             
                             if (selectedTime < minTime) {
-                                this.showError('Untuk booking hari ini, waktu mulai sesi harus minimal 1 jam dari waktu sekarang.');
+                                this.showError('Untuk booking hari ini, waktu standby fotografer minimal 30 menit dari waktu sekarang untuk persiapan.');
                                 return;
                             }
                         }
@@ -408,7 +427,12 @@
                     if (!this.agreeTnC) { this.showError('Centang persetujuan dahulu.'); return; }
                     document.getElementById('hidden_payment_type').value = this.paymentOption;
                     
-                    // Form akan otomatis menyertakan hidden input "booking_time" yang mengambil nilai get bookingTime()
+                    // Input type hidden dikelola manual untuk mensubmit format 24 jam dengan presisi
+                    const hiddenTimeInput = document.querySelector('input[type="hidden"][name="booking_time"]');
+                    if (hiddenTimeInput) {
+                        hiddenTimeInput.value = this.bookingTime;
+                    }
+
                     document.getElementById('booking-form').submit();
                 }
             }

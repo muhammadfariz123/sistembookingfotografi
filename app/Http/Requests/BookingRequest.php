@@ -18,6 +18,7 @@ class BookingRequest extends FormRequest
             'client_name' => 'required|string|max:255',
             'client_contact' => 'nullable|string|max:255',
             'client_address' => 'nullable|string|max:500',
+            'link_gmaps' => 'nullable|url|max:1000',
             'service_type_id' => 'required|exists:service_types,id',
             'booking_date' => 'nullable|date',
             'start_date' => 'nullable|date',
@@ -42,6 +43,8 @@ class BookingRequest extends FormRequest
             'end_date.after_or_equal' => 'Tanggal selesai harus setelah tanggal mulai.',
             'unit_price.min' => 'Harga tidak boleh negatif.',
             'discount_percent.max' => 'Diskon maksimal 100%.',
+            'link_gmaps.url' => 'Format URL Google Maps tidak valid.',
+            
         ];
     }
 }

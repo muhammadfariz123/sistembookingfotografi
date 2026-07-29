@@ -47,6 +47,7 @@ class Booking extends Model
         'client_email',
         'client_instagram',
         'client_address',
+        'link_gmaps',     // ← [FIX] wajib ditambahkan, ini yang hilang
         'booking_date',
         'start_date',
         'end_date',

@@ -55,6 +55,7 @@ class PublicBookingController extends Controller
             'client_email' => 'nullable|email|max:255',
             'client_instagram' => 'nullable|string|max:255',
             'client_address' => 'nullable|string',
+            'link_gmaps' => 'nullable|url|max:1000', // <-- TAMBAHAN UNTUK GMAPS
             'service_type_id' => 'required|exists:service_types,id',
             'booking_date' => 'nullable|date',
             'start_date' => 'nullable|date',
@@ -79,6 +80,7 @@ class PublicBookingController extends Controller
             'client_email' => $validated['client_email'] ?? null,
             'client_instagram' => $validated['client_instagram'] ?? null,
             'client_address' => $validated['client_address'] ?? null,
+            'link_gmaps' => $validated['link_gmaps'] ?? null, // <-- MASUKKAN KE DATABASE
             'booking_date' => $validated['booking_date'] ?? null,
             'start_date' => $validated['start_date'] ?? null,
             'end_date' => $validated['end_date'] ?? null,
@@ -191,7 +193,6 @@ class PublicBookingController extends Controller
 
         foreach ($bookings as $b) {
             // Kita membangun ulang kode dari masing-masing booking milik email tersebut
-            // [PENTING]: Ini sudah menggunakan created_at
             $expectedCode = 'BKG-' . \Carbon\Carbon::parse($b->created_at)->format('Ymd') . '-' . strtoupper(substr(md5($b->id), 0, 4));
 
             // Mencocokkan kode yang diketik customer dengan yang di database
@@ -266,7 +267,6 @@ class PublicBookingController extends Controller
             $amountToPay = $booking->remaining;
         }
 
-        // [PENTING]: Gunakan created_at
         $bookingCode = 'BKG-' . \Carbon\Carbon::parse($booking->created_at)->format('Ymd') . '-' . strtoupper(substr(md5($booking->id), 0, 4));
 
         return view('booking.payment-success', compact(
@@ -311,7 +311,6 @@ class PublicBookingController extends Controller
             $updateData['payment_type'] = 'PELUNASAN';
             $isPelunasanProcess = true;
 
-            // Catat baris transaksi baru khusus PELUNASAN ke database
             $bookingCodeFormatted = 'BKG-' . Carbon::parse($booking->created_at)->format('Ymd') . '-' . strtoupper(substr(md5($booking->id), 0, 4));
             \App\Models\PaymentTransaction::create([
                 'booking_id' => $booking->id,
@@ -323,7 +322,6 @@ class PublicBookingController extends Controller
                 'payment_proof' => $path,
             ]);
         } else {
-            // Update transaksi pertama yang tadinya Pending menjadi Tunggu Konfirmasi beserta bukti foto & file
             $tx = \App\Models\PaymentTransaction::where('booking_id', $booking->id)->latest()->first();
             if ($tx) {
                 $tx->update([
@@ -394,7 +392,6 @@ class PublicBookingController extends Controller
         $sisaAfterDp = $total - $dpAmount;
         $paymentType = strtoupper($booking->payment_type);
 
-        // VARIABEL INI MENGHITUNG SESUAI PILIHAN (DP/LUNAS) UNTUK DITAMPILKAN DI HALAMAN PEMBAYARAN
         $amountToPay = 0;
         if (in_array($booking->payment_status, ['Pending', 'Belum Bayar', 'Tunggu Konfirmasi'])) {
             $amountToPay = ($paymentType === 'LUNAS' || $paymentType === 'PELUNASAN') ? $total : $dpAmount;
@@ -402,7 +399,6 @@ class PublicBookingController extends Controller
             $amountToPay = $booking->remaining;
         }
 
-        // [PENTING]: Gunakan created_at
         $bookingCode = 'BKG-' . \Carbon\Carbon::parse($booking->created_at)->format('Ymd') . '-' . strtoupper(substr(md5($booking->id), 0, 4));
 
         return view('booking.pembayaran', compact(
