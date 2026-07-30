@@ -1,3 +1,4 @@
+{{-- resources/views/layouts/navigation.blade.php --}}
 {{-- OVERLAY GELAP UNTUK MOBILE --}}
 <div x-show="sidebarMobileOpen" 
      x-transition.opacity 
@@ -62,7 +63,120 @@
             </div>
         </div>
 
-        {{-- MENU 2: OPERASIONAL (DROPDOWN INLINE / FLYOUT POPUP) --}}
+        {{-- MENU 2 BARU: KATALOG LAYANAN (DROPDOWN) --}}
+        @php
+            $katalogActive = request()->routeIs('service-categories.*', 'service-types.*');
+        @endphp
+        <div class="w-full" 
+             x-data="{ 
+                open: {{ $katalogActive ? 'true' : 'false' }} || ['/service-categories', '/service-types'].some(p => window.location.pathname.startsWith(p)),
+                isActive: {{ $katalogActive ? 'true' : 'false' }} || ['/service-categories', '/service-types'].some(p => window.location.pathname.startsWith(p)), 
+                flyoutStyle: '' 
+             }"
+             x-init="
+                $watch('sidebarCollapsed', (val) => {
+                    if (isDesktop) {
+                        if (val) { open = false }
+                        else if (isActive) { open = true }
+                    }
+                });
+                $watch('sidebarMobileOpen', (val) => {
+                    if (val && isActive) { open = true }
+                });
+                $watch('isDesktop', (val) => {
+                    if (!val) {
+                        if (isActive) { open = true }
+                    } else {
+                        if (sidebarCollapsed) { open = false }
+                        else if (isActive) { open = true }
+                    }
+                });
+             "
+             @click.outside="open = false">
+            
+            <div class="flex flex-col gap-1 w-full" :class="(sidebarCollapsed && isDesktop) ? 'items-center' : ''">
+                
+                {{-- Induk Katalog --}}
+                <button @click="
+                            if (sidebarCollapsed && isDesktop) {
+                                open = !open;
+                                $nextTick(() => {
+                                    const rect = $el.getBoundingClientRect();
+                                    flyoutStyle = `top: ${rect.top}px; left: ${rect.right + 10}px;`;
+                                });
+                            } else {
+                                open = !open;
+                            }
+                        " 
+                        title="Katalog Layanan"
+                        class="flex items-center px-3 py-2.5 rounded-xl font-medium text-[13px] transition w-full group focus:outline-none
+                        {{ $katalogActive ? 'bg-blue-50/50 text-blue-600 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                        :class="(sidebarCollapsed && isDesktop) ? 'justify-center w-11 h-11 px-0' : 'justify-between'">
+                    
+                    <div class="flex items-center" :class="(sidebarCollapsed && isDesktop) ? 'justify-center' : 'gap-3'">
+                        <i data-lucide="layers" class="w-5 h-5 shrink-0 {{ $katalogActive ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-600' }}"></i>
+                        <span x-show="!(sidebarCollapsed && isDesktop)" class="whitespace-nowrap">Katalog Layanan</span>
+                    </div>
+                    <i x-show="!(sidebarCollapsed && isDesktop)" data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200" :class="open ? 'rotate-180' : ''"></i>
+                </button>
+
+                {{-- Sub-Menu Inline --}}
+                <div x-show="open && !(sidebarCollapsed && isDesktop)"
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     x-transition:leave="transition ease-in duration-100"
+                     x-transition:leave-start="opacity-100"
+                     x-transition:leave-end="opacity-0">
+                    <div class="pl-9 pr-2 py-1 flex flex-col gap-1 mt-1">
+                        
+                        <a href="{{ route('service-categories.index') }}" 
+                           class="flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] transition 
+                           {{ request()->routeIs('service-categories.*') ? 'text-blue-600 font-semibold bg-blue-50/50' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50' }}">
+                            <div class="w-1.5 h-1.5 rounded-full shrink-0 {{ request()->routeIs('service-categories.*') ? 'bg-blue-600' : 'bg-gray-300' }}"></div>
+                            Kategori & Portofolio
+                        </a>
+                        <a href="{{ route('service-types.index') }}" 
+                           class="flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] transition 
+                           {{ request()->routeIs('service-types.*') ? 'text-blue-600 font-semibold bg-blue-50/50' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50' }}">
+                            <div class="w-1.5 h-1.5 rounded-full shrink-0 {{ request()->routeIs('service-types.*') ? 'bg-blue-600' : 'bg-gray-300' }}"></div>
+                            Daftar Paket
+                        </a>
+                    </div>
+                </div>
+
+                {{-- Flyout Popup Desktop --}}
+                <div x-show="open && (sidebarCollapsed && isDesktop)"
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0 -translate-x-1"
+                     x-transition:enter-end="opacity-100 translate-x-0"
+                     x-transition:leave="transition ease-in duration-100"
+                     x-transition:leave-start="opacity-100"
+                     x-transition:leave-end="opacity-0"
+                     :style="flyoutStyle"
+                     class="fixed w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-[100]"
+                     x-cloak>
+                    <div class="px-4 py-2 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Katalog</div>
+                    
+                    <a href="{{ route('service-categories.index') }}" 
+                       @click="open = false"
+                       class="flex items-center gap-3 px-4 py-2.5 text-[13px] transition
+                       {{ request()->routeIs('service-categories.*') ? 'text-blue-600 font-semibold bg-blue-50/50' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <div class="w-1.5 h-1.5 rounded-full shrink-0 {{ request()->routeIs('service-categories.*') ? 'bg-blue-600' : 'bg-gray-300' }}"></div>
+                        Kategori & Portofolio
+                    </a>
+                    <a href="{{ route('service-types.index') }}" 
+                       @click="open = false"
+                       class="flex items-center gap-3 px-4 py-2.5 text-[13px] transition
+                       {{ request()->routeIs('service-types.*') ? 'text-blue-600 font-semibold bg-blue-50/50' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <div class="w-1.5 h-1.5 rounded-full shrink-0 {{ request()->routeIs('service-types.*') ? 'bg-blue-600' : 'bg-gray-300' }}"></div>
+                        Daftar Paket
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {{-- MENU 3: OPERASIONAL (DROPDOWN INLINE / FLYOUT POPUP) --}}
         @php
             $operasionalActive = request()->routeIs('bookings.listPage', 'bookings.calendar', 'transactions.index', 'financial.index');
         @endphp
@@ -235,7 +349,7 @@
             </div>
         </div>
 
-        {{-- MENU 3: SISTEM (DROPDOWN INLINE / FLYOUT POPUP) --}}
+        {{-- MENU 4: SISTEM (DROPDOWN INLINE / FLYOUT POPUP) --}}
         @php
             $sistemActive = request()->routeIs('company-setting.edit');
         @endphp

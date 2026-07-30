@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FinancialController;
 use App\Http\Controllers\ServiceTypeController;
+use App\Http\Controllers\ServiceCategoryController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CompanySettingController;
@@ -58,9 +59,12 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/financial/income/{income}', [FinancialController::class, 'destroyIncome'])->name('financial.income.destroy');
     Route::delete('/financial/expense/{expense}', [FinancialController::class, 'destroyExpense'])->name('financial.expense.destroy');
 
-    // Service Types
+    // Layanan & Portofolio Kategori
+    Route::resource('service-categories', ServiceCategoryController::class);
+    Route::delete('/category-galleries/{gallery}', [ServiceCategoryController::class, 'destroyGallery'])->name('category-galleries.destroy');
+    
+    // Paket Layanan
     Route::resource('service-types', ServiceTypeController::class);
-    Route::delete('/service-galleries/{gallery}', [ServiceTypeController::class, 'destroyGallery'])->name('service-galleries.destroy');
 
     // Bookings (Admin Panel)
     Route::post('/bookings/bulk-delete', [BookingController::class, 'bulkDelete'])->name('bookings.bulkDelete');

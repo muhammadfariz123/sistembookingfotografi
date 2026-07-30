@@ -15,8 +15,10 @@ class PublicBookingController extends Controller
     public function show(string $ownerId)
     {
         $owner = User::findOrFail($ownerId);
-        $services = ServiceType::where('user_id', $owner->id)->orderBy('name')->get();
+        // PASTIKAN MELOAD RELASI CATEGORY
+        $services = ServiceType::with('category')->where('user_id', $owner->id)->orderBy('name')->get();
         $companySetting = CompanySetting::where('user_id', $owner->id)->first();
+
         $bookedDates = Booking::where('user_id', $owner->id)
             ->whereIn('status', ['Dijadwalkan'])
             ->get()
@@ -38,13 +40,7 @@ class PublicBookingController extends Controller
             })
             ->unique()->values()->toArray();
 
-        return view('booking.public', compact(
-            'owner',
-            'services',
-            'companySetting',
-            'bookedDates',
-            'ownerId'
-        ));
+        return view('booking.public', compact('owner', 'services', 'companySetting', 'bookedDates', 'ownerId'));
     }
 
     public function store(Request $request, string $ownerId)
@@ -149,7 +145,9 @@ class PublicBookingController extends Controller
     {
         $owner = User::findOrFail($ownerId);
         $companySetting = CompanySetting::where('user_id', $owner->id)->first();
-        $service = ServiceType::where('id', $serviceId)
+        // PASTIKAN MELOAD RELASI CATEGORY DAN GALLERIES-NYA
+        $service = ServiceType::with('category.galleries')
+            ->where('id', $serviceId)
             ->where('user_id', $owner->id)
             ->firstOrFail();
 
@@ -159,7 +157,8 @@ class PublicBookingController extends Controller
     public function allServices(string $ownerId)
     {
         $owner = User::findOrFail($ownerId);
-        $services = ServiceType::where('user_id', $owner->id)->orderBy('name')->get();
+        // PASTIKAN MELOAD RELASI CATEGORY
+        $services = ServiceType::with('category')->where('user_id', $owner->id)->orderBy('name')->get();
         $companySetting = CompanySetting::where('user_id', $owner->id)->first();
 
         return view('booking.all-services', compact('owner', 'services', 'companySetting', 'ownerId'));
@@ -169,7 +168,8 @@ class PublicBookingController extends Controller
     {
         $owner = User::findOrFail($ownerId);
         $companySetting = CompanySetting::where('user_id', $owner->id)->first();
-        $service = ServiceType::with('galleries')
+        // PASTIKAN MELOAD RELASI CATEGORY DAN GALLERIES-NYA
+        $service = ServiceType::with('category.galleries')
             ->where('id', $serviceId)
             ->where('user_id', $owner->id)
             ->firstOrFail();
@@ -239,7 +239,8 @@ class PublicBookingController extends Controller
     {
         $owner = User::findOrFail($ownerId);
         $companySetting = CompanySetting::where('user_id', $owner->id)->first();
-        $services = ServiceType::where('user_id', $owner->id)->orderBy('name')->get();
+        // PASTIKAN MELOAD RELASI CATEGORY
+        $services = ServiceType::with('category')->where('user_id', $owner->id)->orderBy('name')->get();
 
         $selectedService = null;
         if ($serviceId) {
