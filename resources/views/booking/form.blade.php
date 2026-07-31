@@ -90,7 +90,7 @@
             <input type="hidden" name="payment_type" id="hidden_payment_type" :value="paymentOption">
             <input type="hidden" name="booking_time" :value="bookingTime">
             
-            {{-- STEP 1: PILIH KATEGORI & PAKET --}}
+            {{-- STEP 1: PILIH KATEGORI LALU PAKET --}}
             <div x-show="step === 1" x-transition.opacity>
                 <div class="mb-6 border-b border-gray-100 pb-4">
                     <h2 class="text-lg font-bold text-gray-900">Pilih Paket Foto</h2>
@@ -101,7 +101,7 @@
                     <div class="py-10 text-center border border-dashed border-gray-200 rounded-xl text-gray-400 text-sm">Belum ada paket layanan tersedia saat ini.</div>
                 @else
                     @php
-                        // Memisahkan layanan berdasarkan relasi category
+                        // Mengelompokkan layanan berdasarkan relasi category
                         $groupedServices = $services->groupBy(function($item) {
                             return $item->category ? $item->category->name : 'Lain-lain';
                         });
@@ -111,6 +111,7 @@
                     <div class="mb-8">
                         <label class="block text-sm font-bold text-gray-700 mb-2">1. Jenis Acara <span class="text-red-500">*</span></label>
                         <div class="relative">
+                            {{-- Ketika Kategori diubah, otomatis reset pilihan paket sebelumnya --}}
                             <select x-model="selectedCategory" @change="selectedServiceId = ''; unitPrice = 0; selectedServiceName = ''" class="w-full h-12 rounded-xl border border-gray-300 px-4 text-sm font-semibold focus:border-brand focus:ring-brand shadow-sm appearance-none bg-white cursor-pointer text-gray-900">
                                 <option value="" disabled selected>-- Klik untuk memilih jenis acara --</option>
                                 @foreach($groupedServices->keys() as $categoryName)
@@ -161,7 +162,6 @@
                     </div>
 
                 @endif
-
                 <div class="mt-8 flex justify-end pt-4 border-t border-gray-100">
                     <button type="button" @click="nextStep()" class="bg-brand hover:opacity-90 text-white px-6 py-2.5 rounded-lg font-bold transition flex items-center gap-2 text-sm">Lanjut: Pilih Jadwal →</button>
                 </div>
@@ -173,6 +173,16 @@
                     <h2 class="text-lg font-bold text-gray-900">Pilih Tanggal & Waktu</h2>
                     <p class="text-gray-500 text-sm mt-1">Tentukan tanggal acara dan jam berapa tim fotografer harus sudah <i>standby</i> di lokasi.</p>
                 </div>
+
+                {{-- INFO PERINGATAN JAM BOOKING HARI INI (DIKEMBALIKAN) --}}
+                <div class="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-3 text-sm text-amber-800">
+                    <svg class="w-5 h-5 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    <div>
+                        <p class="font-bold mb-1">Penting untuk Pemesanan Hari Ini:</p>
+                        <p>Jika Anda memilih jadwal untuk hari ini, mohon atur <b>Jam Standby Fotografer minimal 30 menit dari waktu sekarang</b> untuk memberikan waktu persiapan bagi tim kami.</p>
+                    </div>
+                </div>
+
                 <div class="mb-6">
                     <label class="inline-flex items-center gap-3 cursor-pointer bg-gray-50 border border-gray-200 py-2.5 px-4 rounded-lg hover:bg-gray-100 transition">
                         <input type="checkbox" x-model="multiDay" class="w-4 h-4 rounded border-gray-300 text-brand focus:ring-brand">
@@ -189,6 +199,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">Jam Fotografer Standby <span class="text-red-500">*</span></label>
                         <div class="relative flex items-center">
+                            {{-- Flatpickr Time Input (Force 24H) --}}
                             <input type="text" 
                                 x-model="bookingTime" 
                                 x-init="flatpickr($el, { enableTime: true, noCalendar: true, dateFormat: 'H:i', time_24hr: true, disableMobile: true, onChange: function(sd, ds) { bookingTime = ds } })" 
@@ -197,6 +208,7 @@
                                 placeholder="-- : --"
                                 class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm pl-4 pr-[75px] cursor-pointer bg-white">
                             
+                            {{-- Logo Jam & WIB absolute di kanan --}}
                             <div class="absolute right-3 flex items-center gap-1.5 text-gray-400 pointer-events-none">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                 <span class="text-xs font-bold">WIB</span>
@@ -218,6 +230,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">Jam Fotografer Standby <span class="text-red-500">*</span></label>
                         <div class="relative flex items-center">
+                            {{-- Flatpickr Time Input (Multi Day) --}}
                             <input type="text" 
                                 x-model="bookingTime" 
                                 x-init="flatpickr($el, { enableTime: true, noCalendar: true, dateFormat: 'H:i', time_24hr: true, disableMobile: true, onChange: function(sd, ds) { bookingTime = ds } })" 
@@ -226,6 +239,7 @@
                                 placeholder="-- : --"
                                 class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm pl-4 pr-[75px] cursor-pointer bg-white">
                             
+                            {{-- Logo Jam & WIB absolute di kanan --}}
                             <div class="absolute right-3 flex items-center gap-1.5 text-gray-400 pointer-events-none">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                 <span class="text-xs font-bold">WIB</span>

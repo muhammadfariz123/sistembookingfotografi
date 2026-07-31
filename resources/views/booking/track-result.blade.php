@@ -27,8 +27,8 @@
             border-radius: 50%; background-color: #e5e7eb; border: 2px solid #ffffff; z-index: 10;
         }
         
-        /* State Timeline: Selesai / Aktif (Hanya Bulatannya) */
-        .timeline-item.completed .timeline-dot { background-color: #f59e0b; border-color: #fef3c7; }
+        /* State Timeline: Selesai (Centang) / Aktif (Halo Oranye) */
+        .timeline-item.completed .timeline-dot { background-color: #f59e0b; border-color: #f59e0b; }
         .timeline-item.active .timeline-dot { background-color: #f59e0b; box-shadow: 0 0 0 4px #fef3c7; }
         
         /* Menyambung garis HANYA JIKA tahap selanjutnya sudah aktif/selesai */
@@ -123,7 +123,7 @@
                     </div>
                     <div>
                         <h2 class="text-[18px] font-extrabold text-gray-900">DP Dikonfirmasi</h2>
-                        <p class="text-[13px] text-gray-500 mt-0.5">Jadwalmu sudah aman. Jangan lupa selesaikan sisa pelunasan.</p>
+                        <p class="text-[13px] text-gray-500 mt-0.5">DP sudah diterima dan jadwal terkonfirmasi. Sisa tagihan dapat dilunasi pada saat Hari H pemotretan atau maksimal sebelum penyerahan hasil foto.</p>
                     </div>
                 </div>
             @endif
@@ -188,70 +188,162 @@
                     $endSesi = $startSesi->copy()->addHour(); // Asumsi durasi sesi 1 jam
                     
                     // --- LOGIKA PROGRESS KETAT ---
-                    // 1. Cek apakah Admin SUDAH ACC Pembayaran
                     $isPaymentApproved = in_array($statusPembayaran, ['Lunas', 'Down Payment']);
-                    
-                    // 2. Jadwal Dikonfirmasi (Hanya menyala JIKA payment_approved)
                     $isJadwalDikonfirmasi = $isPaymentApproved && in_array($statusJadwal, ['Dijadwalkan', 'Proses Edit', 'Selesai']);
                     
-                    // 3. Sesi Foto (Hanya dicek JIKA Jadwal sudah Dikonfirmasi)
-                    $isSesiAktif = false;
-                    $isSesiSelesai = false;
-                    
+                    // Init status langkah-langkah
+                    $stateBooking = 'completed'; // Booking Masuk selalu komplit
+                    $stateJadwal = '';
+                    $stateSesi = '';
+                    $stateFile = '';
+                    $statePilih = '';
+                    $stateEdit = '';
+                    $stateHasil = '';
+
                     if ($isJadwalDikonfirmasi) {
-                        if (in_array($statusJadwal, ['Proses Edit', 'Selesai'])) {
-                            $isSesiSelesai = true;
-                        } elseif ($hasTime) { // Hanya berjalan otomatis jika ada data jam booking_time
-                            if ($now->greaterThan($endSesi)) {
-                                $isSesiSelesai = true;
-                            } elseif ($now->greaterThanOrEqualTo($startSesi) && $now->lessThanOrEqualTo($endSesi)) {
-                                $isSesiAktif = true;
+                        if ($statusJadwal === 'Selesai') {
+                            // Semua selesai
+                            $stateJadwal = 'completed';
+                            $stateSesi = 'completed';
+                            $stateFile = 'completed';
+                            $statePilih = 'completed';
+                            $stateEdit = 'completed';
+                            $stateHasil = 'completed';
+                        } elseif ($statusJadwal === 'Proses Edit') {
+                            // Mencapai tahap Edit
+                            $stateJadwal = 'completed';
+                            $stateSesi = 'completed';
+                            $stateFile = 'completed';
+                            $statePilih = 'completed';
+                            $stateEdit = 'active';
+                        } else {
+                            // Status: Dijadwalkan (Belum masuk tahap edit)
+                            if ($hasTime) {
+                                if ($now->greaterThan($endSesi)) {
+                                    // Sudah lewat jadwal, menunggu file dikirim
+                                    $stateJadwal = 'completed';
+                                    $stateSesi = 'completed';
+                                    $stateFile = 'active';
+                                } elseif ($now->between($startSesi, $endSesi)) {
+                                    // Sedang sesi pemotretan
+                                    $stateJadwal = 'completed';
+                                    $stateSesi = 'active';
+                                } else {
+                                    // Masih menunggu hari H
+                                    $stateJadwal = 'active';
+                                }
+                            } else {
+                                // Tidak ada jam spesifik (Multi day dsb), gunakan patokan hari
+                                $todayStr = $now->format('Y-m-d');
+                                if ($tglHanyaTanggal < $todayStr) {
+                                    $stateJadwal = 'completed';
+                                    $stateSesi = 'completed';
+                                    $stateFile = 'active';
+                                } elseif ($tglHanyaTanggal == $todayStr) {
+                                    $stateJadwal = 'completed';
+                                    $stateSesi = 'active';
+                                } else {
+                                    $stateJadwal = 'active';
+                                }
                             }
                         }
                     }
-
-                    // 4. Proses Editing
-                    $isEditAktif = $isJadwalDikonfirmasi && $statusJadwal === 'Proses Edit';
-                    $isEditSelesai = $isJadwalDikonfirmasi && $statusJadwal === 'Selesai';
-                    
-                    // 5. Hasil Selesai
-                    $isAllSelesai = $isJadwalDikonfirmasi && $statusJadwal === 'Selesai';
                 @endphp
 
-                {{-- STEP 1: Booking Masuk (Selalu Menyala Bulatannya) --}}
-                <div class="timeline-item completed {{ $isJadwalDikonfirmasi ? 'connected-next' : '' }}">
-                    <div class="timeline-dot"></div>
-                    <h4 class="font-bold text-gray-900 text-[14px]">Booking Masuk</h4>
-                    <p class="text-[12px] text-brand font-semibold mb-0.5">{{ $waktuPesan }}</p>
-                    <p class="text-[12px] text-gray-500">Formulir berhasil diterima</p>
+                {{-- STEP 1: Booking Masuk --}}
+                <div class="timeline-item {{ $stateBooking }} {{ $stateJadwal !== '' ? 'connected-next' : '' }}">
+                    <div class="timeline-dot">
+                        @if($stateBooking === 'completed')
+                            <svg class="w-2.5 h-2.5 text-white absolute top-[2px] left-[2px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7"></path></svg>
+                        @endif
+                    </div>
+                    <div class="{{ $stateBooking !== '' ? '' : 'opacity-40' }}">
+                        <h4 class="font-bold text-gray-900 text-[14px]">Booking Masuk</h4>
+                        <p class="text-[12px] text-gray-500 mb-0.5">Formulir berhasil diterima</p>
+                        @if($stateBooking === 'completed')
+                            <p class="text-[11px] text-gray-400 mt-1">{{ \Carbon\Carbon::parse($booking->created_at)->format('d M Y') }}</p>
+                        @endif
+                    </div>
                 </div>
 
                 {{-- STEP 2: Jadwal Dikonfirmasi --}}
-                <div class="timeline-item {{ $isJadwalDikonfirmasi ? 'completed' : '' }} {{ ($isSesiAktif || $isSesiSelesai) ? 'connected-next' : '' }}">
-                    <div class="timeline-dot"></div>
-                    <h4 class="font-bold text-gray-900 text-[14px]">Jadwal Dikonfirmasi</h4>
-                    <p class="text-[12px] text-gray-500">Admin mengkonfirmasi jadwal sesi</p>
+                <div class="timeline-item {{ $stateJadwal }} {{ $stateSesi !== '' ? 'connected-next' : '' }}">
+                    <div class="timeline-dot">
+                        @if($stateJadwal === 'completed')
+                            <svg class="w-2.5 h-2.5 text-white absolute top-[2px] left-[2px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7"></path></svg>
+                        @endif
+                    </div>
+                    <div class="{{ $stateJadwal !== '' ? '' : 'opacity-40' }}">
+                        <h4 class="font-bold text-gray-900 text-[14px]">Jadwal Dikonfirmasi</h4>
+                        <p class="text-[12px] text-gray-500">Admin mengkonfirmasi jadwal sesi</p>
+                    </div>
                 </div>
 
                 {{-- STEP 3: Sesi Foto --}}
-                <div class="timeline-item {{ $isSesiSelesai ? 'completed' : ($isSesiAktif ? 'active' : '') }} {{ ($isEditAktif || $isEditSelesai) ? 'connected-next' : '' }}">
-                    <div class="timeline-dot"></div>
-                    <h4 class="font-bold text-gray-900 text-[14px]">Sesi Foto</h4>
-                    <p class="text-[12px] text-gray-500">{{ \Carbon\Carbon::parse($tglHanyaTanggal)->locale('id')->isoFormat('D MMM YYYY') }} · {{ \Carbon\Carbon::parse($jamHanyaWaktu)->format('H:i') }}</p>
+                <div class="timeline-item {{ $stateSesi }} {{ $stateFile !== '' ? 'connected-next' : '' }}">
+                    <div class="timeline-dot">
+                        @if($stateSesi === 'completed')
+                            <svg class="w-2.5 h-2.5 text-white absolute top-[2px] left-[2px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7"></path></svg>
+                        @endif
+                    </div>
+                    <div class="{{ $stateSesi !== '' ? '' : 'opacity-40' }}">
+                        <h4 class="font-bold text-gray-900 text-[14px]">Sesi Foto</h4>
+                        <p class="text-[12px] text-gray-500">
+                            {{ \Carbon\Carbon::parse($tglHanyaTanggal)->format('d M Y') }} · {{ \Carbon\Carbon::parse($jamHanyaWaktu)->format('H:i') }}–{{ \Carbon\Carbon::parse($jamHanyaWaktu)->addHour()->format('H:i') }}
+                        </p>
+                    </div>
                 </div>
 
-                {{-- STEP 4: Proses Editing --}}
-                <div class="timeline-item {{ $isEditSelesai ? 'completed' : ($isEditAktif ? 'active' : '') }} {{ $isAllSelesai ? 'connected-next' : '' }}">
-                    <div class="timeline-dot"></div>
-                    <h4 class="font-bold text-gray-900 text-[14px]">Proses Editing</h4>
-                    <p class="text-[12px] text-gray-500">Foto sedang diedit oleh tim kami</p>
+                {{-- STEP 4: File Original Disiapkan --}}
+                <div class="timeline-item {{ $stateFile }} {{ $statePilih !== '' ? 'connected-next' : '' }}">
+                    <div class="timeline-dot">
+                        @if($stateFile === 'completed')
+                            <svg class="w-2.5 h-2.5 text-white absolute top-[2px] left-[2px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7"></path></svg>
+                        @endif
+                    </div>
+                    <div class="{{ $stateFile !== '' ? '' : 'opacity-40' }}">
+                        <h4 class="font-bold text-gray-900 text-[14px]">File Original Disiapkan</h4>
+                        <p class="text-[12px] text-gray-500">Studio menyiapkan foto original / RAW</p>
+                    </div>
                 </div>
 
-                {{-- STEP 5: Hasil Dikirim --}}
-                <div class="timeline-item {{ $isAllSelesai ? 'completed' : '' }}">
-                    <div class="timeline-dot"></div>
-                    <h4 class="font-bold text-gray-900 text-[14px]">Hasil Dikirim</h4>
-                    <p class="text-[12px] text-gray-500">Link hasil siap untuk diunduh</p>
+                {{-- STEP 5: Pilih Foto untuk Diedit --}}
+                <div class="timeline-item {{ $statePilih }} {{ $stateEdit !== '' ? 'connected-next' : '' }}">
+                    <div class="timeline-dot">
+                        @if($statePilih === 'completed')
+                            <svg class="w-2.5 h-2.5 text-white absolute top-[2px] left-[2px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7"></path></svg>
+                        @endif
+                    </div>
+                    <div class="{{ $statePilih !== '' ? '' : 'opacity-40' }}">
+                        <h4 class="font-bold text-gray-900 text-[14px]">Pilih Foto untuk Diedit</h4>
+                        <p class="text-[12px] text-gray-500">Kamu memilih foto yang ingin diedit</p>
+                    </div>
+                </div>
+
+                {{-- STEP 6: Proses Editing --}}
+                <div class="timeline-item {{ $stateEdit }} {{ $stateHasil !== '' ? 'connected-next' : '' }}">
+                    <div class="timeline-dot">
+                        @if($stateEdit === 'completed')
+                            <svg class="w-2.5 h-2.5 text-white absolute top-[2px] left-[2px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7"></path></svg>
+                        @endif
+                    </div>
+                    <div class="{{ $stateEdit !== '' ? '' : 'opacity-40' }}">
+                        <h4 class="font-bold text-gray-900 text-[14px]">Proses Editing</h4>
+                        <p class="text-[12px] text-gray-500">Foto sedang diedit oleh tim kami</p>
+                    </div>
+                </div>
+
+                {{-- STEP 7: Hasil Dikirim --}}
+                <div class="timeline-item {{ $stateHasil }}">
+                    <div class="timeline-dot">
+                        @if($stateHasil === 'completed')
+                            <svg class="w-2.5 h-2.5 text-white absolute top-[2px] left-[2px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7"></path></svg>
+                        @endif
+                    </div>
+                    <div class="{{ $stateHasil !== '' ? '' : 'opacity-40' }}">
+                        <h4 class="font-bold text-gray-900 text-[14px]">Hasil Dikirim</h4>
+                        <p class="text-[12px] text-gray-500">Link hasil siap untuk diunduh</p>
+                    </div>
                 </div>
             </div>
         </div>
