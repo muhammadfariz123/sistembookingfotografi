@@ -84,5 +84,5 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/company-setting', [CompanySettingController::class, 'edit'])->name('company-setting.edit');
     Route::post('/company-setting', [CompanySettingController::class, 'store'])->name('company-setting.store');
 });
-// cihuy
+// 
 require __DIR__ . '/auth.php';
