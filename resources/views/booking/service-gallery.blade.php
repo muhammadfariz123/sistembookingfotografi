@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Galeri Foto {{ $service->name }} — {{ $companySetting?->company_name ?? $owner->name }}</title>
+    <title>Galeri Foto {{ optional($service->category)->name ?? $service->name }} — {{ $companySetting?->company_name ?? $owner->name }}</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800&display=swap" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -34,25 +34,30 @@
         {{-- Header Halaman --}}
         <div class="mb-10">
             <p class="text-brand font-bold text-xs tracking-widest uppercase mb-2">GALERI HASIL FOTO</p>
-            <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight mb-3">{{ $service->name }}</h1>
+            <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight mb-3">{{ optional($service->category)->name ?? $service->name }}</h1>
             <p class="text-gray-500 text-sm md:text-base">
-                Berikut adalah keseluruhan portofolio dan hasil foto untuk paket ini. Klik pada gambar untuk memperbesar.
+                Berikut adalah keseluruhan portofolio dan hasil foto untuk kategori acara ini. Klik pada gambar untuk memperbesar.
             </p>
         </div>
 
+        @php
+            // MENGAMBIL FOTO DARI RELASI KATEGORI
+            $galleries = optional($service->category)->galleries ?? collect();
+        @endphp
+
         {{-- GRID FULL GALLERY --}}
-        @if($service->galleries->isEmpty())
+        @if($galleries->isEmpty())
             <div class="text-center py-16 bg-white border border-dashed border-gray-300 rounded-2xl">
-                <p class="text-gray-500">Belum ada foto galeri untuk paket ini.</p>
+                <p class="text-gray-500">Belum ada foto galeri untuk kategori ini.</p>
             </div>
         @else
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-                @foreach($service->galleries as $gallery)
+                @foreach($galleries as $gallery)
                     <a href="{{ Storage::url($gallery->image_path) }}" 
                        class="glightbox aspect-square bg-gray-200 rounded-2xl overflow-hidden shadow-sm block group relative">
                         <img src="{{ Storage::url($gallery->image_path) }}" 
                              class="w-full h-full object-cover group-hover:scale-110 transition duration-700" 
-                             alt="Hasil Foto {{ $service->name }}">
+                             alt="Hasil Foto">
                         
                         {{-- Icon Zoom on Hover --}}
                         <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">

@@ -6,24 +6,17 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::table('bookings', function (Blueprint $table) {
-            // Kolom untuk menyimpan pilihan pembayaran: 'LUNAS' atau 'DP'
-            $table->string('payment_type', 20)->default('DP')->after('payment_status');
+            $table->string('link_gmaps', 1000)->nullable()->after('client_address');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::table('bookings', function (Blueprint $table) {
-            $table->dropColumn('payment_type');
+            $table->dropColumn('link_gmaps');
         });
     }
 };

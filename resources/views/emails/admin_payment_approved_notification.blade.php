@@ -110,12 +110,12 @@
             BookPhoto
         </div>
         <div style="font-size: 18px; font-weight: 700; color: #111827; margin-bottom: 10px;">
-            {{ $isLunas ? 'Booking Masuk ✅' : 'Booking Masuk' }}
+            {{ $isLunas ? 'Pembayaran Lunas ✅' : 'Pembayaran DP Masuk' }}
         </div>
 
         <div class="content">
             <p>Halo,</p>
-            <p>Ada pembayaran {{ $isLunas ? 'Lunas' : 'DP' }} untuk booking berikut:</p>
+            <p>Anda baru saja mengkonfirmasi pembayaran {{ $isLunas ? 'Lunas' : 'DP' }} untuk booking berikut:</p>
 
             <table class="info-table">
                 <tr>
@@ -154,7 +154,7 @@
                 </tr>
                 <tr>
                     <td class="label">Total Sudah Dibayar:</td>
-                    <td class="value">Rp {{ number_format($amountPaid, 0, ',', '.') }}</td>
+                    <td class="value">Rp {{ number_format($booking->paid_amount, 0, ',', '.') }}</td>
                 </tr>
                 <tr>
                     <td class="label">Transaksi Terakhir:</td>
@@ -175,7 +175,7 @@
             </table>
 
             <div class="btn-container">
-                <a href="{{ route('dashboard') }}" class="btn">Buka di Admin Panel</a>
+                <a href="{{ route('bookings.listPage') }}" class="btn">Buka di Admin Panel</a>
             </div>
         </div>
 

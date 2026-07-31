@@ -55,7 +55,7 @@
             </div>
 
             <div class="btn-container">
-                <a href="{{ route('dashboard') }}" class="btn">Buka Transaksi Pembayaran</a>
+                <a href="{{ route('transactions.index') }}" class="btn">Buka Transaksi Pembayaran</a>
             </div>
 
             <p style="font-size: 13px; text-align: center; color: #6b7280;">Bukti transfer akan kedaluwarsa otomatis jika tidak dikonfirmasi dalam 24 jam.</p>

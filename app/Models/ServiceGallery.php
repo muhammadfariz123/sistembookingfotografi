@@ -4,10 +4,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class ServiceGallery extends Model
 {
-    protected $fillable = ['service_type_id', 'image_path'];
+    protected $fillable = ['service_category_id', 'image_path'];
 
-    public function serviceType()
-    {
-        return $this->belongsTo(ServiceType::class);
+    // Galeri sekarang milik Kategori, bukan Paket
+    public function category() {
+        return $this->belongsTo(ServiceCategory::class, 'service_category_id');
     }
 }

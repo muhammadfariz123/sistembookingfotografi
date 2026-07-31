@@ -13,7 +13,7 @@
             <div class="bg-white border border-gray-200 rounded-[24px] shadow-sm p-6 sm:p-8 relative z-10">
                 
                 <div class="flex items-center justify-between border-b border-gray-100 pb-5 mb-6">
-                    <h2 class="text-[24px] font-bold text-gray-900" x-text="_editMode ? 'Edit Booking' : 'Tambah Booking Baru'"></h2>
+                    <h2 class="text-[24px] font-bold text-gray-900" x-text="_editMode ? 'Edit Booking'"></h2>
                 </div>
 
                 <form id="booking-form" @submit.prevent="submitBooking()" class="space-y-6">

@@ -47,6 +47,7 @@ class Booking extends Model
         'client_email',
         'client_instagram',
         'client_address',
+        'link_gmaps',     // ← [FIX] wajib ditambahkan, ini yang hilang
         'booking_date',
         'start_date',
         'end_date',
@@ -89,6 +90,10 @@ class Booking extends Model
         return $this->belongsTo(ServiceType::class);
     }
 
+    public function transactions()
+    {
+        return $this->hasMany(PaymentTransaction::class);
+    }
     // ── TPS Processing — Rumus 3.1 s/d 3.5 ─────────────────────
     /**
      * Jalankan semua kalkulasi TPS dan kembalikan array hasil.

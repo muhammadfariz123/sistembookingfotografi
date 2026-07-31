@@ -13,15 +13,15 @@
                 <div class="mt-4 sm:mt-5 flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 sm:gap-6">
                     <div>
                         <h1 class="text-[22px] sm:text-[26px] lg:text-[30px] font-bold text-[#0f172a] leading-tight">
-                            Kelola Jenis Layanan
+                            Kelola Daftar Paket
                         </h1>
                         <p class="text-[13px] sm:text-[15px] text-gray-500 mt-1.5">
-                            Tambahkan dan kelola jenis layanan yang Anda tawarkan
+                            Tambahkan dan kelola jenis paket harga yang Anda tawarkan
                         </p>
                     </div>
                     <a href="{{ route('service-types.create') }}"
                         class="h-[48px] px-5 sm:px-6 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[14px] sm:text-[15px] flex items-center justify-center gap-2 shadow-sm transition whitespace-nowrap w-full lg:w-auto shrink-0">
-                        <i data-lucide="plus" class="w-4 h-4"></i> Tambah Layanan
+                        <i data-lucide="plus" class="w-4 h-4"></i> Tambah Paket
                     </a>
                 </div>
             </div>
@@ -31,14 +31,14 @@
                 
                 {{-- HEADER TABEL --}}
                 <div class="bg-[#f8fafc] border-b border-gray-200 shrink-0 pr-[scrollbar-width]"> 
-                    <table class="w-full min-w-[600px]">
+                    <table class="w-full min-w-[700px]">
                         <thead>
                             <tr class="text-left">
-                                <th class="w-1/4 px-4 lg:px-6 py-4 text-[12px] font-semibold tracking-wide text-gray-500 uppercase">Nama Layanan</th>
+                                <th class="w-1/4 px-4 lg:px-6 py-4 text-[12px] font-semibold tracking-wide text-gray-500 uppercase">Nama Paket</th>
+                                <th class="w-1/4 px-4 lg:px-6 py-4 text-[12px] font-semibold tracking-wide text-gray-500 uppercase">Kategori Acara</th>
                                 <th class="w-1/4 px-4 lg:px-6 py-4 text-[12px] font-semibold tracking-wide text-gray-500 uppercase">Deskripsi</th>
-                                <th class="w-1/6 px-4 lg:px-6 py-4 text-[12px] font-semibold tracking-wide text-gray-500 uppercase">Foto</th> {{-- KOLOM BARU --}}
                                 <th class="w-1/6 px-4 lg:px-6 py-4 text-[12px] font-semibold tracking-wide text-gray-500 uppercase">Harga Default</th>
-                                <th class="w-1/6 px-4 lg:px-6 py-4 text-[12px] font-semibold tracking-wide text-gray-500 uppercase text-right">Aksi</th>
+                                <th class="w-[10%] px-4 lg:px-6 py-4 text-[12px] font-semibold tracking-wide text-gray-500 uppercase text-right">Aksi</th>
                             </tr>
                         </thead>
                     </table>
@@ -46,7 +46,7 @@
 
                 {{-- BODY TABEL --}}
                 <div class="overflow-y-auto overflow-x-auto flex-1 no-scrollbar">
-                    <table class="w-full min-w-[600px]">
+                    <table class="w-full min-w-[700px]">
                         <tbody class="divide-y divide-gray-200" x-init="$watch('services', () => $nextTick(() => lucide.createIcons()))">
                             
                             <template x-if="services.length > 0">
@@ -57,18 +57,15 @@
                                         <td class="w-1/4 px-4 lg:px-6 py-4 sm:py-5 align-top">
                                             <p class="font-semibold text-[14px] lg:text-[15px] text-[#0f172a]" x-text="item.name"></p>
                                         </td>
+
+                                        {{-- KATEGORI --}}
+                                        <td class="w-1/4 px-4 lg:px-6 py-4 sm:py-5 align-top">
+                                            <span class="inline-flex items-center px-2 py-1 rounded-md bg-gray-100 text-gray-600 text-[12px] font-medium whitespace-nowrap" x-text="item.category ? item.category.name : '-'"></span>
+                                        </td>
                                         
                                         {{-- DESKRIPSI --}}
                                         <td class="w-1/4 px-4 lg:px-6 py-4 sm:py-5 align-top">
                                             <p class="text-[13px] lg:text-[14px] text-gray-500 whitespace-pre-line leading-relaxed line-clamp-2" x-text="item.description || '-'"></p>
-                                        </td>
-
-                                        {{-- INFO FOTO --}}
-                                        <td class="w-1/6 px-4 lg:px-6 py-4 sm:py-5 align-top">
-                                            <div class="flex items-center gap-1.5 text-[12px] font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-lg w-fit">
-                                                <i data-lucide="image" class="w-3.5 h-3.5"></i>
-                                                <span x-text="item.galleries ? item.galleries.length : 0"></span> Foto
-                                            </div>
                                         </td>
                                         
                                         {{-- HARGA --}}
@@ -78,7 +75,7 @@
                                         </td>
                                         
                                         {{-- AKSI --}}
-                                        <td class="w-1/6 px-4 lg:px-6 py-4 sm:py-5 align-top">
+                                        <td class="w-[10%] px-4 lg:px-6 py-4 sm:py-5 align-top">
                                             <div class="flex justify-end gap-3">
                                                 <a :href="`/service-types/${item.id}/edit`"
                                                     class="w-9 h-9 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-600 flex items-center justify-center transition shrink-0">
@@ -103,14 +100,13 @@
                             {{-- STATE KOSONG --}}
                             <template x-if="services.length === 0">
                                 <tr>
-                                    {{-- Colspan diubah jadi 5 karena ada tambahan kolom foto --}}
                                     <td colspan="5">
                                         <div class="h-[320px] flex flex-col items-center justify-center px-4 text-center">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="w-14 h-14 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                             </svg>
-                                            <h1 class="text-[20px] sm:text-[24px] font-bold text-gray-400">Belum ada layanan</h1>
-                                            <p class="text-gray-400 mt-2 text-[13px] sm:text-[14px]">Klik Tambah Layanan untuk memulai</p>
+                                            <h1 class="text-[20px] sm:text-[24px] font-bold text-gray-400">Belum ada paket layanan</h1>
+                                            <p class="text-gray-400 mt-2 text-[13px] sm:text-[14px]">Klik Tambah Paket untuk memulai</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -127,17 +123,13 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             if (window.lucide) lucide.createIcons();
-            
-            // Re-render lucide icons ketika data alpine berhasil di-load
-            setTimeout(() => {
-                if (window.lucide) lucide.createIcons();
-            }, 100);
+            setTimeout(() => { if (window.lucide) lucide.createIcons(); }, 100);
         });
 
         function deleteServiceType(id) {
             Swal.fire({
-                title: 'Hapus Layanan?',
-                text: 'Layanan yang dihapus tidak bisa dikembalikan.',
+                title: 'Hapus Paket?',
+                text: 'Paket yang dihapus tidak bisa dikembalikan.',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#ef4444',
