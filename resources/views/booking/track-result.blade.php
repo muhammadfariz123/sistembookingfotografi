@@ -152,25 +152,58 @@
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
             <h3 class="font-bold text-gray-900 mb-4 text-[15px] border-b border-gray-100 pb-3">Detail Booking</h3>
             
-            <div class="space-y-3.5 text-sm mb-6">
-                <div class="flex flex-col">
-                    <span class="text-gray-500 text-[12px] mb-0.5">Nama Klien</span>
-                    <span class="font-semibold text-gray-900">{{ $booking->client_name }}</span>
+            {{-- DESAIN DETAIL BOOKING BARU (SEJAJAR KIRI-KANAN) --}}
+            <div class="space-y-4 mb-6">
+                
+                {{-- Baris 1: Nama Klien & Paket --}}
+                <div class="flex justify-between items-start">
+                    <div class="flex flex-col w-1/2 pr-2">
+                        <span class="text-gray-500 text-[11px] uppercase tracking-wider font-bold mb-1">Nama Klien</span>
+                        <span class="font-bold text-gray-900 text-[14px] truncate">{{ $booking->client_name }}</span>
+                    </div>
+                    <div class="flex flex-col w-1/2 pl-2 text-right">
+                        <span class="text-gray-500 text-[11px] uppercase tracking-wider font-bold mb-1">Paket Layanan</span>
+                        <span class="font-bold text-gray-900 text-[14px] truncate">{{ $booking->serviceType->name ?? '-' }}</span>
+                    </div>
                 </div>
+
+                <hr class="border-gray-100">
+
+                {{-- Baris 2: Jadwal Sesi Foto --}}
                 <div class="flex flex-col">
-                    <span class="text-gray-500 text-[12px] mb-0.5">Paket</span>
-                    <span class="font-semibold text-gray-900">{{ $booking->serviceType->name ?? '-' }}</span>
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-gray-500 text-[11px] uppercase tracking-wider font-bold">Jadwal Sesi Foto</span>
+                        @if($selisihHari !== null && $selisihHari > 0)
+                            <span class="bg-orange-50 text-brand font-bold text-[10px] px-2 py-0.5 rounded-full">{{ $selisihHari }} hari lagi</span>
+                        @elseif($selisihHari === 0)
+                            <span class="bg-emerald-50 text-emerald-600 font-bold text-[10px] px-2 py-0.5 rounded-full">HARI INI</span>
+                        @endif
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        <span class="font-semibold text-gray-900 text-[14px]">{{ $tglFormat }}</span>
+                        @if($booking->booking_time)
+                            <span class="text-gray-400 text-[14px]">•</span>
+                            <span class="font-semibold text-gray-900 text-[14px]">{{ \Carbon\Carbon::parse($booking->booking_time)->format('H:i') }} WIB</span>
+                        @endif
+                    </div>
                 </div>
-                <div class="flex flex-col">
-                    <span class="text-gray-500 text-[12px] mb-0.5">Jadwal Sesi Foto</span>
-                    <span class="font-semibold text-gray-900">{{ $tglFormat }}</span>
-                    @if($selisihHari !== null && $selisihHari > 0)
-                        <span class="text-brand font-bold text-[12px] mt-0.5">{{ $selisihHari }} hari lagi</span>
-                    @elseif($selisihHari === 0)
-                        <span class="text-emerald-500 font-bold text-[12px] mt-0.5">HARI INI</span>
-                    @endif
-                    <span class="text-gray-600 text-[13px] mt-0.5">{{ $booking->booking_time ? \Carbon\Carbon::parse($booking->booking_time)->format('H:i') : '-' }}</span>
-                </div>
+
+                {{-- Baris 3: Lokasi Sesi (Hanya tampil jika diisi) --}}
+                @if($booking->client_address || $booking->link_gmaps)
+                    <div class="flex flex-col mt-2">
+                        <span class="text-gray-500 text-[11px] uppercase tracking-wider font-bold mb-1">Lokasi Sesi Foto</span>
+                        <div class="flex items-start gap-2">
+                            <svg class="w-4 h-4 text-gray-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            <div>
+                                <span class="font-medium text-gray-900 text-[13px] block leading-snug">{{ $booking->client_address ?? 'Lokasi via Google Maps' }}</span>
+                                @if($booking->link_gmaps)
+                                    <a href="{{ $booking->link_gmaps }}" target="_blank" class="text-blue-600 text-[12px] font-semibold hover:underline mt-1 inline-block">Buka di Maps &rarr;</a>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                @endif
             </div>
 
             <h3 class="font-bold text-gray-900 mb-3 text-[15px] border-b border-gray-100 pb-3">Progress</h3>
@@ -182,10 +215,10 @@
                     
                     $tglHanyaTanggal = \Carbon\Carbon::parse($booking->booking_date ?? $booking->start_date)->format('Y-m-d');
                     $jamHanyaWaktu = $booking->booking_time ? \Carbon\Carbon::parse($booking->booking_time)->format('H:i:s') : '00:00:00';
-                    $hasTime = !empty($booking->booking_time); // Cek apakah ada jam yang diinput
+                    $hasTime = !empty($booking->booking_time);
                     
                     $startSesi = \Carbon\Carbon::parse($tglHanyaTanggal . ' ' . $jamHanyaWaktu, 'Asia/Jakarta');
-                    $endSesi = $startSesi->copy()->addHour(); // Asumsi durasi sesi 1 jam
+                    $endSesiInfo = $startSesi->copy()->addHours(2); 
                     
                     // --- LOGIKA PROGRESS KETAT ---
                     $isPaymentApproved = in_array($statusPembayaran, ['Lunas', 'Down Payment']);
@@ -202,7 +235,6 @@
 
                     if ($isJadwalDikonfirmasi) {
                         if ($statusJadwal === 'Selesai') {
-                            // Semua selesai
                             $stateJadwal = 'completed';
                             $stateSesi = 'completed';
                             $stateFile = 'completed';
@@ -210,30 +242,24 @@
                             $stateEdit = 'completed';
                             $stateHasil = 'completed';
                         } elseif ($statusJadwal === 'Proses Edit') {
-                            // Mencapai tahap Edit
                             $stateJadwal = 'completed';
                             $stateSesi = 'completed';
                             $stateFile = 'completed';
                             $statePilih = 'completed';
                             $stateEdit = 'active';
                         } else {
-                            // Status: Dijadwalkan (Belum masuk tahap edit)
                             if ($hasTime) {
-                                if ($now->greaterThan($endSesi)) {
-                                    // Sudah lewat jadwal, menunggu file dikirim
+                                if ($now->greaterThan($endSesiInfo)) {
                                     $stateJadwal = 'completed';
                                     $stateSesi = 'completed';
                                     $stateFile = 'active';
-                                } elseif ($now->between($startSesi, $endSesi)) {
-                                    // Sedang sesi pemotretan
+                                } elseif ($now->between($startSesi, $endSesiInfo)) {
                                     $stateJadwal = 'completed';
                                     $stateSesi = 'active';
                                 } else {
-                                    // Masih menunggu hari H
                                     $stateJadwal = 'active';
                                 }
                             } else {
-                                // Tidak ada jam spesifik (Multi day dsb), gunakan patokan hari
                                 $todayStr = $now->format('Y-m-d');
                                 if ($tglHanyaTanggal < $todayStr) {
                                     $stateJadwal = 'completed';
@@ -258,11 +284,13 @@
                         @endif
                     </div>
                     <div class="{{ $stateBooking !== '' ? '' : 'opacity-40' }}">
-                        <h4 class="font-bold text-gray-900 text-[14px]">Booking Masuk</h4>
-                        <p class="text-[12px] text-gray-500 mb-0.5">Formulir berhasil diterima</p>
-                        @if($stateBooking === 'completed')
-                            <p class="text-[11px] text-gray-400 mt-1">{{ \Carbon\Carbon::parse($booking->created_at)->format('d M Y') }}</p>
-                        @endif
+                        <div class="flex justify-between items-start">
+                            <h4 class="font-bold text-gray-900 text-[14px]">Booking Masuk</h4>
+                            @if($stateBooking === 'completed')
+                                <p class="text-[11px] text-gray-400 mt-0.5">{{ \Carbon\Carbon::parse($booking->created_at)->format('d M Y') }}</p>
+                            @endif
+                        </div>
+                        <p class="text-[12px] text-gray-500 mt-0.5">Formulir berhasil diterima</p>
                     </div>
                 </div>
 
@@ -275,7 +303,7 @@
                     </div>
                     <div class="{{ $stateJadwal !== '' ? '' : 'opacity-40' }}">
                         <h4 class="font-bold text-gray-900 text-[14px]">Jadwal Dikonfirmasi</h4>
-                        <p class="text-[12px] text-gray-500">Admin mengkonfirmasi jadwal sesi</p>
+                        <p class="text-[12px] text-gray-500 mt-0.5">Admin mengkonfirmasi jadwal sesi</p>
                     </div>
                 </div>
 
@@ -288,8 +316,11 @@
                     </div>
                     <div class="{{ $stateSesi !== '' ? '' : 'opacity-40' }}">
                         <h4 class="font-bold text-gray-900 text-[14px]">Sesi Foto</h4>
-                        <p class="text-[12px] text-gray-500">
-                            {{ \Carbon\Carbon::parse($tglHanyaTanggal)->format('d M Y') }} · {{ \Carbon\Carbon::parse($jamHanyaWaktu)->format('H:i') }}–{{ \Carbon\Carbon::parse($jamHanyaWaktu)->addHour()->format('H:i') }}
+                        <p class="text-[12px] text-gray-400 mt-0.5">
+                            {{ \Carbon\Carbon::parse($tglHanyaTanggal)->format('d M Y') }} 
+                            @if($hasTime)
+                                · Mulai {{ \Carbon\Carbon::parse($jamHanyaWaktu)->format('H:i') }} WIB
+                            @endif
                         </p>
                     </div>
                 </div>
@@ -303,7 +334,7 @@
                     </div>
                     <div class="{{ $stateFile !== '' ? '' : 'opacity-40' }}">
                         <h4 class="font-bold text-gray-900 text-[14px]">File Original Disiapkan</h4>
-                        <p class="text-[12px] text-gray-500">Studio menyiapkan foto original / RAW</p>
+                        <p class="text-[12px] text-gray-500 mt-0.5">Studio menyiapkan foto original / RAW</p>
                     </div>
                 </div>
 
@@ -316,7 +347,7 @@
                     </div>
                     <div class="{{ $statePilih !== '' ? '' : 'opacity-40' }}">
                         <h4 class="font-bold text-gray-900 text-[14px]">Pilih Foto untuk Diedit</h4>
-                        <p class="text-[12px] text-gray-500">Kamu memilih foto yang ingin diedit</p>
+                        <p class="text-[12px] text-gray-500 mt-0.5">Kamu memilih foto yang ingin diedit</p>
                     </div>
                 </div>
 
@@ -329,7 +360,7 @@
                     </div>
                     <div class="{{ $stateEdit !== '' ? '' : 'opacity-40' }}">
                         <h4 class="font-bold text-gray-900 text-[14px]">Proses Editing</h4>
-                        <p class="text-[12px] text-gray-500">Foto sedang diedit oleh tim kami</p>
+                        <p class="text-[12px] text-gray-500 mt-0.5">Foto sedang diedit oleh tim kami</p>
                     </div>
                 </div>
 
@@ -342,7 +373,7 @@
                     </div>
                     <div class="{{ $stateHasil !== '' ? '' : 'opacity-40' }}">
                         <h4 class="font-bold text-gray-900 text-[14px]">Hasil Dikirim</h4>
-                        <p class="text-[12px] text-gray-500">Link hasil siap untuk diunduh</p>
+                        <p class="text-[12px] text-gray-500 mt-0.5">Link hasil siap untuk diunduh</p>
                     </div>
                 </div>
             </div>

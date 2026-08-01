@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800&display=swap" rel="stylesheet" />
     
-    {{-- Flatpickr CSS untuk tampilan kalender/jam 24 format --}}
+    {{-- Flatpickr CSS --}}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -25,7 +25,6 @@
     <x-customer-navbar :owner="$owner" :companySetting="$companySetting" :ownerId="$ownerId" showHome="true" />
     
     @php
-        // LOGIKA PINTAR: Menentukan kategori awal jika pelanggan datang dari tombol "Booking Sekarang" di halaman detail
         $initialServiceId = old('service_type_id', $selectedService->id ?? '');
         $initialServicePrice = 0;
         $initialServiceName = '';
@@ -36,7 +35,6 @@
             if ($found) {
                 $initialServicePrice = $found->price;
                 $initialServiceName = $found->name;
-                // AMBIL DARI RELASI KATEGORI BARU
                 $initialCategory = $found->category ? $found->category->name : 'Lain-lain';
             }
         }
@@ -101,17 +99,14 @@
                     <div class="py-10 text-center border border-dashed border-gray-200 rounded-xl text-gray-400 text-sm">Belum ada paket layanan tersedia saat ini.</div>
                 @else
                     @php
-                        // Mengelompokkan layanan berdasarkan relasi category
                         $groupedServices = $services->groupBy(function($item) {
                             return $item->category ? $item->category->name : 'Lain-lain';
                         });
                     @endphp
 
-                    {{-- 1. DROPDOWN KATEGORI --}}
                     <div class="mb-8">
                         <label class="block text-sm font-bold text-gray-700 mb-2">1. Jenis Acara <span class="text-red-500">*</span></label>
                         <div class="relative">
-                            {{-- Ketika Kategori diubah, otomatis reset pilihan paket sebelumnya --}}
                             <select x-model="selectedCategory" @change="selectedServiceId = ''; unitPrice = 0; selectedServiceName = ''" class="w-full h-12 rounded-xl border border-gray-300 px-4 text-sm font-semibold focus:border-brand focus:ring-brand shadow-sm appearance-none bg-white cursor-pointer text-gray-900">
                                 <option value="" disabled selected>-- Klik untuk memilih jenis acara --</option>
                                 @foreach($groupedServices->keys() as $categoryName)
@@ -124,7 +119,6 @@
                         </div>
                     </div>
 
-                    {{-- 2. DAFTAR PAKET BERDASARKAN KATEGORI --}}
                     <div x-show="selectedCategory !== ''" x-cloak class="mb-4" x-transition>
                         <label class="block text-sm font-bold text-gray-700 mb-3">2. Pilihan Paket Tersedia <span class="text-red-500">*</span></label>
                         
@@ -153,14 +147,12 @@
                         @endforeach
                     </div>
 
-                    {{-- STATE KOSONG KETIKA KATEGORI BELUM DIPILIH --}}
                     <div x-show="selectedCategory === ''" class="py-12 text-center border border-dashed border-gray-200 rounded-xl bg-gray-50 mb-4">
                         <div class="w-14 h-14 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm border border-gray-100">
                             <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path></svg>
                         </div>
                         <p class="text-gray-500 text-sm font-medium">Pilih <span class="font-bold text-gray-700">Jenis Acara</span> terlebih dahulu <br>untuk melihat daftar paket.</p>
                     </div>
-
                 @endif
                 <div class="mt-8 flex justify-end pt-4 border-t border-gray-100">
                     <button type="button" @click="nextStep()" class="bg-brand hover:opacity-90 text-white px-6 py-2.5 rounded-lg font-bold transition flex items-center gap-2 text-sm">Lanjut: Pilih Jadwal →</button>
@@ -171,15 +163,14 @@
             <div x-show="step === 2" x-transition.opacity style="display: none;">
                 <div class="mb-6 border-b border-gray-100 pb-4">
                     <h2 class="text-lg font-bold text-gray-900">Pilih Tanggal & Waktu</h2>
-                    <p class="text-gray-500 text-sm mt-1">Tentukan tanggal acara dan jam berapa tim fotografer harus sudah <i>standby</i> di lokasi.</p>
+                    <p class="text-gray-500 text-sm mt-1">Tentukan tanggal dan jam berapa sesi foto atau acara Anda akan dimulai.</p>
                 </div>
 
-                {{-- INFO PERINGATAN JAM BOOKING HARI INI (DIKEMBALIKAN) --}}
                 <div class="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-3 text-sm text-amber-800">
                     <svg class="w-5 h-5 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                     <div>
                         <p class="font-bold mb-1">Penting untuk Pemesanan Hari Ini:</p>
-                        <p>Jika Anda memilih jadwal untuk hari ini, mohon atur <b>Jam Standby Fotografer minimal 30 menit dari waktu sekarang</b> untuk memberikan waktu persiapan bagi tim kami.</p>
+                        <p>Jika Anda memilih jadwal untuk hari ini, mohon atur <b>Jam Mulai minimal 30 menit dari waktu sekarang</b> untuk memberikan waktu persiapan bagi tim kami.</p>
                     </div>
                 </div>
 
@@ -197,9 +188,8 @@
                         <input type="date" name="booking_date" x-model="bookingDate" :disabled="multiDay" :required="!multiDay" :min="todayDate" class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Jam Fotografer Standby <span class="text-red-500">*</span></label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Jam Mulai Sesi Foto / Acara <span class="text-red-500">*</span></label>
                         <div class="relative flex items-center">
-                            {{-- Flatpickr Time Input (Force 24H) --}}
                             <input type="text" 
                                 x-model="bookingTime" 
                                 x-init="flatpickr($el, { enableTime: true, noCalendar: true, dateFormat: 'H:i', time_24hr: true, disableMobile: true, onChange: function(sd, ds) { bookingTime = ds } })" 
@@ -208,7 +198,6 @@
                                 placeholder="-- : --"
                                 class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm pl-4 pr-[75px] cursor-pointer bg-white">
                             
-                            {{-- Logo Jam & WIB absolute di kanan --}}
                             <div class="absolute right-3 flex items-center gap-1.5 text-gray-400 pointer-events-none">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                 <span class="text-xs font-bold">WIB</span>
@@ -228,9 +217,8 @@
                         <input type="date" name="end_date" x-model="endDate" :disabled="!multiDay" :required="multiDay" :min="startDate || todayDate" class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Jam Fotografer Standby <span class="text-red-500">*</span></label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Jam Mulai Hari Pertama <span class="text-red-500">*</span></label>
                         <div class="relative flex items-center">
-                            {{-- Flatpickr Time Input (Multi Day) --}}
                             <input type="text" 
                                 x-model="bookingTime" 
                                 x-init="flatpickr($el, { enableTime: true, noCalendar: true, dateFormat: 'H:i', time_24hr: true, disableMobile: true, onChange: function(sd, ds) { bookingTime = ds } })" 
@@ -239,7 +227,6 @@
                                 placeholder="-- : --"
                                 class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm pl-4 pr-[75px] cursor-pointer bg-white">
                             
-                            {{-- Logo Jam & WIB absolute di kanan --}}
                             <div class="absolute right-3 flex items-center gap-1.5 text-gray-400 pointer-events-none">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                 <span class="text-xs font-bold">WIB</span>
@@ -343,7 +330,7 @@
                                     </div>
                                     <div>
                                         <p class="font-bold text-gray-900 text-sm">DP 30%</p>
-                                        <p class="text-xs text-gray-500">Bayar sebagian sekarang, sisanya saat sesi.</p>
+                                        <p class="text-xs text-gray-500">Bayar sebagian sekarang, sisanya sebelum terima hasil.</p>
                                     </div>
                                 </div>
                                 <p class="font-bold text-brand text-sm" x-text="formatCurrency(unitPrice * 0.3)"></p>
@@ -358,7 +345,7 @@
                         <div class="flex justify-between items-start gap-4"><span class="text-gray-500 font-medium shrink-0">WhatsApp</span><span class="font-bold text-right" x-text="clientContact"></span></div>
                         <div class="border-t border-gray-200 my-3"></div>
                         <div class="flex justify-between items-start gap-4"><span class="text-gray-500 font-medium shrink-0">Jadwal</span><span class="font-bold text-right" x-text="scheduleText"></span></div>
-                        <div class="flex justify-between items-start gap-4"><span class="text-gray-500 font-medium shrink-0">Waktu Standby</span><span class="font-bold text-right" x-text="(bookingTime || '-') + (bookingTime ? ' WIB' : '')"></span></div>
+                        <div class="flex justify-between items-start gap-4"><span class="text-gray-500 font-medium shrink-0">Waktu Mulai</span><span class="font-bold text-right" x-text="(bookingTime || '-') + (bookingTime ? ' WIB' : '')"></span></div>
                         <div class="flex justify-between items-start gap-4"><span class="text-gray-500 font-medium shrink-0">Paket</span><span class="font-bold text-right" x-text="selectedServiceName"></span></div>
                         <div class="flex justify-between items-start gap-4"><span class="text-gray-500 font-medium shrink-0">Harga Paket</span><span class="font-bold text-right" x-text="formatCurrency(unitPrice)"></span></div>
                         <div class="border-t border-gray-200 my-3"></div>
@@ -435,7 +422,7 @@
                 clientName: '{{ old('client_name') }}', clientContact: '{{ old('client_contact') }}',
                 clientEmail: '{{ old('client_email') }}', clientInstagram: '{{ old('client_instagram') }}',
                 clientAddress: '{{ old('client_address') }}', notes: '{{ old('notes') }}',
-                linkGmaps: '', // Tambahan untuk Link Maps
+                linkGmaps: '',
                 
                 paymentOption: 'DP', 
                 agreeTnC: false, showTermsModal: false,
@@ -451,7 +438,7 @@
                     if (this.step === 2) {
                         if (!this.multiDay && !this.bookingDate) { this.showError('Pilih tanggal acara.'); return; }
                         if (this.multiDay && (!this.startDate || !this.endDate)) { this.showError('Pilih tanggal mulai dan selesai.'); return; }
-                        if (!this.bookingTime) { this.showError('Pilih jam standby fotografer.'); return; }
+                        if (!this.bookingTime) { this.showError('Pilih jam mulai pemotretan / acara.'); return; }
                         
                         // --- LOGIKA TIME BLOCKING JIKA BOOKING HARI INI ---
                         let checkDate = this.multiDay ? this.startDate : this.bookingDate;
@@ -463,12 +450,12 @@
                             
                             const selectedTime = new Date(`${checkDate}T${this.bookingTime}:00`);
                             
-                            // Set jeda kelonggaran menjadi 30 menit (menggunakan buffer 25 menit agar sedikit luwes)
+                            // Set jeda kelonggaran menjadi 30 menit
                             const bufferMinutes = 25;
                             const minTime = new Date(now.getTime() + (bufferMinutes * 60 * 1000)); 
                             
                             if (selectedTime < minTime) {
-                                this.showError('Untuk booking hari ini, waktu standby fotografer minimal 30 menit dari waktu sekarang untuk persiapan.');
+                                this.showError('Untuk pemesanan hari ini, waktu mulai minimal 30 menit dari jam sekarang untuk persiapan tim.');
                                 return;
                             }
                         }

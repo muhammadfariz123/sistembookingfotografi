@@ -10,6 +10,7 @@ use App\Http\Controllers\CompanySettingController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PublicBookingController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\WorkboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -79,6 +80,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/bookings/{booking}/approve-payment', [BookingController::class, 'approvePayment'])->name('bookings.approve-payment');
     Route::post('/bookings/{booking}/reject-payment', [BookingController::class, 'rejectPayment'])->name('bookings.reject-payment');
     Route::post('/bookings/{booking}/update-notes', [BookingController::class, 'updateNotes'])->name('bookings.update-notes');
+
+    // Papan Kerja (Workboard)
+    Route::get('/workboard', [WorkboardController::class, 'index'])->name('workboard.index');
+    Route::post('/workboard/{booking}/update', [WorkboardController::class, 'update'])->name('workboard.update');
 
     // Company Settings
     Route::get('/company-setting', [CompanySettingController::class, 'edit'])->name('company-setting.edit');
