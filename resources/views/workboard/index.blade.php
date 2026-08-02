@@ -1,11 +1,10 @@
 {{-- resources/views/workboard/index.blade.php --}}
 <x-app-layout>
-    <div x-data="workboardModal()" class="w-full">
-        {{-- Kita bungkus dengan max-w-7xl dan beri padding secukupnya agar proporsional dan tidak mepet sidebar --}}
-        <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div class="min-h-screen bg-gray-50 -m-6 p-6" x-data="workboardOffcanvas()">
+        <div class="max-w-[1200px] mx-auto pb-8">
 
             {{-- Header --}}
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 px-4 sm:px-0">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <div>
                     <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight flex items-center gap-2">
                         <i data-lucide="monitor-play" class="w-6 h-6 text-blue-600"></i> Workboard
@@ -20,7 +19,7 @@
                 @endif
             </div>
 
-            {{-- Stat Cards (klik = filter) --}}
+            {{-- Stat Cards --}}
             @php
                 $stats = [
                     'semua'            => ['label' => 'Semua',            'desc' => 'Semua stage aktif',        'color' => 'blue'],
@@ -28,14 +27,14 @@
                     'belum_pilih_foto' => ['label' => 'Belum Pilih Foto', 'desc' => 'File ada, klien belum pilih','color' => 'orange'],
                     'seleksi_masuk'    => ['label' => 'Seleksi Masuk',    'desc' => 'Klien sudah submit pilihan','color' => 'amber'],
                     'sedang_diedit'    => ['label' => 'Sedang Diedit',    'desc' => 'Status booking: editing',   'color' => 'purple'],
-                    'terkirim'         => ['label' => 'Terkirim',         'desc' => 'Selesai dikerjakan',       'color' => 'emerald'],
+                    'terkirim'         => ['label' => 'Terkirim',         'desc' => 'Selesai dikerjakan',        'color' => 'emerald'],
                 ];
                 $colorText = [
                     'blue' => 'text-blue-600', 'gray' => 'text-gray-700', 'orange' => 'text-orange-500',
                     'amber' => 'text-amber-500', 'purple' => 'text-purple-600', 'emerald' => 'text-emerald-600',
                 ];
             @endphp
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6 px-4 sm:px-0">
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-5">
                 @foreach($stats as $key => $s)
                     <a href="{{ route('workboard.index', ['tab' => $key]) }}"
                        class="rounded-xl border p-4 transition shadow-sm {{ $tab === $key ? 'border-blue-400 bg-blue-50' : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-md' }}">
@@ -46,161 +45,328 @@
                 @endforeach
             </div>
 
-            {{-- Search & Filter Bar --}}
-            <div class="flex items-center gap-3 mb-4 px-4 sm:px-0">
+            {{-- Search Bar --}}
+            <div class="flex items-center gap-3 mb-3">
                 <div class="flex-1 flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-4 h-11 shadow-sm focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition">
                     <i data-lucide="search" class="w-4 h-4 text-gray-400"></i>
                     <input type="text" placeholder="Cari nama klien atau kode booking..." class="flex-1 bg-transparent text-sm text-gray-900 placeholder-gray-400 focus:outline-none w-full border-none focus:ring-0 px-0">
                 </div>
-                <button type="button" class="h-11 w-11 flex items-center justify-center bg-white border border-gray-200 rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-50 shadow-sm transition">
-                    <i data-lucide="list" class="w-4 h-4"></i>
-                </button>
-                <button type="button" class="h-11 w-11 flex items-center justify-center bg-gray-100 border border-gray-200 rounded-xl text-gray-900 shadow-inner">
-                    <i data-lucide="layout-grid" class="w-4 h-4"></i>
-                </button>
             </div>
 
-            <div class="flex items-center justify-between mb-6 text-[12px] text-gray-500 px-4 sm:px-0">
-                <span class="flex items-center gap-1.5"><i data-lucide="refresh-cw" class="w-3 h-3"></i> Tampilan Grid</span>
-                <span>
-                    {{ $bookings->count() ? $bookings->firstItem() . '-' . $bookings->lastItem() . ' dari ' . $bookings->total() : '0' }} booking
-                </span>
+            <div class="flex items-center justify-between mb-4 text-[12px] text-gray-500">
+                <span>{{ $bookings->count() ? $bookings->firstItem() . '-' . $bookings->lastItem() . ' dari ' . $bookings->total() : '0' }} booking</span>
             </div>
 
             {{-- Card Grid --}}
             @php
                 $statusUi = [
-                    'Dijadwalkan'              => ['label' => 'Belum Upload',     'border' => 'border-l-gray-400',   'badge' => 'bg-gray-100 text-gray-600',   'dot' => 'bg-gray-500'],
-                    'File Original Disiapkan'  => ['label' => 'Belum Pilih Foto', 'border' => 'border-l-orange-400', 'badge' => 'bg-orange-50 text-orange-600','dot' => 'bg-orange-500'],
-                    'Pilih Foto'               => ['label' => 'Seleksi Masuk',    'border' => 'border-l-amber-400',  'badge' => 'bg-amber-50 text-amber-600', 'dot' => 'bg-amber-500'],
-                    'Proses Edit'              => ['label' => 'Sedang Diedit',    'border' => 'border-l-purple-400', 'badge' => 'bg-purple-50 text-purple-600','dot' => 'bg-purple-500'],
-                    'Selesai'                  => ['label' => 'Terkirim',         'border' => 'border-l-emerald-400','badge' => 'bg-emerald-50 text-emerald-600','dot' => 'bg-emerald-500'],
+                    'Dijadwalkan'             => ['label' => 'Belum Upload',     'badge' => 'bg-gray-100 text-gray-600',    'desc' => 'Menunggu upload file original'],
+                    'File Original Disiapkan'  => ['label' => 'Belum Pilih Foto', 'badge' => 'bg-orange-50 text-orange-600', 'desc' => 'Menunggu klien memilih foto'],
+                    'Pilih Foto'               => ['label' => 'Seleksi Masuk',    'badge' => 'bg-amber-50 text-amber-600',    'desc' => 'Klien sudah submit pilihan'],
+                    'Pilihan Diterima'         => ['label' => 'Seleksi Masuk',    'badge' => 'bg-amber-50 text-amber-600',    'desc' => 'Klien sudah submit pilihan'],
+                    'Proses Edit'              => ['label' => 'Sedang Diedit',    'badge' => 'bg-purple-50 text-purple-600', 'desc' => 'Sedang dalam proses editing'],
+                    'Selesai'                  => ['label' => 'Terkirim',         'badge' => 'bg-emerald-50 text-emerald-600','desc' => 'Hasil akhir sudah dikirim'],
                 ];
             @endphp
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 px-4 sm:px-0">
-                @forelse($bookings as $b)
-                    @php $ui = $statusUi[$b->status] ?? $statusUi['Dijadwalkan']; @endphp
-                    <div class="bg-white border border-gray-200 {{ $ui['border'] }} border-l-4 rounded-xl p-4 flex flex-col h-full shadow-sm hover:shadow-md transition">
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="inline-flex items-center gap-1.5 {{ $ui['badge'] }} text-[11px] font-bold px-2.5 py-1 rounded-md">
-                                <span class="w-1.5 h-1.5 rounded-full {{ $ui['dot'] }}"></span> {{ $ui['label'] }}
-                            </span>
 
-                            {{-- Fitur tambahan visual --}}
-                            @if($b->status === 'File Original Disiapkan' && !empty($b->due_in_days))
-                                <span class="text-[11px] font-bold text-orange-500">Sisa {{ $b->due_in_days }} hari</span>
-                            @elseif($b->status === 'Proses Edit' && !empty($b->queue_position))
-                                <span class="text-[11px] font-bold bg-purple-50 text-purple-600 px-2 py-0.5 rounded-full">Antrian #{{ $b->queue_position }}</span>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                @forelse($bookings as $b)
+                    @php 
+                        $ui = $statusUi[$b->status] ?? $statusUi['Dijadwalkan']; 
+                        $bookingCode = 'BKG-' . \Carbon\Carbon::parse($b->created_at)->format('Ymd') . '-' . strtoupper(substr(md5($b->id), 0, 4));
+                        $onlyDate = \Carbon\Carbon::parse($b->booking_date ?? $b->start_date)->format('Y-m-d');
+                        $dateStr = \Carbon\Carbon::parse($onlyDate)->format('d M Y');
+                        
+                        $limitFoto = $b->serviceType->photo_limit ? $b->serviceType->photo_limit : '30';
+                        $deadlineDb = $b->deadline_pilih ? \Carbon\Carbon::parse($b->deadline_pilih) : \Carbon\Carbon::parse($onlyDate)->addDays(7);
+                        $deadlineStr = $deadlineDb->format('d M Y');
+                        $sisaHari = max(0, \Carbon\Carbon::now()->startOfDay()->diffInDays($deadlineDb->startOfDay(), false));
+
+                        $companySetting = DB::table('company_settings')->where('user_id', $b->user_id)->first();
+                        $companyName = $companySetting->company_name ?? $b->user->name ?? 'Studio Foto';
+
+                        $selectedPhotosArr = json_decode($b->selected_photos ?? '[]');
+                        $totalSelected = count($selectedPhotosArr);
+                        $selectedPhotosJson = json_encode($selectedPhotosArr);
+                    @endphp
+                    
+                    <div @click="openSidebar({
+                            id: {{ $b->id }},
+                            status: '{{ $b->status }}',
+                            statusLabel: '{{ $ui['label'] }}',
+                            linkFolder: '{{ $b->link_folder_kerja ?? '' }}',
+                            linkOriginal: '{{ $b->link_original ?? '' }}',
+                            clientName: '{{ addslashes($b->client_name) }}',
+                            bookingCode: '{{ $bookingCode }}',
+                            packageName: '{{ addslashes($b->serviceType->name ?? 'Layanan') }}',
+                            photoLimit: '{{ $limitFoto }}',
+                            date: '{{ $dateStr }}',
+                            deadline: '{{ $deadlineStr }}',
+                            deadlineRaw: '{{ $deadlineDb->format('Y-m-d') }}',
+                            sisaHari: {{ $sisaHari }},
+                            companyName: '{{ addslashes($companyName) }}',
+                            wa: '{{ $b->client_contact }}',
+                            ig: '{{ $b->client_instagram }}',
+                            totalSelected: {{ $totalSelected }},
+                            selectedPhotos: {{ $selectedPhotosJson }},
+                            clientNotes: '{{ addslashes($b->client_notes ?? '') }}'
+                        })" 
+                         class="bg-white border border-gray-200 rounded-xl p-5 flex flex-col h-full shadow-sm hover:shadow-md hover:border-blue-300 cursor-pointer transition">
+                        
+                        <div class="mb-4 flex justify-between items-center">
+                            <span class="inline-block {{ $ui['badge'] }} text-[11px] font-bold px-2.5 py-1 rounded-md">
+                                {{ $ui['label'] }}
+                            </span>
+                            @if($b->status === 'Pilihan Diterima' && $totalSelected > 0)
+                                <span class="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full">
+                                    {{ $totalSelected }} Foto Dipilih
+                                </span>
                             @endif
                         </div>
 
-                        <p class="font-bold text-gray-900 text-[15px] leading-tight">{{ $b->client_name }}</p>
-                        <p class="text-[12px] font-mono text-gray-400 font-semibold mt-0.5">{{ $b->booking_code }}</p>
+                        <h3 class="font-extrabold text-gray-900 text-[16px] leading-tight mb-0.5">{{ $b->client_name }}</h3>
+                        <p class="text-[12px] font-mono text-gray-400 font-semibold mb-3">{{ $bookingCode }}</p>
 
-                        <div class="mt-3">
-                            <span class="inline-block bg-blue-50 text-blue-600 text-[11px] font-bold px-3 py-1 rounded-lg">
+                        <div>
+                            <span class="inline-block bg-gray-50 border border-gray-200 text-gray-600 text-[11px] font-bold px-2.5 py-1 rounded-lg">
                                 {{ $b->serviceType->name ?? 'Paket Layanan' }}
                             </span>
                         </div>
 
-                        <p class="text-[13px] text-gray-500 font-medium mt-3 flex items-center gap-1.5">
+                        <p class="text-[12px] text-gray-500 font-medium mt-3 flex items-center gap-1.5">
                             <i data-lucide="calendar" class="w-3.5 h-3.5 text-gray-400"></i>
-                            {{ \Carbon\Carbon::parse($b->booking_date ?? $b->start_date)->format('d M Y') }}
+                            {{ $dateStr }}
                         </p>
-
-                        @if($b->status === 'File Original Disiapkan')
-                            <p class="text-[12px] text-gray-500 mt-1">Maks. {{ $b->max_photos ?? '-' }} foto</p>
-                        @elseif($b->status === 'Proses Edit')
-                            <p class="text-[12px] text-purple-500 mt-1">{{ $b->selected_photos_count ?? 0 }} foto dipilih</p>
-                        @endif
-
-                        {{-- Spacer agar tombol kelola selalu di bawah --}}
-                        <div class="flex-grow"></div>
-
-                        <button @click="openModal({{ $b->id }}, '{{ $b->status }}', '{{ $b->link_hasil }}', '{{ addslashes($b->client_name) }}')"
-                                class="mt-4 w-full inline-flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-blue-600 text-[12px] font-bold px-4 py-2 rounded-lg transition shadow-sm">
-                            <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Kelola Pengerjaan
-                        </button>
                     </div>
                 @empty
                     <div class="col-span-full py-16 text-center text-gray-400">
-                        <div class="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner">
-                            <i data-lucide="inbox" class="w-6 h-6 text-gray-400"></i>
-                        </div>
                         <p class="font-medium text-sm text-gray-500">Belum ada data pengerjaan di tahap ini.</p>
                     </div>
                 @endforelse
             </div>
 
-            {{-- Menampilkan Paginasi Laravel --}}
-            <div class="mt-8 px-4 sm:px-0">
+            <div class="mt-8">
                 {{ $bookings->links() }}
             </div>
 
         </div>
 
-        {{-- Modal Update Status & Link --}}
-        <div x-show="isOpen" class="fixed inset-0 z-[100] flex items-center justify-center px-4" x-cloak>
-            <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" @click="isOpen = false" x-show="isOpen" x-transition.opacity></div>
-            <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden z-10"
-                 x-show="isOpen"
-                 x-transition:enter="transition ease-out duration-200"
-                 x-transition:enter-start="opacity-0 scale-95"
-                 x-transition:enter-end="opacity-100 scale-100">
+        {{-- OFFCANVAS SIDEBAR KANAN --}}
+        <div class="fixed inset-0 z-[100] overflow-hidden" x-show="isOpen" x-cloak>
+            <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" @click="isOpen = false"></div>
 
-                <div class="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-                    <div>
-                        <h3 class="text-[16px] font-bold text-gray-900">Kelola Pengerjaan</h3>
-                        <p class="text-[12px] text-gray-500 font-medium" x-text="clientName"></p>
-                    </div>
-                    <button type="button" @click="isOpen = false" class="text-gray-400 hover:text-gray-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+            <div class="absolute inset-y-0 right-0 max-w-md w-full flex">
+                <div class="w-full h-full bg-white shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out"
+                     x-show="isOpen">
+                    
+                    <form :action="`/workboard/${activeData.id}/update`" method="POST" class="flex flex-col h-full relative">
+                        @csrf
+
+                        {{-- Header Sidebar --}}
+                        <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-start shrink-0">
+                            <div>
+                                <span class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-md mb-2 bg-amber-50 text-amber-600" x-text="activeData.statusLabel"></span>
+                                <h2 class="text-xl font-extrabold text-gray-900 leading-tight" x-text="activeData.clientName"></h2>
+                                <p class="text-[13px] font-mono text-gray-500 mt-1" x-text="activeData.bookingCode"></p>
+                            </div>
+                            <button type="button" @click="isOpen = false" class="text-gray-400 hover:text-gray-700 bg-gray-50 p-2 rounded-full transition">
+                                <i data-lucide="x" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+
+                        {{-- Body Sidebar --}}
+                        <div class="p-6 overflow-y-auto flex-1 space-y-6">
+                            
+                            {{-- Info Klien Grid --}}
+                            <div class="grid grid-cols-2 gap-y-4 gap-x-4">
+                                <div>
+                                    <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Paket</p>
+                                    <p class="text-[13px] font-semibold text-gray-900" x-text="activeData.packageName"></p>
+                                </div>
+                                <div>
+                                    <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tanggal Sesi</p>
+                                    <p class="text-[13px] font-semibold text-gray-900" x-text="activeData.date"></p>
+                                </div>
+                                <div>
+                                    <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">WhatsApp</p>
+                                    <a :href="'https://wa.me/' + activeData.wa.replace(/[^0-9]/g, '')" target="_blank" class="text-[13px] font-semibold text-blue-600 hover:underline" x-text="activeData.wa"></a>
+                                </div>
+                                <div>
+                                    <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Instagram</p>
+                                    <span class="text-[13px] font-semibold text-gray-900" x-text="activeData.ig || '-'"></span>
+                                </div>
+                            </div>
+
+                            {{-- LINK FOLDER KERJA (DI ATAS SEBELUM FOTO) --}}
+                            <div>
+                                <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Folder Kerja / Master Folder</p>
+                                <div x-show="activeData.linkFolder !== ''">
+                                    <a :href="activeData.linkFolder" target="_blank" class="text-[13px] text-blue-600 hover:underline break-all block" x-text="activeData.linkFolder"></a>
+                                </div>
+                                <div x-show="activeData.linkFolder === ''" class="text-[13px] text-gray-400 italic">Belum diset</div>
+                            </div>
+
+                            <hr class="border-gray-100">
+
+                            {{-- SECTION FOTO DIPILIH KLIEN --}}
+                            <div x-show="activeData.status === 'Pilihan Diterima'" class="space-y-4">
+                                <div class="flex justify-between items-center bg-amber-50/70 border border-amber-200 rounded-2xl p-4">
+                                    <div>
+                                        <p class="text-[11px] font-bold text-amber-800 uppercase tracking-wider mb-0.5">Foto Dipilih Klien</p>
+                                        <p class="text-2xl font-extrabold text-amber-900" x-text="activeData.totalSelected"></p>
+                                    </div>
+                                    <button type="button" @click="copyAllPhotos()" class="bg-white border border-amber-300 hover:bg-amber-100 text-amber-900 font-bold text-[12px] px-3.5 py-2 rounded-xl transition shadow-xs flex items-center gap-1.5">
+                                        <span x-show="!copiedAll">📋 Salin semua</span>
+                                        <span x-show="copiedAll" x-cloak class="text-emerald-600">Tersalin!</span>
+                                    </button>
+                                </div>
+
+                                <div>
+                                    <div class="flex justify-between items-center mb-2">
+                                        <p class="text-[12px] font-bold text-gray-900">Semua Foto</p>
+                                        <span class="text-[11px] font-bold text-gray-500 bg-gray-100 px-2.5 py-0.5 rounded-md" x-text="activeData.totalSelected + ' file'"></span>
+                                    </div>
+
+                                    <div class="border border-gray-200 rounded-2xl bg-gray-50 p-3 space-y-2">
+                                        <div class="flex justify-between items-center mb-1">
+                                            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider"># &nbsp; Nama File</span>
+                                        </div>
+                                        <template x-for="(photo, idx) in activeData.selectedPhotos" :key="idx">
+                                            <div class="bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-[13px] font-mono font-medium text-gray-800 flex items-center shadow-2xs">
+                                                <span class="w-full truncate" x-text="(idx + 1) + '.  ' + photo"></span>
+                                            </div>
+                                        </template>
+                                        <div x-show="activeData.selectedPhotos.length === 0" class="text-center py-4 text-xs text-gray-400">
+                                            Belum ada foto yang dipilih.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div x-show="activeData.clientNotes" class="bg-white border border-gray-200 rounded-2xl p-4">
+                                    <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Catatan Klien</p>
+                                    <p class="text-[13px] text-gray-800 italic" x-text="activeData.clientNotes"></p>
+                                </div>
+                            </div>
+
+                            <hr class="border-gray-100">
+
+                            {{-- TOMBOL UBAH FOLDER KERJA (DI BAWAH SETELAH FOTO) --}}
+                            <div>
+                                <button type="button" @click="isFolderOpen = true; tempLink = activeData.linkFolder || '';" class="w-full flex items-center justify-center gap-2 border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 text-[13px] font-bold px-4 py-3 rounded-2xl transition shadow-sm focus:outline-none">
+                                    <i data-lucide="folder-edit" class="w-4 h-4"></i> Ubah Folder Kerja / Master Folder
+                                </button>
+                                <p class="text-[11px] text-gray-500 leading-relaxed mt-2">
+                                    Untuk folder internal tim. Tidak mengubah stage, tidak mengirim email ke klien, dan tidak dianggap sebagai hasil foto terkirim.
+                                </p>
+                            </div>
+
+                        </div>
+
+                        {{-- Footer Aksi Cepat --}}
+                        <div class="p-6 border-t border-gray-100 bg-gray-50 shrink-0">
+                            <p class="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-3">Aksi Cepat</p>
+                            
+                            <div x-show="activeData.status === 'Pilih Foto' || activeData.status === 'Pilihan Diterima'">
+                                <button type="submit" name="status" value="Proses Edit" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold text-[13px] py-3 rounded-xl transition shadow-sm">
+                                    Tandai Mulai Diedit
+                                </button>
+                            </div>
+                            <div x-show="activeData.status === 'Proses Edit'">
+                                <button type="submit" name="status" value="Selesai" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold text-[13px] py-3 rounded-xl transition shadow-sm">
+                                    Kirim Hasil Final ke Klien
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- OFFCANVAS KEDUA: SET FOLDER KERJA --}}
+                        <div class="absolute inset-0 bg-white z-20 flex flex-col transform transition-transform duration-300 ease-in-out shadow-[-10px_0_15px_-3px_rgba(0,0,0,0.1)]"
+                             x-show="isFolderOpen"
+                             x-transition:enter="translate-x-full"
+                             x-transition:enter-end="translate-x-0"
+                             x-transition:leave="translate-x-0"
+                             x-transition:leave-end="translate-x-full"
+                             x-cloak>
+                            
+                            <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center shrink-0">
+                                <h2 class="text-[16px] font-extrabold text-gray-900 leading-tight">Folder Kerja / Master Folder</h2>
+                                <button type="button" @click="isFolderOpen = false" class="text-gray-400 hover:text-gray-700 bg-gray-50 p-2 rounded-full transition">
+                                    <i data-lucide="x" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+
+                            <div class="p-6 overflow-y-auto flex-1 no-scrollbar">
+                                <div class="mb-6">
+                                    <label class="block text-[13px] font-bold text-gray-900 mb-2">Link Folder Kerja / Master Folder</label>
+                                    <input type="url" x-model="tempLink" @keydown.enter.prevent="saveFolder()" placeholder="https://drive.google.com/drive/folders/..." class="w-full h-11 rounded-xl border border-gray-300 px-4 text-sm focus:border-blue-500 focus:ring-blue-500 shadow-sm text-blue-600">
+                                </div>
+                            </div>
+
+                            <div class="p-6 border-t border-gray-100 bg-gray-50 shrink-0 flex gap-3">
+                                <button type="button" @click="isFolderOpen = false" class="w-1/3 bg-white border border-gray-300 text-gray-700 font-bold text-[13px] py-3 rounded-xl transition shadow-sm">
+                                    Batal
+                                </button>
+                                <button type="button" @click="saveFolder()" :disabled="isLoading" class="w-2/3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[13px] py-3 rounded-xl transition shadow-sm flex justify-center items-center gap-2">
+                                    <span x-show="!isLoading">Simpan Folder Kerja</span>
+                                    <span x-show="isLoading" class="animate-pulse">Menyimpan...</span>
+                                </button>
+                            </div>
+                        </div>
+
+                    </form>
                 </div>
-
-                <form :action="`/workboard/${activeId}/update`" method="POST" class="p-6">
-                    @csrf
-
-                    <div class="mb-5">
-                        <label class="block text-sm font-bold text-gray-700 mb-2">Update Status Pengerjaan</label>
-                        <select name="status" x-model="status" class="w-full h-11 rounded-xl border border-gray-300 px-4 text-sm font-semibold focus:border-blue-500 focus:ring-blue-500 shadow-sm bg-white cursor-pointer">
-                            <option value="Dijadwalkan">Belum Upload (Dijadwalkan)</option>
-                            <option value="File Original Disiapkan">Belum Pilih Foto (File Disiapkan)</option>
-                            <option value="Pilih Foto">Seleksi Masuk (Sedang Pilih Foto)</option>
-                            <option value="Proses Edit">Sedang Diedit (Proses Editing)</option>
-                            <option value="Selesai">Terkirim (Selesai)</option>
-                        </select>
-                    </div>
-                    <div class="mb-6">
-                        <label class="block text-sm font-bold text-gray-700 mb-2">Link Drive (File Original / Hasil)</label>
-                        <input type="url" name="link_hasil" x-model="linkUrl" placeholder="https://drive.google.com/..." class="w-full h-11 rounded-xl border border-gray-300 px-4 text-sm focus:border-blue-500 focus:ring-blue-500 shadow-sm text-blue-600">
-                        <p class="text-[11px] text-gray-500 mt-2 leading-snug">Link ini akan muncul di halaman <b>Tracking Klien</b>. Bisa digunakan untuk mengirim file mentah agar klien bisa memilih foto, maupun untuk mengirim hasil akhir foto yang sudah diedit.</p>
-                    </div>
-
-                    <div class="flex justify-end gap-3 pt-2">
-                        <button type="button" @click="isOpen = false" class="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition shadow-sm">Batal</button>
-                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold shadow-sm transition flex items-center gap-2">
-                            <i data-lucide="save" class="w-4 h-4"></i> Simpan Perubahan
-                        </button>
-                    </div>
-                </form>
             </div>
         </div>
     </div>
 
     <script>
-        function workboardModal() {
+        function workboardOffcanvas() {
             return {
                 isOpen: false,
-                activeId: null,
-                clientName: '',
-                status: '',
-                linkUrl: '',
+                isFolderOpen: false,
+                isLoading: false,
+                tempLink: '',
+                copiedAll: false,
+                activeData: {
+                    id: null, status: '', statusLabel: '', linkFolder: '', clientName: '', bookingCode: '', packageName: '', date: '', wa: '', ig: '', totalSelected: 0, selectedPhotos: [], clientNotes: ''
+                },
 
-                openModal(id, currentStatus, currentLink, name) {
-                    this.activeId = id;
-                    this.status = currentStatus;
-                    this.linkUrl = currentLink || '';
-                    this.clientName = name;
+                openSidebar(data) {
+                    this.activeData = { ...data };
+                    this.tempLink = data.linkFolder || '';
                     this.isOpen = true;
+                    this.isFolderOpen = false;
+                    this.copiedAll = false;
+                },
+
+                copyAllPhotos() {
+                    let textToCopy = this.activeData.selectedPhotos.join('\n');
+                    navigator.clipboard.writeText(textToCopy);
+                    this.copiedAll = true;
+                    setTimeout(() => this.copiedAll = false, 1500);
+                },
+
+                saveFolder() {
+                    this.isLoading = true;
+                    fetch(`/workboard/${this.activeData.id}/update`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({
+                            status: this.activeData.status,
+                            link_folder_kerja: this.tempLink
+                        })
+                    })
+                    .then(response => {
+                        this.activeData.linkFolder = this.tempLink;
+                    })
+                    .finally(() => {
+                        this.isLoading = false;
+                        this.isFolderOpen = false;
+                    });
                 }
             }
         }

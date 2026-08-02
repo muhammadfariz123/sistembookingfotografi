@@ -418,4 +418,191 @@ class PublicBookingController extends Controller
             'ownerId'
         ));
     }
+
+    public function selectionPage($bookingCode)
+    {
+        // 1. Cari data booking berdasarkan Hash Kode
+        $booking = \App\Models\Booking::with(['serviceType', 'user'])->get()->first(function ($b) use ($bookingCode) {
+            $generatedCode = 'BKG-' . \Carbon\Carbon::parse($b->created_at)->format('Ymd') . '-' . strtoupper(substr(md5($b->id), 0, 4));
+            return $generatedCode === $bookingCode;
+        });
+
+        if (!$booking) {
+            abort(404, 'Data booking tidak ditemukan atau kode tidak valid.');
+        }
+
+        $companySetting = \Illuminate\Support\Facades\DB::table('company_settings')->where('user_id', $booking->user_id)->first();
+        $companyName = $companySetting->company_name ?? $booking->user->name ?? 'Studio Foto';
+        $limitFoto = $booking->serviceType->photo_limit ?? 30;
+
+        // 2. Tarik Foto ASLI dari Google Drive terlebih dahulu untuk mendapatkan daftar filename
+        $photos = [];
+        $apiError = null;
+
+        if (!empty($booking->link_original)) {
+            $folderId = $this->extractDriveFolderId($booking->link_original);
+
+            if ($folderId) {
+                $driveData = $this->getRealImagesFromDrive($folderId);
+                $photos = $driveData['photos'];
+                $apiError = $driveData['error'];
+            } else {
+                $apiError = "Format link Google Drive tidak valid.";
+            }
+        }
+
+        // Ambil data selected_photos dari database
+        $rawSelected = json_decode($booking->selected_photos ?? '[]');
+        $previousSelected = [];
+
+        // Mapping aman: Jika data lama berupa ID Google Drive, cocokkan dengan filename fotonya agar otomatis tercentang
+        foreach ($rawSelected as $item) {
+            if (is_string($item)) {
+                // Cek apakah item ini adalah filename atau ID Drive
+                $found = collect($photos)->firstWhere('id', $item);
+                if ($found) {
+                    $previousSelected[] = $found['filename']; // Ubah ID lama menjadi filename
+                } else {
+                    $previousSelected[] = $item; // Jika sudah berupa filename
+                }
+            }
+        }
+
+        return view('booking.seleksi', compact('booking', 'bookingCode', 'companyName', 'limitFoto', 'photos', 'apiError', 'previousSelected'));
+    }
+    // Fungsi Bantuan 1: Ambil ID Folder dari URL
+    private function extractDriveFolderId($url)
+    {
+        if (preg_match('/folders\/([a-zA-Z0-9-_]+)/', $url, $matches)) {
+            return $matches[1];
+        } elseif (preg_match('/id=([a-zA-Z0-9-_]+)/', $url, $matches)) {
+            return $matches[1];
+        }
+        return null;
+    }
+
+    // Fungsi Bantuan 2: Koneksi API Google Drive untuk Menarik File ASLI
+    private function getRealImagesFromDrive($folderId)
+    {
+        try {
+            $credentialPath = storage_path('app/google-credential.json');
+
+            if (!file_exists($credentialPath)) {
+                return ['photos' => [], 'error' => 'File google-credential.json tidak ditemukan di folder storage/app/.'];
+            }
+
+            // Inisialisasi Google Client dengan aman
+            $client = new \Google\Client();
+            $client->setAuthConfig($credentialPath);
+            $client->addScope(\Google\Service\Drive::DRIVE_READONLY);
+
+            $service = new \Google\Service\Drive($client);
+
+            // Query untuk mengambil file gambar asli di dalam folder Google Drive
+            $results = $service->files->listFiles([
+                'q' => "'{$folderId}' in parents and mimeType contains 'image/' and trashed = false",
+                'fields' => "files(id, name, thumbnailLink, webContentLink)",
+                'pageSize' => 500,
+                'supportsAllDrives' => true,
+                'includeItemsFromAllDrives' => true,
+            ]);
+
+            $photos = [];
+            foreach ($results->getFiles() as $file) {
+                // Ambil link gambar resolusi tinggi dari Google Drive
+                $thumbnail = $file->getThumbnailLink();
+                // Ubah parameter ukuran thumbnail bawaan Google (s220) menjadi lebih besar (s1000) agar jernih
+                $imageUrl = $thumbnail ? str_replace('=s220', '=s1000', $thumbnail) : $file->getWebContentLink();
+
+                if ($imageUrl) {
+                    $photos[] = [
+                        'id' => $file->getId(),
+                        'filename' => $file->getName(),
+                        'url' => $imageUrl,
+                    ];
+                }
+            }
+
+            return ['photos' => $photos, 'error' => null];
+
+        } catch (\Google\Service\Exception $e) {
+            $errorData = json_decode($e->getMessage(), true);
+            $errorMessage = $errorData['error']['message'] ?? $e->getMessage();
+
+            if (strpos($errorMessage, 'File not found') !== false) {
+                return ['photos' => [], 'error' => 'Folder tidak ditemukan atau belum di-set Public ("Anyone with the link").'];
+            }
+            return ['photos' => [], 'error' => 'Google Drive API Error: ' . $errorMessage];
+
+        } catch (\Exception $e) {
+            return ['photos' => [], 'error' => 'Gagal memproses koneksi: ' . $e->getMessage()];
+        }
+    }
+
+    // Fungsi untuk menyimpan pilihan foto dari klien
+    public function submitSelection(Request $request, $bookingCode)
+    {
+        $booking = \App\Models\Booking::with(['serviceType', 'user'])->get()->first(function ($b) use ($bookingCode) {
+            $generatedCode = 'BKG-' . \Carbon\Carbon::parse($b->created_at)->format('Ymd') . '-' . strtoupper(substr(md5($b->id), 0, 4));
+            return $generatedCode === $bookingCode;
+        });
+
+        if (!$booking) {
+            return response()->json(['success' => false, 'message' => 'Booking tidak ditemukan.'], 404);
+        }
+
+        // Data yang dikirim dari JavaScript sekarang berupa array objek lengkap atau array string nama file
+        $selectedPhotos = $request->input('photos', []);
+        $clientNotes = $request->input('notes', '');
+
+        // Simpan data ke database
+        $booking->selected_photos = json_encode($selectedPhotos);
+        $booking->client_notes = $clientNotes;
+        $booking->status = 'Pilihan Diterima';
+        $booking->save();
+
+        // Kirim Email Notifikasi ke Customer
+        if (!empty($booking->client_email)) {
+            try {
+                $companySetting = \App\Models\CompanySetting::where('user_id', $booking->user_id)->first();
+                $companyName = $companySetting->company_name ?? $booking->user->name ?? 'Studio Foto';
+                $companyPhone = $companySetting->company_phone ?? null;
+                $totalSelected = count($selectedPhotos);
+
+                \Illuminate\Support\Facades\Mail::to($booking->client_email)->send(
+                    new \App\Mail\SelectionSubmittedMail($booking, $bookingCode, $companyName, $companyPhone, $totalSelected)
+                );
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Gagal kirim email seleksi foto: " . $e->getMessage());
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'redirect_url' => route('booking.public.success', ['bookingCode' => $bookingCode])
+        ]);
+    }
+
+    // Fungsi untuk menampilkan Halaman Sukses (Pilihan Terkirim!)
+    public function successPage($bookingCode)
+    {
+        $booking = \App\Models\Booking::with(['user'])->get()->first(function ($b) use ($bookingCode) {
+            $generatedCode = 'BKG-' . \Carbon\Carbon::parse($b->created_at)->format('Ymd') . '-' . strtoupper(substr(md5($b->id), 0, 4));
+            return $generatedCode === $bookingCode;
+        });
+
+        if (!$booking) {
+            abort(404, 'Data booking tidak ditemukan.');
+        }
+
+        $companySetting = \Illuminate\Support\Facades\DB::table('company_settings')->where('user_id', $booking->user_id)->first();
+        $companyName = $companySetting->company_name ?? $booking->user->name ?? 'Studio Foto';
+
+        $selectedPhotos = json_decode($booking->selected_photos ?? '[]');
+        $totalSelected = count($selectedPhotos);
+        $adminPhone = $companySetting->phone ?? '6281234567890';
+        $ownerId = $booking->user_id; // <-- Ambil ownerId
+
+        return view('booking.sukses-seleksi', compact('booking', 'bookingCode', 'companyName', 'totalSelected', 'adminPhone', 'ownerId'));
+    }
 }

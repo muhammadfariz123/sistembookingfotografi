@@ -20,7 +20,7 @@
 
                     <div class="space-y-5">
                         
-                        {{-- Pilih Kategori (Sekarang wajib memilih dari Kategori yang sudah dibuat di menu Portofolio) --}}
+                        {{-- Pilih Kategori --}}
                         <div>
                             <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Kategori Acara <span class="text-red-500">*</span></label>
                             <select name="service_category_id" required class="w-full h-[44px] rounded-xl border border-gray-300 text-[14px] px-4 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white">
@@ -44,22 +44,36 @@
                             <textarea name="description" rows="5" required placeholder="- Sesi Foto 4 Jam&#10;- Unlimited Shoot..." class="w-full rounded-xl border border-gray-300 text-[14px] px-4 py-3 resize-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">{{ old('description', $service->description ?? '') }}</textarea>
                         </div>
 
-                        <div x-data="{ 
-                                price: '{{ old('price', isset($service) ? $service->price : '') }}',
-                                formatPrice(e) {
-                                    let raw = e.target.value.replace(/\D/g, '');
-                                    this.price = raw ? new Intl.NumberFormat('id-ID').format(raw) : '';
-                                }
-                            }" 
-                            x-init="if(price) price = new Intl.NumberFormat('id-ID').format(price)">
-                            
-                            <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Harga Paket <span class="text-red-500">*</span></label>
-                            <input type="hidden" name="price" :value="price.replace(/\D/g, '')">
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <span class="text-gray-500 text-[14px] font-medium">Rp</span>
+                        {{-- Harga dan Batas Edit Foto Bersebelahan --}}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div x-data="{ 
+                                    price: '{{ old('price', isset($service) ? $service->price : '') }}',
+                                    formatPrice(e) {
+                                        let raw = e.target.value.replace(/\D/g, '');
+                                        this.price = raw ? new Intl.NumberFormat('id-ID').format(raw) : '';
+                                    }
+                                }" 
+                                x-init="if(price) price = new Intl.NumberFormat('id-ID').format(price)">
+                                
+                                <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Harga Paket <span class="text-red-500">*</span></label>
+                                <input type="hidden" name="price" :value="price.replace(/\D/g, '')">
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                        <span class="text-gray-500 text-[14px] font-medium">Rp</span>
+                                    </div>
+                                    <input type="text" required x-model="price" @input="formatPrice" placeholder="0" class="w-full h-[44px] rounded-xl border border-gray-300 pl-11 pr-4 text-[14px] font-medium text-gray-900 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
                                 </div>
-                                <input type="text" required x-model="price" @input="formatPrice" placeholder="0" class="w-full h-[44px] rounded-xl border border-gray-300 pl-11 pr-4 text-[14px] font-medium text-gray-900 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                            </div>
+
+                            <div>
+                                <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Batas Klien Memilih Foto Edit</label>
+                                <div class="relative">
+                                    <input type="number" name="photo_limit" min="0" value="{{ old('photo_limit', $service->photo_limit ?? '') }}" placeholder="Contoh: 30" class="w-full h-[44px] rounded-xl border border-gray-300 pr-14 pl-4 text-[14px] font-medium text-gray-900 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                                    <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                                        <span class="text-gray-500 text-[13px] font-medium">Foto</span>
+                                    </div>
+                                </div>
+                                <p class="text-[11px] text-gray-400 mt-1.5 leading-snug">Kosongkan jika klien mendapatkan semua file original tanpa editing khusus.</p>
                             </div>
                         </div>
                     </div>

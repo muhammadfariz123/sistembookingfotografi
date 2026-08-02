@@ -11,14 +11,12 @@ class ServiceTypeController extends Controller
 {
     public function index()
     {
-        // Load relasi 'category' (bukan lagi 'galleries')
         $services = ServiceType::with('category')->where('user_id', Auth::id())->latest()->get();
         return view('service-types.index', compact('services'));
     }
 
     public function create()
     {
-        // Ambil data kategori untuk dropdown
         $categories = ServiceCategory::where('user_id', Auth::id())->orderBy('name')->get();
         return view('service-types.form', compact('categories'));
     }
@@ -30,6 +28,7 @@ class ServiceTypeController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
+            'photo_limit' => 'nullable|integer|min:0', // Tambahkan ini
         ]);
         
         $validated['user_id'] = Auth::id();
@@ -42,7 +41,6 @@ class ServiceTypeController extends Controller
     {
         if ($serviceType->user_id !== Auth::id()) abort(403);
         
-        // Ambil data kategori untuk dropdown
         $categories = ServiceCategory::where('user_id', Auth::id())->orderBy('name')->get();
         
         return view('service-types.form', [
@@ -60,6 +58,7 @@ class ServiceTypeController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
+            'photo_limit' => 'nullable|integer|min:0', // Tambahkan ini
         ]);
         
         $serviceType->update($validated);

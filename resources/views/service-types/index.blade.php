@@ -35,10 +35,10 @@
                         <thead>
                             <tr class="text-left">
                                 <th class="w-1/4 px-4 lg:px-6 py-4 text-[12px] font-semibold tracking-wide text-gray-500 uppercase">Nama Paket</th>
-                                <th class="w-1/4 px-4 lg:px-6 py-4 text-[12px] font-semibold tracking-wide text-gray-500 uppercase">Kategori Acara</th>
+                                <th class="w-1/5 px-4 lg:px-6 py-4 text-[12px] font-semibold tracking-wide text-gray-500 uppercase">Kategori</th>
                                 <th class="w-1/4 px-4 lg:px-6 py-4 text-[12px] font-semibold tracking-wide text-gray-500 uppercase">Deskripsi</th>
                                 <th class="w-1/6 px-4 lg:px-6 py-4 text-[12px] font-semibold tracking-wide text-gray-500 uppercase">Harga Default</th>
-                                <th class="w-[10%] px-4 lg:px-6 py-4 text-[12px] font-semibold tracking-wide text-gray-500 uppercase text-right">Aksi</th>
+                                <th class="w-1/6 px-4 lg:px-6 py-4 text-[12px] font-semibold tracking-wide text-gray-500 uppercase text-right">Aksi</th>
                             </tr>
                         </thead>
                     </table>
@@ -53,13 +53,14 @@
                                 <template x-for="item in services" :key="item.id">
                                     <tr class="hover:bg-gray-50 transition">
                                         
-                                        {{-- NAMA LAYANAN --}}
+                                        {{-- NAMA LAYANAN & LIMIT FOTO --}}
                                         <td class="w-1/4 px-4 lg:px-6 py-4 sm:py-5 align-top">
                                             <p class="font-semibold text-[14px] lg:text-[15px] text-[#0f172a]" x-text="item.name"></p>
+                                            <p class="text-[12px] text-gray-500 mt-1" x-show="item.photo_limit">Max Edit: <span class="font-bold text-orange-500" x-text="item.photo_limit + ' Foto'"></span></p>
                                         </td>
 
                                         {{-- KATEGORI --}}
-                                        <td class="w-1/4 px-4 lg:px-6 py-4 sm:py-5 align-top">
+                                        <td class="w-1/5 px-4 lg:px-6 py-4 sm:py-5 align-top">
                                             <span class="inline-flex items-center px-2 py-1 rounded-md bg-gray-100 text-gray-600 text-[12px] font-medium whitespace-nowrap" x-text="item.category ? item.category.name : '-'"></span>
                                         </td>
                                         
@@ -75,7 +76,7 @@
                                         </td>
                                         
                                         {{-- AKSI --}}
-                                        <td class="w-[10%] px-4 lg:px-6 py-4 sm:py-5 align-top">
+                                        <td class="w-1/6 px-4 lg:px-6 py-4 sm:py-5 align-top">
                                             <div class="flex justify-end gap-3">
                                                 <a :href="`/service-types/${item.id}/edit`"
                                                     class="w-9 h-9 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-600 flex items-center justify-center transition shrink-0">

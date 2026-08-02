@@ -39,9 +39,16 @@ Route::get('/cek-booking/result', [PublicBookingController::class, 'checkResult'
 Route::get('/booking/{ownerId}/service/{serviceId}', [PublicBookingController::class, 'serviceDetail'])->name('booking.service.detail');
 Route::get('/booking/{ownerId}/service/{serviceId}/gallery', [PublicBookingController::class, 'serviceGallery'])->name('booking.service.gallery');
 Route::get('/booking/{ownerId}/services', [PublicBookingController::class, 'allServices'])->name('booking.services.all');
+// Route untuk submit pilihan foto
+Route::post('/seleksi/{bookingCode}/submit', [PublicBookingController::class, 'submitSelection'])->name('booking.public.submit');
 
-// Pindahkan Route Invoice ke sini agar Klien bisa akses Bukti Pembayaran
+// Route untuk halaman sukses setelah kirim
+Route::get('/seleksi/{bookingCode}/selesai', [PublicBookingController::class, 'successPage'])->name('booking.public.success');
+// Rute Invoice untuk Klien
 Route::get('/invoices/{booking}', [InvoiceController::class, 'show'])->name('invoice.show');
+
+// Rute Halaman Seleksi Foto Klien
+Route::get('/seleksi/{bookingCode}', [PublicBookingController::class, 'selectionPage'])->name('booking.public.seleksi');
 
 
 /*
@@ -63,7 +70,7 @@ Route::middleware(['auth'])->group(function () {
     // Layanan & Portofolio Kategori
     Route::resource('service-categories', ServiceCategoryController::class);
     Route::delete('/category-galleries/{gallery}', [ServiceCategoryController::class, 'destroyGallery'])->name('category-galleries.destroy');
-    
+
     // Paket Layanan
     Route::resource('service-types', ServiceTypeController::class);
 
@@ -89,5 +96,5 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/company-setting', [CompanySettingController::class, 'edit'])->name('company-setting.edit');
     Route::post('/company-setting', [CompanySettingController::class, 'store'])->name('company-setting.store');
 });
-// 
+
 require __DIR__ . '/auth.php';

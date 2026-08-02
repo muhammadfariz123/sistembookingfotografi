@@ -190,7 +190,7 @@ class BookingController extends Controller
 
         $type = strtoupper($booking->payment_type);
         $dpAmount = (int) ceil($booking->total * 0.3);
-        
+
         // Ambil nominal langsung dari tabel riwayat transaksi, jika gagal otomatis hitung matematis
         $currentPaymentAmount = $pendingTx ? $pendingTx->amount : ($type === 'DP' ? $dpAmount : max($booking->total - $booking->paid_amount, 0));
 
@@ -207,6 +207,10 @@ class BookingController extends Controller
         $booking->update([
             'payment_status' => $paymentStatus,
             'status' => 'Dijadwalkan',
+            'link_hasil',
+            'link_folder_kerja',
+            'link_original',
+            'deadline_pilih',
             'paid_amount' => $totalPaid,
             'remaining' => max($booking->total - $totalPaid, 0),
             'paid_at' => Carbon::now('Asia/Jakarta'),
@@ -223,11 +227,11 @@ class BookingController extends Controller
         try {
             // Generate ulang Booking Code persis seperti yang di UI
             $bookingCode = 'BKG-' . Carbon::parse($booking->created_at)->format('Ymd') . '-' . strtoupper(substr(md5($booking->id), 0, 4));
-            
+
             // Ambil data pemilik/studio (admin saat ini)
             $owner = \App\Models\User::find($booking->user_id);
             $companySetting = DB::table('company_settings')->where('user_id', $booking->user_id)->first();
-            
+
             $companyName = $companySetting->company_name ?? $owner->name;
             $companyPhone = $companySetting->whatsapp_number ?? $companySetting->phone_number ?? '';
 

@@ -64,6 +64,10 @@ class Booking extends Model
         'total',
         'remaining',
         'notes',
+        'link_hasil',
+        'link_folder_kerja',
+        'link_original',
+        'deadline_pilih',
     ];
 
     protected $casts = [

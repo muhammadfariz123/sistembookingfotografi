@@ -4,7 +4,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ServiceType extends Model
 {
-    protected $fillable = ['user_id', 'service_category_id', 'name', 'description', 'price'];
+    protected $fillable = ['user_id', 'service_category_id', 'name', 'description', 'price', 'photo_limit'];
 
     public function category() {
         return $this->belongsTo(ServiceCategory::class, 'service_category_id');
@@ -13,5 +13,4 @@ class ServiceType extends Model
     public function bookings() {
         return $this->hasMany(Booking::class);
     }
-    // HAPUS fungsi galleries() dari sini!
 }
