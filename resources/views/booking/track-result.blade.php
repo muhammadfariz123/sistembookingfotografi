@@ -62,7 +62,7 @@
         $sisaHariPilih = max(0, \Carbon\Carbon::now()->startOfDay()->diffInDays($deadlineDb->startOfDay(), false));
         $deadlineStr = $deadlineDb->locale('id')->isoFormat('DD MMM YYYY');
 
-        // LOGIKA BARU: HITUNG NOMINAL YANG "SEDANG DIVERIFIKASI"
+        // LOGIKA NOMINAL "SEDANG DIVERIFIKASI"
         $dpAmount = (int) ceil($booking->total * 0.3);
         $pendingAmount = 0;
         
@@ -81,9 +81,7 @@
         $totalSelectedPhotos = count($selectedPhotosArray);
         $waktuPilihFoto = $booking->updated_at ? \Carbon\Carbon::parse($booking->updated_at)->format('d M Y, H:i') : '';
 
-        // ==========================================
         // LOGIKA WAKTU REAL-TIME (KHUSUS BANNER)
-        // ==========================================
         $now = \Carbon\Carbon::now()->timezone('Asia/Jakarta'); 
         $tglHanyaTanggal = \Carbon\Carbon::parse($tglLayanan)->format('Y-m-d');
         $jamHanyaWaktu = $booking->booking_time ? \Carbon\Carbon::parse($booking->booking_time)->format('H:i:s') : '00:00:00';
@@ -123,7 +121,63 @@
     <div class="max-w-xl mx-auto px-4 pt-8" x-data="{ copied: false, copyKode() { navigator.clipboard.writeText('{{ $bookingCode }}'); this.copied = true; setTimeout(() => this.copied = false, 1500); } }">
         
         {{-- KARTU 1: STATUS BANNER --}}
-        @if($statusJadwal === 'Pilihan Diterima')
+        @if($statusJadwal === 'Selesai')
+            {{-- DESAIN BANNER KHUSUS HASIL SELESAI --}}
+            <div class="bg-emerald-50 rounded-2xl shadow-sm border border-emerald-100 p-6 mb-6 relative overflow-hidden">
+                <div class="absolute bottom-0 left-6 right-6 h-1 bg-emerald-500 rounded-t-md"></div>
+                
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm text-lg">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                        </div>
+                        <div>
+                            <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Status Booking</p>
+                            <h2 class="text-[16px] font-extrabold text-emerald-600">Foto Siap! 🎉</h2>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Kode</p>
+                        <p class="font-mono font-bold text-gray-900 text-[14px]">{{ $bookingCode }}</p>
+                    </div>
+                </div>
+                
+                <p class="text-[13px] text-gray-700 leading-relaxed mb-5">
+                    Hasil foto kamu sudah siap! Klik tombol di bawah untuk membuka dan download fotomu.
+                </p>
+
+                <a href="{{ $booking->link_hasil }}" target="_blank" class="w-full bg-brand text-white font-bold text-[13px] py-3 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition shadow-sm">
+                    📥 Buka & Download Hasil Foto
+                </a>
+            </div>
+
+        @elseif($statusJadwal === 'Proses Edit')
+            {{-- DESAIN BANNER KHUSUS PROSES EDITING --}}
+            <div class="bg-purple-50 rounded-2xl shadow-sm border border-purple-100 p-6 mb-6 relative overflow-hidden">
+                <div class="absolute bottom-0 left-6 right-6 h-1 bg-purple-600 rounded-t-md"></div>
+                
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-purple-600 text-white flex items-center justify-center shrink-0 shadow-sm text-lg">
+                            ✏️
+                        </div>
+                        <div>
+                            <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Status Booking</p>
+                            <h2 class="text-[16px] font-extrabold text-purple-600">Proses Editing</h2>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Kode</p>
+                        <p class="font-mono font-bold text-gray-900 text-[14px]">{{ $bookingCode }}</p>
+                    </div>
+                </div>
+                
+                <p class="text-[13px] text-gray-700 leading-relaxed">
+                    Foto kamu sedang diedit oleh tim kami. Sabar ya, hampir selesai!
+                </p>
+            </div>
+
+        @elseif($statusJadwal === 'Pilihan Diterima')
             {{-- DESAIN BANNER KETIKA PILIHAN FOTO SUDAH DIKIRIM --}}
             <div class="bg-orange-50 rounded-2xl shadow-sm border border-orange-100 p-6 mb-6 relative overflow-hidden">
                 <div class="absolute bottom-0 left-6 right-6 h-1 bg-brand rounded-t-md"></div>
@@ -325,7 +379,7 @@
                     @if($booking->booking_time)
                         <div class="bg-gray-50 rounded-lg p-3 mt-3 flex items-center gap-2 text-[13px] font-semibold text-gray-700 border border-gray-100">
                             <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            {{ \Carbon\Carbon::parse($booking->booking_time)->format('H:i') }} – {{ \Carbon\Carbon::parse($booking->booking_time)->addHours(1)->format('H:i') }}
+                            {{ \Carbon\Carbon::parse($booking->booking_time)->format('H:i') }} WIB
                         </div>
                     @endif
                 </div>
@@ -351,7 +405,7 @@
             
             <div class="timeline-container">
                 @php
-                    // --- LOGIKA PROGRESS TETAP KETAT SESUAI WORKBOARD ---
+                    // --- LOGIKA PROGRESS WORKBOARD ---
                     $statusUrutan = [
                         'Dijadwalkan' => 1, 
                         'File Original Disiapkan' => 2, 
@@ -386,8 +440,8 @@
                             $stateFile = 'active';
                         }
 
-                        // Pilih Foto (Jika status Pilihan Diterima atau Proses Edit/Selesai, maka step Pilih Foto sudah selesai)
-                        if ($currentLevel >= 3) {
+                        // Pilih Foto
+                        if ($currentLevel > 3) {
                             $statePilih = 'completed';
                         } elseif ($currentLevel == 3) {
                             $statePilih = 'active';
@@ -450,7 +504,7 @@
                         <p class="text-[12px] text-gray-400 mt-0.5">
                             {{ \Carbon\Carbon::parse($tglHanyaTanggal)->format('d M Y') }} 
                             @if($hasTime)
-                                · {{ \Carbon\Carbon::parse($jamHanyaWaktu)->format('H:i') }}–{{ \Carbon\Carbon::parse($jamHanyaWaktu)->addHours(1)->format('H:i') }}
+                                · {{ \Carbon\Carbon::parse($jamHanyaWaktu)->format('H:i') }} WIB
                             @endif
                         </p>
                     </div>
@@ -486,12 +540,12 @@
                     <div class="{{ $statePilih !== '' ? '' : 'opacity-40' }}">
                         <div class="flex justify-between items-start">
                             <h4 class="font-bold text-gray-900 text-[14px]">Pilih Foto untuk Diedit</h4>
-                            @if($statusJadwal === 'Pilihan Diterima' && $totalSelectedPhotos > 0)
+                            @if(($statusJadwal === 'Pilihan Diterima' || $statusJadwal === 'Proses Edit' || $statusJadwal === 'Selesai') && $totalSelectedPhotos > 0)
                                 <p class="text-[11px] text-gray-400 mt-0.5">{{ \Carbon\Carbon::parse($booking->updated_at)->format('d M Y') }}</p>
                             @endif
                         </div>
                         <p class="text-[12px] text-gray-500 mt-0.5">
-                            @if($statusJadwal === 'Pilihan Diterima' && $totalSelectedPhotos > 0)
+                            @if(($statusJadwal === 'Pilihan Diterima' || $statusJadwal === 'Proses Edit' || $statusJadwal === 'Selesai') && $totalSelectedPhotos > 0)
                                 {{ $totalSelectedPhotos }} foto dipilih · {{ $waktuPilihFoto }}
                             @else
                                 Kamu memilih foto yang ingin diedit
@@ -521,22 +575,61 @@
                         @endif
                     </div>
                     <div class="{{ $stateHasil !== '' ? '' : 'opacity-40' }}">
-                        <h4 class="font-bold text-gray-900 text-[14px]">Hasil Dikirim</h4>
+                        <div class="flex justify-between items-start">
+                            <h4 class="font-bold text-gray-900 text-[14px]">Hasil Dikirim</h4>
+                            @if($stateHasil === 'completed')
+                                <p class="text-[11px] text-gray-400 mt-0.5">{{ \Carbon\Carbon::parse($booking->updated_at)->format('d M Y') }}</p>
+                            @endif
+                        </div>
                         <p class="text-[12px] text-gray-500 mt-0.5">Link hasil siap untuk diunduh</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        {{-- KARTU TAMBAHAN: TAHAP PILIH FOTO (MUNCUL JIKA STATUS 'File Original Disiapkan' ATAU 'Pilihan Diterima') --}}
-        @if($statusJadwal === 'File Original Disiapkan' || $statusJadwal === 'Pilihan Diterima')
+        {{-- KARTU TAMBAHAN KHUSUS: INFO PROSES EDITING (HANYA MUNCUL KETIKA STATUS 'Proses Edit') --}}
+        @if($statusJadwal === 'Proses Edit')
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+                <h3 class="font-bold text-gray-900 mb-4 text-[15px] border-b border-gray-100 pb-3 flex items-center gap-2">
+                    <span class="text-lg">✏️</span> Info Proses Editing
+                </h3>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    {{-- Posisi Antrian --}}
+                    <div class="bg-purple-50/60 border border-purple-100 rounded-xl p-4">
+                        <p class="text-[11px] font-bold text-purple-700 uppercase tracking-wider mb-1">Posisi Antrian</p>
+                        <p class="text-2xl font-extrabold text-purple-900">#{{ $booking->queue_number ?? '1' }}</p>
+                        <p class="text-[11px] text-purple-600 mt-1">dalam antrian editing</p>
+                    </div>
+                    
+                    {{-- Estimasi Selesai --}}
+                    <div class="bg-purple-50/60 border border-purple-100 rounded-xl p-4">
+                        <p class="text-[11px] font-bold text-purple-700 uppercase tracking-wider mb-1">Estimasi Selesai</p>
+                        <p class="text-[15px] font-extrabold text-purple-900">
+                            {{ $booking->estimate_date ? \Carbon\Carbon::parse($booking->estimate_date)->locale('id')->isoFormat('D MMM YYYY') : 'Menyusul' }}
+                        </p>
+                        @if($booking->estimate_date)
+                            @php
+                                $diffDaysEst = \Carbon\Carbon::now()->startOfDay()->diffInDays(\Carbon\Carbon::parse($booking->estimate_date)->startOfDay(), false);
+                            @endphp
+                            <p class="text-[11px] text-purple-700 font-bold mt-1">
+                                {{ $diffDaysEst > 0 ? $diffDaysEst . ' hari lagi' : ($diffDaysEst === 0 ? 'Hari ini' : 'Terlewat ' . Math.abs($diffDaysEst) . ' hari') }}
+                            </p>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        {{-- KARTU TAHAP PILIH FOTO (MUNCUL PADA STATUS 'File Original Disiapkan', 'Pilihan Diterima', ATAU 'Proses Edit') --}}
+        @if(in_array($statusJadwal, ['File Original Disiapkan', 'Pilihan Diterima', 'Proses Edit']))
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
                 <h3 class="font-bold text-gray-900 mb-4 text-[15px] border-b border-gray-100 pb-3 flex items-center gap-2">
                     <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M4 6h16a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V7a1 1 0 011-1z"></path></svg>
                     Pilih Foto untuk Diedit
                 </h3>
                 
-                @if($statusJadwal === 'Pilihan Diterima' && $totalSelectedPhotos > 0)
+                @if(($statusJadwal === 'Pilihan Diterima' || $statusJadwal === 'Proses Edit') && $totalSelectedPhotos > 0)
                     <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-4 mb-5 flex items-center gap-3 text-emerald-800">
                         <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
                         <div class="text-[13px] font-bold">
@@ -554,13 +647,23 @@
                 @endif
 
                 <p class="text-[13px] text-gray-600 mb-5 leading-relaxed">
-                    {{ $statusJadwal === 'Pilihan Diterima' ? 'Kamu dapat mengubah pilihan foto sebelum admin mulai memproses editing.' : 'File original sudah siap! Pilih foto yang ingin diedit langsung dari platform.' }}
+                    @if($statusJadwal === 'Proses Edit')
+                        Foto pilihan kamu sedang dalam proses pengerjaan editing oleh tim studio.
+                    @elseif($statusJadwal === 'Pilihan Diterima')
+                        Kamu dapat mengubah pilihan foto sebelum admin mulai memproses editing.
+                    @else
+                        File original sudah siap! Pilih foto yang ingin diedit langsung dari platform.
+                    @endif
                 </p>
 
                 <div class="space-y-3">
-                    <a href="{{ url('/seleksi/' . $bookingCode) }}" class="w-full bg-brand text-white font-bold text-[13px] py-3 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition shadow-sm">
-                        {{ $statusJadwal === 'Pilihan Diterima' ? 'Ubah Pilihan Foto' : '📸 Pilih Foto Sekarang' }}
-                    </a>
+                    {{-- Tombol Ubah Pilihan Foto HANYA MUNCUL jika BELUM dalam Proses Edit --}}
+                    @if($statusJadwal !== 'Proses Edit')
+                        <a href="{{ url('/seleksi/' . $bookingCode) }}" class="w-full bg-brand text-white font-bold text-[13px] py-3 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition shadow-sm">
+                            {{ $statusJadwal === 'Pilihan Diterima' ? 'Ubah Pilihan Foto' : '📸 Pilih Foto Sekarang' }}
+                        </a>
+                    @endif
+
                     @if($booking->link_original)
                         <a href="{{ $booking->link_original }}" target="_blank" class="w-full bg-white border border-gray-300 text-gray-700 font-bold text-[13px] py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-50 transition shadow-sm">
                             Buka Google Drive / Download Foto ↗
@@ -635,11 +738,30 @@
             <h3 class="font-bold text-gray-400 text-[11px] uppercase tracking-wider mb-4 text-left">Hasil Foto</h3>
             
             @if($statusJadwal === 'Selesai' && $booking->link_hasil)
-                <p class="text-[13px] text-gray-600 mb-4">Yeay! Foto kamu sudah selesai diedit dan siap diunduh.</p>
-                <a href="{{ $booking->link_hasil }}" target="_blank" class="inline-flex items-center justify-center gap-2 w-full bg-blue-600 text-white font-bold text-[13px] py-3 rounded-xl hover:bg-blue-700 transition shadow-sm">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                    Unduh Hasil Foto
-                </a>
+                <div class="bg-orange-50/50 border border-orange-100 rounded-xl p-5 mb-4 text-left">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-10 h-10 bg-white rounded-lg shadow-sm border border-orange-100 flex items-center justify-center shrink-0 text-xl">
+                            🖼️
+                        </div>
+                        <div>
+                            <h4 class="font-extrabold text-gray-900 text-[14px]">Foto kamu sudah siap! 📷</h4>
+                            <p class="text-[12px] text-gray-500 mt-0.5">Segera download ke perangkatmu</p>
+                        </div>
+                    </div>
+                    <a href="{{ $booking->link_hasil }}" target="_blank" class="w-full bg-brand text-white font-bold text-[13px] py-2.5 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition shadow-sm">
+                        Buka Hasil Foto ↗
+                    </a>
+                </div>
+
+                @if(!empty($booking->admin_notes))
+                    <div class="bg-orange-50 border border-orange-100 rounded-xl p-4 text-left flex items-start gap-3">
+                        <div class="text-lg">📝</div>
+                        <div>
+                            <p class="text-[11px] font-bold text-orange-800 uppercase tracking-wider mb-1">Catatan dari admin</p>
+                            <p class="text-[12px] text-orange-900 leading-relaxed">{!! nl2br(e($booking->admin_notes)) !!}</p>
+                        </div>
+                    </div>
+                @endif
             @else
                 <div class="bg-gray-50 rounded-xl p-6 flex flex-col items-center justify-center border border-gray-100">
                     <div class="w-10 h-10 bg-white shadow-sm rounded-full flex items-center justify-center mx-auto mb-3">
