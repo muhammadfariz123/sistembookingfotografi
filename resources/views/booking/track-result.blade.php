@@ -259,10 +259,11 @@
                 </div>
                 
                 <p class="text-[13px] text-gray-700 leading-relaxed">
-                    {{ $stateSesiRealTime === 'active' 
-                        ? 'Sesi foto kamu sedang berjalan saat ini. Berikan pose dan senyum terbaikmu! setelah sesi selesai Menunggu admin menyiapkan file original / RAW.' 
-                        : 'Sesi sudah selesai. Menunggu studio menyiapkan file original / RAW.' 
-                    }}
+                    @if($stateSesiRealTime === 'active')
+                        Sesi sedang berlangsung. Setelah sesi selesai, selanjutnya menunggu studio menyiapkan file original / RAW.
+                    @else
+                        Sesi telah selesai. Selanjutnya menunggu studio menyiapkan file original / RAW.
+                    @endif
                 </p>
             </div>
         @else
@@ -424,13 +425,22 @@
                     $stateHasil = '';
 
                     if ($isPaymentApproved && $currentLevel >= 1) {
-                        $stateJadwal = 'completed';
                         
-                        // Sesi Foto
+                        // Cek apakah sudah menyentuh jam sesi foto
+                        $hasReachedSession = ($stateSesiRealTime === 'active' || $stateSesiRealTime === 'finished');
+
+                        // Jadwal & Sesi Foto
                         if ($currentLevel > 1) {
+                            $stateJadwal = 'completed';
                             $stateSesi = 'completed';
-                        } else {
-                            $stateSesi = 'active'; 
+                        } elseif ($currentLevel == 1) {
+                            if ($hasReachedSession) {
+                                $stateJadwal = 'completed';
+                                $stateSesi = 'active';
+                            } else {
+                                $stateJadwal = 'active';
+                                $stateSesi = ''; // Belum masuk tahap sesi, mengunci timeline agar tidak lanjut
+                            }
                         }
 
                         // File Original
@@ -501,10 +511,16 @@
                     </div>
                     <div class="{{ $stateSesi !== '' ? '' : 'opacity-40' }}">
                         <h4 class="font-bold text-gray-900 text-[14px]">Sesi Foto</h4>
-                        <p class="text-[12px] text-gray-400 mt-0.5">
-                            {{ \Carbon\Carbon::parse($tglHanyaTanggal)->format('d M Y') }} 
-                            @if($hasTime)
-                                · {{ \Carbon\Carbon::parse($jamHanyaWaktu)->format('H:i') }} WIB
+                        <p class="text-[12px] text-gray-500 mt-0.5">
+                            @if($stateSesi === 'active' && $stateSesiRealTime === 'active')
+                                Sesi sedang berlangsung. Setelah sesi selesai, selanjutnya menunggu studio menyiapkan file original / RAW.
+                            @elseif($stateSesi === 'active' && $stateSesiRealTime === 'finished')
+                                Sesi telah selesai. Selanjutnya menunggu studio menyiapkan file original / RAW.
+                            @else
+                                {{ \Carbon\Carbon::parse($tglHanyaTanggal)->format('d M Y') }} 
+                                @if($hasTime)
+                                    · {{ \Carbon\Carbon::parse($jamHanyaWaktu)->format('H:i') }} WIB
+                                @endif
                             @endif
                         </p>
                     </div>

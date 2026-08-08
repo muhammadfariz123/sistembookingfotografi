@@ -262,22 +262,6 @@
                                 </span>
                             @endif
                         </a>
-                        <a href="{{ route('workboard.index') }}"
-                            class="flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] transition
-                           {{ request()->routeIs('workboard.index') ? 'text-blue-600 font-semibold bg-blue-50/50' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50' }}">
-                            <div
-                                class="w-1.5 h-1.5 rounded-full shrink-0 {{ request()->routeIs('workboard.index') ? 'bg-blue-600' : 'bg-gray-300' }}">
-                            </div>
-                            Papan Kerja (Workboard)
-                        </a>
-                        <a href="{{ route('bookings.calendar') }}"
-                            class="flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] transition
-                           {{ request()->routeIs('bookings.calendar') ? 'text-blue-600 font-semibold bg-blue-50/50' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50' }}">
-                            <div
-                                class="w-1.5 h-1.5 rounded-full shrink-0 {{ request()->routeIs('bookings.calendar') ? 'bg-blue-600' : 'bg-gray-300' }}">
-                            </div>
-                            Kalender
-                        </a>
 
                         <a href="{{ route('transactions.index') }}"
                             class="flex items-center justify-between gap-3 px-3 py-2 rounded-lg text-[13px] transition
@@ -294,6 +278,24 @@
                                     {{ $sidebarPendingPaymentCount }}
                                 </span>
                             @endif
+                        </a>
+
+                        <a href="{{ route('workboard.index') }}"
+                            class="flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] transition
+                           {{ request()->routeIs('workboard.index') ? 'text-blue-600 font-semibold bg-blue-50/50' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50' }}">
+                            <div
+                                class="w-1.5 h-1.5 rounded-full shrink-0 {{ request()->routeIs('workboard.index') ? 'bg-blue-600' : 'bg-gray-300' }}">
+                            </div>
+                            Papan Kerja (Workboard)
+                        </a>
+
+                        <a href="{{ route('bookings.calendar') }}"
+                            class="flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] transition
+                           {{ request()->routeIs('bookings.calendar') ? 'text-blue-600 font-semibold bg-blue-50/50' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50' }}">
+                            <div
+                                class="w-1.5 h-1.5 rounded-full shrink-0 {{ request()->routeIs('bookings.calendar') ? 'bg-blue-600' : 'bg-gray-300' }}">
+                            </div>
+                            Kalender
                         </a>
 
                         <a href="{{ route('financial.index') }}"
@@ -332,22 +334,6 @@
                             </span>
                         @endif
                     </a>
-                    <a href="{{ route('workboard.index') }}" @click="open = false"
-                        class="flex items-center gap-3 px-4 py-2.5 text-[13px] transition
-                        {{ request()->routeIs('workboard.index') ? 'text-blue-600 font-semibold bg-blue-50/50' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-                        <div
-                            class="w-1.5 h-1.5 rounded-full shrink-0 {{ request()->routeIs('workboard.index') ? 'bg-blue-600' : 'bg-gray-300' }}">
-                        </div>
-                        Papan Kerja (Workboard)
-                    </a>
-                    <a href="{{ route('bookings.calendar') }}" @click="open = false"
-                        class="flex items-center gap-3 px-4 py-2.5 text-[13px] transition
-                        {{ request()->routeIs('bookings.calendar') ? 'text-blue-600 font-semibold bg-blue-50/50' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-                        <div
-                            class="w-1.5 h-1.5 rounded-full shrink-0 {{ request()->routeIs('bookings.calendar') ? 'bg-blue-600' : 'bg-gray-300' }}">
-                        </div>
-                        Kalender
-                    </a>
 
                     <a href="{{ route('transactions.index') }}" @click="open = false"
                         class="flex items-center justify-between gap-3 px-4 py-2.5 text-[13px] transition
@@ -366,6 +352,24 @@
                         @endif
                     </a>
 
+                    <a href="{{ route('workboard.index') }}" @click="open = false"
+                        class="flex items-center gap-3 px-4 py-2.5 text-[13px] transition
+                        {{ request()->routeIs('workboard.index') ? 'text-blue-600 font-semibold bg-blue-50/50' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <div
+                            class="w-1.5 h-1.5 rounded-full shrink-0 {{ request()->routeIs('workboard.index') ? 'bg-blue-600' : 'bg-gray-300' }}">
+                        </div>
+                        Papan Kerja (Workboard)
+                    </a>
+
+                    <a href="{{ route('bookings.calendar') }}" @click="open = false"
+                        class="flex items-center gap-3 px-4 py-2.5 text-[13px] transition
+                        {{ request()->routeIs('bookings.calendar') ? 'text-blue-600 font-semibold bg-blue-50/50' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <div
+                            class="w-1.5 h-1.5 rounded-full shrink-0 {{ request()->routeIs('bookings.calendar') ? 'bg-blue-600' : 'bg-gray-300' }}">
+                        </div>
+                        Kalender
+                    </a>
+
                     <a href="{{ route('financial.index') }}" @click="open = false"
                         class="flex items-center gap-3 px-4 py-2.5 text-[13px] transition
                         {{ request()->routeIs('financial.index') ? 'text-blue-600 font-semibold bg-blue-50/50' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
@@ -380,7 +384,7 @@
 
         {{-- MENU 4: SISTEM (DROPDOWN INLINE / FLYOUT POPUP) --}}
         @php
-            $sistemActive = request()->routeIs('company-setting.edit');
+            $sistemActive = request()->routeIs('company-setting.edit', 'bookings.export');
         @endphp
         <div class="w-full" x-data="{
                 isActive: {{ $sistemActive ? 'true' : 'false' }},
@@ -420,12 +424,12 @@
                             }
                         " title="Sistem & Pengaturan"
                     class="flex items-center px-3 py-2.5 rounded-xl font-medium text-[13px] transition w-full group focus:outline-none
-                        {{ request()->routeIs('company-setting.edit') ? 'bg-blue-50/50 text-blue-600 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                        {{ $sistemActive ? 'bg-blue-50/50 text-blue-600 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
                     :class="($store.sidebar.collapsed && isDesktop) ? 'justify-center w-11 h-11 px-0' : 'justify-between'">
                     <div class="flex items-center"
                         :class="($store.sidebar.collapsed && isDesktop) ? 'justify-center' : 'gap-3'">
                         <i data-lucide="settings"
-                            class="w-5 h-5 shrink-0 {{ request()->routeIs('company-setting.edit') ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-600' }}"></i>
+                            class="w-5 h-5 shrink-0 {{ $sistemActive ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-600' }}"></i>
                         <span x-show="!($store.sidebar.collapsed && isDesktop)" class="whitespace-nowrap">Sistem</span>
                     </div>
                     <i x-show="!($store.sidebar.collapsed && isDesktop)" data-lucide="chevron-down"
@@ -438,8 +442,8 @@
                     x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
                     <div class="pl-9 pr-2 py-1 flex flex-col gap-1 mt-1">
                         <a href="{{ route('bookings.export') }}"
-                            class="flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] transition text-gray-500 hover:text-gray-900 hover:bg-gray-50">
-                            <div class="w-1.5 h-1.5 rounded-full shrink-0 bg-gray-300"></div>
+                            class="flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] transition {{ request()->routeIs('bookings.export') ? 'text-blue-600 font-semibold bg-blue-50/50' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50' }}">
+                            <div class="w-1.5 h-1.5 rounded-full shrink-0 {{ request()->routeIs('bookings.export') ? 'bg-blue-600' : 'bg-gray-300' }}"></div>
                             Unduh Excel Data
                         </a>
                         <a href="{{ route('company-setting.edit') }}"
@@ -462,8 +466,8 @@
                     class="fixed w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-[100]" x-cloak>
                     <div class="px-4 py-2 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Sistem</div>
                     <a href="{{ route('bookings.export') }}" @click="open = false"
-                        class="flex items-center gap-3 px-4 py-2.5 text-[13px] transition text-gray-600 hover:bg-gray-50 hover:text-gray-900">
-                        <div class="w-1.5 h-1.5 rounded-full shrink-0 bg-gray-300"></div>
+                        class="flex items-center gap-3 px-4 py-2.5 text-[13px] transition {{ request()->routeIs('bookings.export') ? 'text-blue-600 font-semibold bg-blue-50/50' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <div class="w-1.5 h-1.5 rounded-full shrink-0 {{ request()->routeIs('bookings.export') ? 'bg-blue-600' : 'bg-gray-300' }}"></div>
                         Unduh Excel Data
                     </a>
                     <a href="{{ route('company-setting.edit') }}" @click="open = false"

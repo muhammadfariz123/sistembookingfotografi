@@ -45,27 +45,29 @@
                             </template>
                         </div>
                     </div>
+                    
                     {{-- BULK ACTIONS TOOLBAR --}}
                     <div x-show="selectedIds.length > 0" x-cloak x-transition
-                        class="flex items-center justify-between px-8 py-3 bg-orange-50/60 border-b border-orange-100">
+                        class="flex items-center justify-between px-8 py-3 bg-red-50 border-b border-red-100">
                         <div class="relative" x-data="{ bulkMenuOpen: false }">
                             <button type="button" @click="bulkMenuOpen = !bulkMenuOpen"
                                 class="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg text-[13px] font-semibold text-gray-700 hover:bg-gray-50 transition">
                                 <i data-lucide="more-vertical" class="w-4 h-4"></i>
-                                Bulk actions <span class="text-orange-600" x-text="`(${selectedIds.length})`"></span>
+                                Tindakan massal <span class="text-red-600" x-text="`(${selectedIds.length})`"></span>
                             </button>
                             <div x-show="bulkMenuOpen" @click.outside="bulkMenuOpen = false" x-transition
                                 class="absolute left-0 mt-2 w-52 bg-white border border-gray-100 rounded-lg shadow-lg z-20 py-1">
                                 <button type="button" @click="bulkMenuOpen = false; bulkDeleteModalOpen = true"
-                                    class="w-full flex items-center gap-2 px-4 py-2 text-[13px] text-red-500 hover:bg-red-50 transition font-medium">
-                                    <i data-lucide="trash-2" class="w-4 h-4"></i> Delete selected
+                                    class="w-full flex items-center gap-2 px-4 py-2 text-[13px] text-red-600 hover:bg-red-50 transition font-medium">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i> Hapus yang dipilih
                                 </button>
                             </div>
                         </div>
-                        <button type="button" @click="selectedIds = []" class="text-[13px] font-semibold text-orange-600 hover:text-orange-700 transition">
-                            Deselect all
+                        <button type="button" @click="selectedIds = []" class="text-[13px] font-semibold text-red-600 hover:text-red-700 transition">
+                            Batalkan Pilihan
                         </button>
                     </div>
+
                     {{-- Tabel Data Transaksi (Per Baris Riwayat) --}}
                     <div class="overflow-x-auto">
                         <table class="w-full min-w-[1150px]">
@@ -75,12 +77,12 @@
                                         <input type="checkbox" :checked="isAllSelected" @change="toggleSelectAll()"
                                             class="w-4 h-4 rounded border-gray-300 text-orange-500 focus:ring-orange-400 cursor-pointer">
                                     </th>
-                                    <th class="px-4 py-5 font-semibold tracking-wide">TRANSACTION ID</th>
+                                    <th class="px-4 py-5 font-semibold tracking-wide">ID TRANSAKSI</th>
                                     <th class="px-4 py-5 font-semibold tracking-wide">BOOKING</th>
-                                    <th class="px-4 py-5 font-semibold tracking-wide">TYPE</th>
-                                    <th class="px-4 py-5 font-semibold tracking-wide">AMOUNT</th>
+                                    <th class="px-4 py-5 font-semibold tracking-wide">TIPE BAYAR</th>
+                                    <th class="px-4 py-5 font-semibold tracking-wide">NOMINAL</th>
                                     <th class="px-4 py-5 font-semibold tracking-wide">STATUS</th>
-                                    <th class="px-4 py-5 font-semibold tracking-wide">PAID AT</th>
+                                    <th class="px-4 py-5 font-semibold tracking-wide">DIBAYAR PADA</th>
                                     <th class="px-4 py-5 font-semibold tracking-wide text-center">AKSI</th>
                                 </tr>
                             </thead>
@@ -155,6 +157,7 @@
                 </div>
             </div>
         </div>
+
         {{-- MODAL KONFIRMASI PEMBAYARAN --}}
         <div x-show="confirmModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center px-4" x-cloak>
             <div x-show="confirmModalOpen" x-transition.opacity class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="confirmModalOpen = false"></div>
@@ -186,8 +189,10 @@
                     </div>
                 </div>
                 <div class="px-6 py-4 border-t border-gray-700 bg-[#212121] flex gap-3 shrink-0">
-                    <button type="button" @click="submitConfirm()" :disabled="isProcessing" class="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-lg font-bold transition text-[13px] flex items-center gap-2">
-                        <i data-lucide="check" class="w-4 h-4"></i> Konfirmasi Pembayaran
+                    <button type="button" @click="submitConfirm()" :disabled="isProcessing" class="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-lg font-bold transition text-[13px] flex items-center gap-2 disabled:opacity-50">
+                        <i data-lucide="check" class="w-4 h-4"></i> 
+                        <span x-show="!isProcessing">Konfirmasi Pembayaran</span>
+                        <span x-show="isProcessing">Memproses...</span>
                     </button>
                     <button type="button" @click="confirmModalOpen = false" class="bg-[#333] hover:bg-[#444] text-white px-5 py-2.5 rounded-lg font-bold transition text-[13px]">
                         Batal
@@ -195,6 +200,7 @@
                 </div>
             </div>
         </div>
+
         {{-- MODAL TOLAK --}}
         <div x-show="rejectModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center px-4" x-cloak>
             <div x-show="rejectModalOpen" x-transition.opacity class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="rejectModalOpen = false"></div>
@@ -205,11 +211,17 @@
                 <h3 class="text-white font-bold text-lg mb-2">Tolak Bukti Transfer?</h3>
                 <textarea x-model="rejectReason" class="w-full bg-[#27272a] border border-red-500/40 rounded-xl p-3 text-white text-sm mb-4 outline-none" rows="3" placeholder="Alasan penolakan..."></textarea>
                 <div class="flex gap-3 justify-center">
-                    <button type="button" @click="rejectModalOpen = false" class="bg-[#27272a] text-white px-6 py-2.5 rounded-xl text-sm flex-1">Batal</button>
-                    <button type="button" @click="submitReject()" class="bg-red-600 text-white px-6 py-2.5 rounded-xl text-sm flex-1">Tolak</button>
+                    <button type="button" @click="rejectModalOpen = false" class="bg-[#27272a] hover:bg-[#3f3f46] border border-gray-700 text-white px-6 py-2.5 rounded-xl font-medium transition text-sm flex-1">
+                        Batal
+                    </button>
+                    <button type="button" @click="submitReject()" :disabled="isProcessing" class="bg-red-600 hover:bg-red-500 text-white px-6 py-2.5 rounded-xl font-medium transition text-sm flex-1 disabled:opacity-50">
+                        <span x-show="!isProcessing">Tolak Pembayaran</span>
+                        <span x-show="isProcessing">Memproses...</span>
+                    </button>
                 </div>
             </div>
         </div>
+
         {{-- MODAL DETAIL --}}
         <div x-show="detailModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center px-4" x-cloak>
             <div x-show="detailModalOpen" x-transition.opacity class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="detailModalOpen = false"></div>
@@ -219,7 +231,7 @@
                     <button @click="detailModalOpen = false" class="text-gray-400 hover:text-gray-600"><i data-lucide="x" class="w-5 h-5"></i></button>
                 </div>
                 <div class="space-y-3 text-sm text-gray-600">
-                    <p><b>Transaction ID:</b> <span class="font-mono text-gray-900 font-bold" x-text="selectedTx?.transaction_id"></span></p>
+                    <p><b>ID Transaksi:</b> <span class="font-mono text-gray-900 font-bold" x-text="selectedTx?.transaction_id"></span></p>
                     <p><b>Kode Booking:</b> <span class="font-mono text-blue-600 font-bold" x-text="selectedTx?.booking_code"></span></p>
                     <p><b>Nama Klien:</b> <span class="text-gray-900 font-semibold" x-text="selectedTx?.client_name"></span></p>
                     <p><b>Kontak:</b> <span class="text-gray-900" x-text="selectedTx?.client_contact || '-'"></span></p>
@@ -228,28 +240,45 @@
                     <p><b>Status:</b> <span class="text-gray-900 font-semibold" x-text="selectedTx?.payment_status"></span></p>
                 </div>
                 <div class="mt-6 text-right">
-                    <button @click="detailModalOpen = false" class="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold text-[13px]">Tutup</button>
+                    <button @click="detailModalOpen = false" class="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold text-[13px] transition">Tutup</button>
                 </div>
             </div>
         </div>
-        {{-- MODAL BULK DELETE --}}
+
+        {{-- MODAL HAPUS MASSAL (BULK DELETE) --}}
         <div x-show="bulkDeleteModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center px-4" x-cloak>
             <div x-show="bulkDeleteModalOpen" x-transition.opacity class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="bulkDeleteModalOpen = false"></div>
-            <div x-show="bulkDeleteModalOpen" class="relative bg-[#18181b] border border-gray-800 rounded-2xl shadow-2xl w-full max-w-md p-6 text-center z-10">
-                <div class="w-14 h-14 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mx-auto mb-4 border border-red-500/20">
-                    <i data-lucide="trash-2" class="w-7 h-7"></i>
+            <div x-show="bulkDeleteModalOpen" 
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 scale-95 translate-y-4"
+                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                 class="relative bg-[#18181b] border border-gray-800 rounded-2xl shadow-2xl w-full max-w-md p-6 text-center z-10">
+                
+                <button type="button" @click="bulkDeleteModalOpen = false" class="absolute top-4 right-4 text-gray-500 hover:text-white transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+                
+                <div class="w-16 h-16 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mx-auto mb-4 border border-red-500/20">
+                    <i data-lucide="trash-2" class="w-8 h-8"></i>
                 </div>
-                <h3 class="text-white font-bold text-lg mb-2">Hapus Transaksi Terpilih?</h3>
-                <p class="text-gray-400 text-sm mb-4">
-                    <span x-text="selectedIds.length"></span> transaksi akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan.
+                <h3 class="text-white font-bold text-lg mb-2">Hapus Data Terpilih?</h3>
+                <p class="text-gray-400 text-sm mb-6 px-2">
+                    <span x-text="selectedIds.length"></span> transaksi akan dihapus permanen dan tidak bisa dikembalikan.
                 </p>
                 <div class="flex gap-3 justify-center">
-                    <button type="button" @click="bulkDeleteModalOpen = false" class="bg-[#27272a] text-white px-6 py-2.5 rounded-xl text-sm flex-1">Batal</button>
-                    <button type="button" @click="submitBulkDelete()" :disabled="isProcessing" class="bg-red-600 text-white px-6 py-2.5 rounded-xl text-sm flex-1">Hapus</button>
+                    <button type="button" @click="bulkDeleteModalOpen = false" class="bg-[#27272a] hover:bg-[#3f3f46] border border-gray-700 text-white px-6 py-2.5 rounded-xl font-medium transition text-sm flex-1">
+                        Batal
+                    </button>
+                    <button type="button" @click="submitBulkDelete()" :disabled="isProcessing" class="bg-red-600 hover:bg-red-500 text-white px-6 py-2.5 rounded-xl font-medium transition text-sm flex-1 disabled:opacity-50">
+                        <span x-show="!isProcessing">Hapus Sekarang</span>
+                        <span x-show="isProcessing">Menghapus...</span>
+                    </button>
                 </div>
             </div>
         </div>
+
     </div>
+
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
         function transactionPage() {
@@ -263,7 +292,7 @@
                     { key: 'tunggu_konfirmasi', label: 'Tunggu Konfirmasi' },
                     { key: 'berhasil', label: 'Berhasil' },
                     { key: 'pending', label: 'Pending' },
-                    { key: 'expired', label: 'Expired' },
+                    { key: 'ditolak', label: 'Ditolak' },
                 ],
                 selectedIds: [],
                 confirmModalOpen: false,
@@ -272,12 +301,14 @@
                 bulkDeleteModalOpen: false,
                 selectedTx: null,
                 rejectReason: '',
-                isProcessing: false,
+                isProcessing: false, 
+
                 init() {
                     this.$nextTick(() => { if (window.lucide) lucide.createIcons() })
-                    this.loadBookings();
+                    this.loadTransactions();
                 },
-                async loadBookings(silent = false) {
+                
+                async loadTransactions(silent = false) {
                     if (!silent) this.loading = true
                     try {
                         const res = await fetch('/bookings', { headers: { 'Accept': 'application/json' } })
@@ -290,6 +321,7 @@
                         this.$nextTick(() => { if (window.lucide) lucide.createIcons() })
                     }
                 },
+                
                 get allTransactions() {
                     let txs = [];
                     this.bookings.forEach(b => {
@@ -301,21 +333,24 @@
                     });
                     return txs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
                 },
+                
                 mapStatusToTabKey(status) {
                     if (status === 'Tunggu Konfirmasi') return 'tunggu_konfirmasi';
                     if (status === 'Berhasil' || status === 'Lunas') return 'berhasil';
                     if (status === 'Pending') return 'pending';
-                    if (['Expired', 'Ditolak', 'Cancelled', 'Dibatalkan'].includes(status)) return 'expired';
+                    if (status === 'Ditolak') return 'ditolak';
                     return null;
                 },
+                
                 get statusCounts() {
-                    const counts = { semua: this.allTransactions.length, tunggu_konfirmasi: 0, berhasil: 0, pending: 0, expired: 0 };
+                    const counts = { semua: this.allTransactions.length, tunggu_konfirmasi: 0, berhasil: 0, pending: 0, ditolak: 0 };
                     this.allTransactions.forEach(tx => {
                         const key = this.mapStatusToTabKey(tx.payment_status);
                         if (key && counts.hasOwnProperty(key)) counts[key]++;
                     });
                     return counts;
                 },
+                
                 get filteredTransactions() {
                     let result = [...this.allTransactions];
                     if (this.activePayment && this.activePayment !== 'semua') {
@@ -331,9 +366,11 @@
                     }
                     return result;
                 },
+                
                 get isAllSelected() {
                     return this.filteredTransactions.length > 0 && this.filteredTransactions.every(tx => this.selectedIds.includes(tx.id));
                 },
+                
                 toggleSelectAll() {
                     const idsInView = this.filteredTransactions.map(tx => tx.id);
                     if (this.isAllSelected) {
@@ -342,6 +379,7 @@
                         this.selectedIds = [...new Set([...this.selectedIds, ...idsInView])];
                     }
                 },
+                
                 toggleSelect(id) {
                     if (this.selectedIds.includes(id)) {
                         this.selectedIds = this.selectedIds.filter(sid => sid !== id);
@@ -349,29 +387,47 @@
                         this.selectedIds.push(id);
                     }
                 },
+
                 async submitBulkDelete() {
                     if (this.selectedIds.length === 0) return;
                     this.isProcessing = true;
                     try {
-                        const res = await fetch('/bookings/bulk-delete', {
+                        // [FIX] Mengubah endpoint ke /transactions/bulk-delete
+                        const res = await fetch('/transactions/bulk-delete', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+                            headers: { 
+                                'Content-Type': 'application/json', 
+                                'Accept': 'application/json', 
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content 
+                            },
                             body: JSON.stringify({ ids: this.selectedIds })
                         });
-                        if (!res.ok) throw new Error('Gagal menghapus data');
+                        
+                        const data = await res.json();
+                        if (!res.ok) throw new Error(data.message || 'Gagal menghapus data');
+                        
                         this.selectedIds = [];
                         this.bulkDeleteModalOpen = false;
-                        this.loadBookings(true);
-                    } catch (err) { alert(err.message); } finally { this.isProcessing = false; }
+                        
+                        if (window.Swal) Swal.fire({ icon: 'success', title: 'Terhapus!', text: data.message, timer: 2000, showConfirmButton: false, customClass: { popup: 'rounded-[28px]' } });
+                        
+                        this.loadTransactions(true);
+                    } catch (err) { 
+                        if (window.Swal) Swal.fire({ icon: 'error', title: 'Gagal', text: err.message, customClass: { popup: 'rounded-[28px]' } }); 
+                        else alert(err.message); 
+                    } finally { 
+                        this.isProcessing = false; 
+                    }
                 },
+                
                 openConfirmModal(tx) { this.selectedTx = tx; this.confirmModalOpen = true; this.$nextTick(() => { if (window.lucide) lucide.createIcons() }); },
                 openRejectModal(tx) { this.selectedTx = tx; this.rejectReason = ''; this.rejectModalOpen = true; },
                 openDetailModal(tx) { this.selectedTx = tx; this.detailModalOpen = true; },
+                
                 async submitConfirm() {
                     if (!this.selectedTx) return;
                     this.isProcessing = true;
                     try {
-                        // Menggunakan booking_id agar rute Laravel mengenali ID booking dengan benar
                         const targetId = this.selectedTx.booking_id || this.selectedTx.id;
                         const res = await fetch(`/bookings/${targetId}/approve-payment`, {
                             method: 'POST',
@@ -379,9 +435,10 @@
                         });
                         if (!res.ok) throw new Error('Gagal konfirmasi');
                         this.confirmModalOpen = false;
-                        this.loadBookings(true);
+                        this.loadTransactions(true);
                     } catch (err) { alert(err.message); } finally { this.isProcessing = false; }
                 },
+                
                 async submitReject() {
                     if (!this.selectedTx) return;
                     this.isProcessing = true;
@@ -394,9 +451,10 @@
                         });
                         if (!res.ok) throw new Error('Gagal menolak');
                         this.rejectModalOpen = false;
-                        this.loadBookings(true);
+                        this.loadTransactions(true);
                     } catch (err) { alert(err.message); } finally { this.isProcessing = false; }
                 },
+                
                 getImageUrl(path) {
                     if (!path) return '';
                     if (path.startsWith('storage/')) return '/' + path;
@@ -412,7 +470,8 @@
                 paymentClass(status) {
                     if (status === 'Berhasil' || status === 'Lunas') return 'bg-emerald-50 text-emerald-700 border-emerald-200';
                     if (status === 'Tunggu Konfirmasi') return 'bg-yellow-50 text-yellow-700 border-yellow-200 animate-pulse';
-                    if (status === 'Pending') return 'bg-red-50 text-red-600 border-red-200';
+                    if (status === 'Pending') return 'bg-gray-100 text-gray-600 border-gray-300';
+                    if (status === 'Ditolak') return 'bg-red-50 text-red-600 border-red-200';
                     return 'bg-gray-100 text-gray-700 border-gray-300';
                 },
                 paymentLabel(status) {

@@ -58,7 +58,10 @@ Route::get('/seleksi/{bookingCode}', [PublicBookingController::class, 'selection
 */
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    
+    // transactions
     Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
+    Route::post('/transactions/bulk-delete', [\App\Http\Controllers\TransactionController::class, 'bulkDelete'])->name('transactions.bulkDelete');
 
     // Financial Dashboard
     Route::get('/financial', [FinancialController::class, 'index'])->name('financial.index');
