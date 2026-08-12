@@ -4,6 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Booking;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 
 class WorkboardController extends Controller
 {
@@ -11,9 +16,25 @@ class WorkboardController extends Controller
     {
         $tab = $request->query('tab', 'semua');
 
-        // Base query: Hanya tampilkan booking yang pembayarannya Lunas atau DP
-        $baseQuery = Booking::with('serviceType')
-            ->whereIn('payment_status', ['Lunas', 'Down Payment']);
+        // =================================================================
+        // BASE QUERY (SANGAT KETAT)
+        // =================================================================
+        $baseQuery = Booking::with(['serviceType', 'user'])
+            ->where('user_id', Auth::id()) // 1. KUNCI UTAMA: Hanya ambil data milik Admin/Studio yang sedang login
+            ->whereIn('payment_status', ['Lunas', 'Down Payment'])
+            ->whereIn('status', [          // 2. WHITELIST: Hanya izinkan status yang sedang dalam proses kerja
+                'Dijadwalkan', 
+                'File Original Disiapkan', 
+                'Pilih Foto', 
+                'Pilihan Diterima', 
+                'Proses Edit', 
+                'Selesai'
+            ]);
+
+        // 3. PENCEGAHAN SOFT-DELETE: Pastikan data yang dihapus ke tempat sampah tidak ikut terbaca
+        if (Schema::hasColumn('bookings', 'deleted_at')) {
+            $baseQuery->whereNull('deleted_at');
+        }
 
         // Hitung jumlah data per status untuk mengisi angka di kartu atas
         $counts = [
@@ -107,22 +128,22 @@ class WorkboardController extends Controller
         // 1. EMAIL JIKA MULAI PROSES EDIT
         if ($request->status === 'Proses Edit' && $request->send_email == true && !empty($booking->client_email)) {
             try {
-                \Illuminate\Support\Facades\Mail::to($booking->client_email)->send(
+                Mail::to($booking->client_email)->send(
                     new \App\Mail\EditingStartedMail($booking, $bookingCode, $companyName, $companyPhone)
                 );
             } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error("Gagal kirim email Proses Edit: " . $e->getMessage());
+                Log::error("Gagal kirim email Proses Edit: " . $e->getMessage());
             }
         }
 
         // 2. EMAIL JIKA HASIL FOTO SELESAI & DIKIRIM
         if ($request->status === 'Selesai' && $request->send_email == true && !empty($booking->client_email) && $request->has('link_hasil')) {
             try {
-                \Illuminate\Support\Facades\Mail::to($booking->client_email)->send(
+                Mail::to($booking->client_email)->send(
                     new \App\Mail\PhotoResultMail($booking, $bookingCode, $companyName, $companyPhone)
                 );
             } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error("Gagal kirim email Hasil Foto: " . $e->getMessage());
+                Log::error("Gagal kirim email Hasil Foto: " . $e->getMessage());
             }
         }
 

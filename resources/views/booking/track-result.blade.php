@@ -51,6 +51,9 @@
         
         $isLunas = strtoupper($booking->payment_type) === 'LUNAS' || strtoupper($booking->payment_type) === 'PELUNASAN';
         $isPaymentApproved = in_array($statusPembayaran, ['Lunas', 'Down Payment']);
+        
+        // Variabel penentu apakah sebelumnya klien sudah pernah bayar (DP)
+        $hasPaidSomething = $booking->paid_amount > 0;
 
         // Hitung Countdown Hari Acara
         $hariIni = \Carbon\Carbon::now()->startOfDay();
@@ -67,10 +70,12 @@
         $pendingAmount = 0;
         
         if ($statusPembayaran === 'Tunggu Konfirmasi') {
-            if ($isLunas) {
-                $pendingAmount = $booking->remaining > 0 ? $booking->remaining : $booking->total;
+            if ($hasPaidSomething) {
+                // Verifikasi sisa pelunasan
+                $pendingAmount = $booking->remaining;
             } else {
-                $pendingAmount = $dpAmount;
+                // Verifikasi pembayaran awal (DP/Lunas penuh dari awal)
+                $pendingAmount = $isLunas ? $booking->total : $dpAmount;
             }
         }
         
@@ -91,7 +96,7 @@
         $endSesiInfo = $startSesi->copy()->addHours(2); 
 
         $stateSesiRealTime = ''; 
-        if ($isPaymentApproved && $statusJadwal === 'Dijadwalkan') {
+        if (($isPaymentApproved || ($statusPembayaran === 'Tunggu Konfirmasi' && $hasPaidSomething)) && $statusJadwal === 'Dijadwalkan') {
             if ($hasTime) {
                 if ($now->between($startSesi, $endSesiInfo)) {
                     $stateSesiRealTime = 'active'; // Sedang Sesi
@@ -122,10 +127,8 @@
         
         {{-- KARTU 1: STATUS BANNER --}}
         @if($statusJadwal === 'Selesai')
-            {{-- DESAIN BANNER KHUSUS HASIL SELESAI --}}
             <div class="bg-emerald-50 rounded-2xl shadow-sm border border-emerald-100 p-6 mb-6 relative overflow-hidden">
                 <div class="absolute bottom-0 left-6 right-6 h-1 bg-emerald-500 rounded-t-md"></div>
-                
                 <div class="flex justify-between items-start mb-4">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm text-lg">
@@ -141,21 +144,17 @@
                         <p class="font-mono font-bold text-gray-900 text-[14px]">{{ $bookingCode }}</p>
                     </div>
                 </div>
-                
                 <p class="text-[13px] text-gray-700 leading-relaxed mb-5">
                     Hasil foto kamu sudah siap! Klik tombol di bawah untuk membuka dan download fotomu.
                 </p>
-
                 <a href="{{ $booking->link_hasil }}" target="_blank" class="w-full bg-brand text-white font-bold text-[13px] py-3 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition shadow-sm">
                     📥 Buka & Download Hasil Foto
                 </a>
             </div>
 
         @elseif($statusJadwal === 'Proses Edit')
-            {{-- DESAIN BANNER KHUSUS PROSES EDITING --}}
             <div class="bg-purple-50 rounded-2xl shadow-sm border border-purple-100 p-6 mb-6 relative overflow-hidden">
                 <div class="absolute bottom-0 left-6 right-6 h-1 bg-purple-600 rounded-t-md"></div>
-                
                 <div class="flex justify-between items-start mb-4">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-full bg-purple-600 text-white flex items-center justify-center shrink-0 shadow-sm text-lg">
@@ -171,17 +170,14 @@
                         <p class="font-mono font-bold text-gray-900 text-[14px]">{{ $bookingCode }}</p>
                     </div>
                 </div>
-                
                 <p class="text-[13px] text-gray-700 leading-relaxed">
                     Foto kamu sedang diedit oleh tim kami. Sabar ya, hampir selesai!
                 </p>
             </div>
 
         @elseif($statusJadwal === 'Pilihan Diterima')
-            {{-- DESAIN BANNER KETIKA PILIHAN FOTO SUDAH DIKIRIM --}}
             <div class="bg-orange-50 rounded-2xl shadow-sm border border-orange-100 p-6 mb-6 relative overflow-hidden">
                 <div class="absolute bottom-0 left-6 right-6 h-1 bg-brand rounded-t-md"></div>
-                
                 <div class="flex justify-between items-start mb-4">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-full bg-brand text-white flex items-center justify-center shrink-0 shadow-sm text-lg">
@@ -197,17 +193,14 @@
                         <p class="font-mono font-bold text-gray-900 text-[14px]">{{ $bookingCode }}</p>
                     </div>
                 </div>
-                
                 <p class="text-[13px] text-gray-700 leading-relaxed">
                     Pilihan foto sudah diterima. Menunggu proses editing dimulai oleh studio.
                 </p>
             </div>
 
         @elseif($statusJadwal === 'File Original Disiapkan')
-            {{-- DESAIN BANNER KHUSUS TAHAP PILIH FOTO --}}
             <div class="bg-orange-50 rounded-2xl shadow-sm border border-orange-100 p-6 mb-6 relative overflow-hidden">
                 <div class="absolute bottom-0 left-6 right-6 h-1 bg-brand rounded-t-md"></div>
-                
                 <div class="flex justify-between items-start mb-4">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-full bg-brand text-white flex items-center justify-center shrink-0 shadow-sm text-lg">
@@ -223,21 +216,17 @@
                         <p class="font-mono font-bold text-gray-900 text-[14px]">{{ $bookingCode }}</p>
                     </div>
                 </div>
-                
                 <p class="text-[13px] text-gray-700 leading-relaxed mb-5">
                     File original sudah siap! Silakan pilih foto yang ingin diedit.
                 </p>
-
                 <a href="{{ url('/seleksi/' . $bookingCode) }}" class="w-full bg-brand text-white font-bold text-[13px] py-3 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition shadow-sm">
                     📸 Pilih Foto Sekarang
                 </a>
             </div>
 
         @elseif($stateSesiRealTime === 'active' || $stateSesiRealTime === 'finished')
-            {{-- DESAIN BANNER KHUSUS SESI BERLANGSUNG / SELESAI --}}
             <div class="bg-orange-50 rounded-2xl shadow-sm border border-orange-100 p-6 mb-6 relative overflow-hidden">
                 <div class="absolute bottom-0 left-6 right-6 h-1 bg-brand rounded-t-md"></div>
-                
                 <div class="flex justify-between items-start mb-4">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-full bg-brand text-white flex items-center justify-center shrink-0 shadow-sm">
@@ -257,7 +246,6 @@
                         <p class="font-mono font-bold text-gray-900 text-[14px]">{{ $bookingCode }}</p>
                     </div>
                 </div>
-                
                 <p class="text-[13px] text-gray-700 leading-relaxed">
                     @if($stateSesiRealTime === 'active')
                         Sesi sedang berlangsung. Setelah sesi selesai, selanjutnya menunggu studio menyiapkan file original / RAW.
@@ -267,7 +255,6 @@
                 </p>
             </div>
         @else
-            {{-- DESAIN BANNER STANDAR --}}
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
                 <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">Status Booking</p>
                 
@@ -287,8 +274,13 @@
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </div>
                         <div>
-                            <h2 class="text-[18px] font-extrabold text-gray-900">Menunggu Konfirmasi</h2>
-                            <p class="text-[13px] text-gray-500 mt-0.5">Booking kamu sedang menunggu konfirmasi dari Admin.</p>
+                            @if($hasPaidSomething)
+                                <h2 class="text-[18px] font-extrabold text-gray-900">Menunggu Konfirmasi Pelunasan</h2>
+                                <p class="text-[13px] text-gray-500 mt-0.5">Bukti pembayaran pelunasan kamu telah dikirim dan sedang diverifikasi oleh admin.</p>
+                            @else
+                                <h2 class="text-[18px] font-extrabold text-gray-900">Menunggu Konfirmasi Pembayaran</h2>
+                                <p class="text-[13px] text-gray-500 mt-0.5">Bukti pembayaran awal kamu telah dikirim dan sedang diverifikasi untuk mengamankan jadwal.</p>
+                            @endif
                         </div>
                     </div>
                 @elseif($statusPembayaran === 'Pending' || $statusPembayaran === 'Belum Bayar')
@@ -324,7 +316,7 @@
                     </button>
                 </div>
                 
-                @if($statusPembayaran === 'Pending' || $statusPembayaran === 'Down Payment')
+                @if(($statusPembayaran === 'Pending' || $statusPembayaran === 'Down Payment') && $statusPembayaran !== 'Tunggu Konfirmasi')
                     <div class="mt-4">
                         <a href="{{ route('booking.public.pembayaran', ['ownerId' => $ownerId, 'bookingId' => $booking->id]) }}" class="w-full bg-black text-white font-bold text-[13px] py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-800 transition">
                             💳 {{ $statusPembayaran === 'Down Payment' ? 'Lunasi Pembayaran' : 'Selesaikan Pembayaran' }}
@@ -339,7 +331,6 @@
             <h3 class="font-bold text-gray-900 mb-4 text-[15px] border-b border-gray-100 pb-3">Detail Booking</h3>
             
             <div class="space-y-4 mb-6">
-                {{-- Baris 1: Nama Klien & Paket --}}
                 <div class="flex justify-between items-start">
                     <div class="flex flex-col w-1/2 pr-2">
                         <span class="text-gray-500 text-[11px] uppercase tracking-wider font-bold mb-1">Nama Klien</span>
@@ -353,7 +344,6 @@
 
                 <hr class="border-gray-100">
 
-                {{-- Baris 2: Jadwal Sesi Foto --}}
                 <div class="flex flex-col">
                     <div class="flex justify-between items-center mb-1">
                         <span class="text-gray-500 text-[11px] uppercase tracking-wider font-bold">Jadwal Sesi Foto</span>
@@ -385,7 +375,6 @@
                     @endif
                 </div>
 
-                {{-- Baris 3: Lokasi Sesi --}}
                 @if($booking->client_address || $booking->link_gmaps)
                     <div class="flex flex-col mt-4">
                         <span class="text-gray-500 text-[11px] uppercase tracking-wider font-bold mb-1">Lokasi Sesi Foto</span>
@@ -424,9 +413,11 @@
                     $stateEdit = '';
                     $stateHasil = '';
 
-                    if ($isPaymentApproved && $currentLevel >= 1) {
+                    // PERUBAHAN UTAMA: Jika status sedang tunggu konfirmasi tapi belum pernah bayar DP, 
+                    // progress "Jadwal Dikonfirmasi" TIDAK aktif. 
+                    // Jika sudah pernah bayar DP (hasPaidSomething == true), maka progress tetap aktif meskipun upload pelunasan.
+                    if (($isPaymentApproved || ($statusPembayaran === 'Tunggu Konfirmasi' && $hasPaidSomething)) && $currentLevel >= 1) {
                         
-                        // Cek apakah sudah menyentuh jam sesi foto
                         $hasReachedSession = ($stateSesiRealTime === 'active' || $stateSesiRealTime === 'finished');
 
                         // Jadwal & Sesi Foto
@@ -434,12 +425,11 @@
                             $stateJadwal = 'completed';
                             $stateSesi = 'completed';
                         } elseif ($currentLevel == 1) {
+                            $stateJadwal = 'completed'; // Jadwal dipastikan sudah dikonfirmasi sebelumnya
                             if ($hasReachedSession) {
-                                $stateJadwal = 'completed';
                                 $stateSesi = 'active';
                             } else {
-                                $stateJadwal = 'active';
-                                $stateSesi = ''; // Belum masuk tahap sesi, mengunci timeline agar tidak lanjut
+                                $stateSesi = ''; 
                             }
                         }
 
@@ -609,16 +599,12 @@
                 <h3 class="font-bold text-gray-900 mb-4 text-[15px] border-b border-gray-100 pb-3 flex items-center gap-2">
                     <span class="text-lg">✏️</span> Info Proses Editing
                 </h3>
-                
                 <div class="grid grid-cols-2 gap-4">
-                    {{-- Posisi Antrian --}}
                     <div class="bg-purple-50/60 border border-purple-100 rounded-xl p-4">
                         <p class="text-[11px] font-bold text-purple-700 uppercase tracking-wider mb-1">Posisi Antrian</p>
                         <p class="text-2xl font-extrabold text-purple-900">#{{ $booking->queue_number ?? '1' }}</p>
                         <p class="text-[11px] text-purple-600 mt-1">dalam antrian editing</p>
                     </div>
-                    
-                    {{-- Estimasi Selesai --}}
                     <div class="bg-purple-50/60 border border-purple-100 rounded-xl p-4">
                         <p class="text-[11px] font-bold text-purple-700 uppercase tracking-wider mb-1">Estimasi Selesai</p>
                         <p class="text-[15px] font-extrabold text-purple-900">
@@ -629,7 +615,7 @@
                                 $diffDaysEst = \Carbon\Carbon::now()->startOfDay()->diffInDays(\Carbon\Carbon::parse($booking->estimate_date)->startOfDay(), false);
                             @endphp
                             <p class="text-[11px] text-purple-700 font-bold mt-1">
-                                {{ $diffDaysEst > 0 ? $diffDaysEst . ' hari lagi' : ($diffDaysEst === 0 ? 'Hari ini' : 'Terlewat ' . Math.abs($diffDaysEst) . ' hari') }}
+                                {{ $diffDaysEst > 0 ? $diffDaysEst . ' hari lagi' : ($diffDaysEst === 0 ? 'Hari ini' : 'Terlewat ' . abs($diffDaysEst) . ' hari') }}
                             </p>
                         @endif
                     </div>
@@ -637,7 +623,7 @@
             </div>
         @endif
 
-        {{-- KARTU TAHAP PILIH FOTO (MUNCUL PADA STATUS 'File Original Disiapkan', 'Pilihan Diterima', ATAU 'Proses Edit') --}}
+        {{-- KARTU TAHAP PILIH FOTO --}}
         @if(in_array($statusJadwal, ['File Original Disiapkan', 'Pilihan Diterima', 'Proses Edit']))
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
                 <h3 class="font-bold text-gray-900 mb-4 text-[15px] border-b border-gray-100 pb-3 flex items-center gap-2">
@@ -673,14 +659,13 @@
                 </p>
 
                 <div class="space-y-3">
-                    {{-- Tombol Ubah Pilihan Foto HANYA MUNCUL jika BELUM dalam Proses Edit --}}
                     @if($statusJadwal !== 'Proses Edit')
                         <a href="{{ url('/seleksi/' . $bookingCode) }}" class="w-full bg-brand text-white font-bold text-[13px] py-3 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition shadow-sm">
                             {{ $statusJadwal === 'Pilihan Diterima' ? 'Ubah Pilihan Foto' : '📸 Pilih Foto Sekarang' }}
                         </a>
                     @endif
 
-                    @if($booking->link_original)
+                    @if($booking->link_original && $statusJadwal !== 'Proses Edit')
                         <a href="{{ $booking->link_original }}" target="_blank" class="w-full bg-white border border-gray-300 text-gray-700 font-bold text-[13px] py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-50 transition shadow-sm">
                             Buka Google Drive / Download Foto ↗
                         </a>
@@ -717,7 +702,6 @@
                     </div>
                 @endif
                 
-                {{-- LOGIKA TAMPILAN JIKA LUNAS VS BELUM --}}
                 @if($statusPembayaran === 'Lunas')
                     <div class="flex justify-between items-center pt-3 mt-3 border-t border-gray-100">
                         <span class="font-bold text-gray-900">Status pembayaran</span>
@@ -737,7 +721,6 @@
                 </a>
             @endif
             
-            {{-- TOMBOL UNDUH INVOICE (HANYA MUNCUL SAAT LUNAS) --}}
             @if($statusPembayaran === 'Lunas')
                 <div class="mt-6 text-center">
                     <a href="{{ route('invoice.show', $booking->id) }}" target="_blank" class="w-full bg-emerald-50 text-emerald-600 font-bold text-[13px] py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-emerald-100 transition shadow-sm border border-emerald-100">

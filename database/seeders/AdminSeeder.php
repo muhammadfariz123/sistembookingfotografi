@@ -38,5 +38,30 @@ class AdminSeeder extends Seeder
             ['email' => 'gelaskacaa257@gmail.com'],
             ['password' => Hash::make('password')]
         );
+
+        // akun kelima
+        User::updateOrCreate(
+            ['email' => '2211104069@ittelkom-pwt.ac.id'],
+            ['password' => Hash::make('password123')]
+        );
+
+        
+        // akun kelima
+        User::updateOrCreate(
+            ['email' => 'mfarizzzz778@gmail.com'],
+            ['password' => Hash::make('password123')]
+        );
+
+        // Akun keenam
+        User::updateOrCreate(
+            ['email' => 'hidayatfariz14@gmail.com'],
+            ['password' => Hash::make('password')]
+        );
+
+        // Akun keenam
+        User::updateOrCreate(
+            ['email' => 'jihannn2211@gmail.com'],
+            ['password' => Hash::make('password')]
+        );
     }
 }
