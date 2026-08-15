@@ -53,10 +53,19 @@
                                 <template x-for="item in services" :key="item.id">
                                     <tr class="hover:bg-gray-50 transition">
                                         
-                                        {{-- NAMA LAYANAN & LIMIT FOTO --}}
+                                        {{-- NAMA LAYANAN, DURASI & LIMIT FOTO --}}
                                         <td class="w-1/4 px-4 lg:px-6 py-4 sm:py-5 align-top">
                                             <p class="font-semibold text-[14px] lg:text-[15px] text-[#0f172a]" x-text="item.name"></p>
-                                            <p class="text-[12px] text-gray-500 mt-1" x-show="item.photo_limit">Max Edit: <span class="font-bold text-orange-500" x-text="item.photo_limit + ' Foto'"></span></p>
+                                            <div class="flex items-center gap-3 mt-1.5">
+                                                <p class="text-[11px] text-gray-500 font-medium" x-show="item.duration">
+                                                    <i data-lucide="clock" class="w-3 h-3 inline align-text-bottom mr-0.5"></i>
+                                                    <span x-text="item.duration + ' Jam'"></span>
+                                                </p>
+                                                <p class="text-[11px] text-gray-500 font-medium" x-show="item.photo_limit">
+                                                    <i data-lucide="image" class="w-3 h-3 inline align-text-bottom mr-0.5"></i>
+                                                    <span class="font-bold text-orange-500" x-text="item.photo_limit + ' Edit'"></span>
+                                                </p>
+                                            </div>
                                         </td>
 
                                         {{-- KATEGORI --}}

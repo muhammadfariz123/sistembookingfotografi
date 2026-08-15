@@ -27,6 +27,11 @@
     </style>
 </head>
 <body>
+    @php
+        $tglLayanan = $booking->booking_date ?? $booking->start_date;
+        $tglFormat = $tglLayanan ? \Carbon\Carbon::parse($tglLayanan)->locale('id')->isoFormat('D MMM YYYY') : '-';
+    @endphp
+    
     <div class="container">
         <div class="top-bar"></div>
         <div class="sender-header">
@@ -50,6 +55,14 @@
                 <tr>
                     <td class="label">Jenis Pembayaran:</td>
                     <td class="value">{{ $paymentTypeText }}</td>
+                </tr>
+                <tr>
+                    <td class="label">Tanggal Sesi:</td>
+                    <td class="value">{{ $tglFormat }}</td>
+                </tr>
+                <tr>
+                    <td class="label">Jam Sesi:</td>
+                    <td class="value">{{ $sessionTime }}</td>
                 </tr>
                 <tr>
                     <td class="label" style="border-bottom: none;">Nominal:</td>

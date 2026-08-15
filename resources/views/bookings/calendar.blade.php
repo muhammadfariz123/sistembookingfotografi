@@ -69,7 +69,10 @@
                                 </div>
                                 <div class="flex-1 overflow-y-auto no-scrollbar space-y-1">
                                     <template x-for="booking in getBookingsForDay(item)" :key="booking.id">
-                                        <div :class="bookingDotClass(booking.status)" @click="openDayDetail(item)" class="text-white text-[10px] font-medium px-1.5 py-0.5 rounded-md truncate cursor-pointer leading-tight shadow-sm" :title="booking.client_name + ' - ' + (booking.service_type?.name ?? '')" x-text="booking.client_name"></div>
+                                        <div :class="bookingDotClass(booking.status)" @click="openDayDetail(item)" class="text-white text-[10px] font-medium px-1.5 py-0.5 rounded-md cursor-pointer leading-tight shadow-sm flex items-center gap-1 overflow-hidden" :title="booking.client_name + ' - ' + (booking.service_type?.name ?? '')">
+                                            <span x-show="booking.booking_time" class="font-bold opacity-80 shrink-0" x-text="formatTimeRangeShort(booking.booking_time, booking.service_type?.duration)"></span>
+                                            <span class="truncate" x-text="booking.client_name"></span>
+                                        </div>
                                     </template>
                                 </div>
                             </div>
@@ -109,7 +112,8 @@
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                 </svg>
-                                                <p class="text-[11px] font-medium text-gray-600" x-text="booking.booking_time"></p>
+                                                {{-- Menampilkan format waktu yang sudah otomatis kalkulasi durasi jam selesai --}}
+                                                <p class="text-[11px] font-medium text-gray-600" x-text="formatTimeRange(booking.booking_time, booking.service_type?.duration)"></p>
                                             </div>
 
                                             <p x-show="booking.client_contact" class="text-[11px] text-gray-400 mt-0.5" x-text="booking.client_contact"></p>
@@ -226,6 +230,56 @@
 
             formatCurrency(value) {
                 return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value || 0)
+            },
+
+            formatTimeRangeShort(timeStr, durationHours) {
+                if (!timeStr) return '';
+                let baseTime = timeStr.substring(0, 5); // Potong detik
+                
+                let dur = parseFloat(durationHours);
+                if (isNaN(dur) || dur <= 0) return baseTime;
+
+                let parts = baseTime.split(':');
+                if (parts.length < 2) return baseTime;
+
+                let startH = parseInt(parts[0], 10);
+                let startM = parseInt(parts[1], 10);
+
+                let totalMins = Math.round((startH * 60) + startM + (dur * 60));
+                
+                let endH = Math.floor(totalMins / 60) % 24; 
+                let endM = totalMins % 60;
+
+                let strEndH = String(endH).padStart(2, '0');
+                let strEndM = String(endM).padStart(2, '0');
+
+                // Return format padat: "14:00-21:00"
+                return `${baseTime}-${strEndH}:${strEndM}`;
+            },
+
+            formatTimeRange(timeStr, durationHours) {
+                if (!timeStr) return '-';
+                let baseTime = timeStr.substring(0, 5);
+                
+                let dur = parseFloat(durationHours);
+                if (isNaN(dur) || dur <= 0) return baseTime + ' WIB';
+
+                let parts = baseTime.split(':');
+                if (parts.length < 2) return baseTime + ' WIB';
+
+                let startH = parseInt(parts[0], 10);
+                let startM = parseInt(parts[1], 10);
+
+                let totalMins = Math.round((startH * 60) + startM + (dur * 60));
+                
+                let endH = Math.floor(totalMins / 60) % 24; 
+                let endM = totalMins % 60;
+
+                let strEndH = String(endH).padStart(2, '0');
+                let strEndM = String(endM).padStart(2, '0');
+
+                // Return format lengkap: "14:00 - 21:00 WIB"
+                return `${baseTime} - ${strEndH}:${strEndM} WIB`;
             },
 
             prevMonth() { this.currentDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() - 1, 1) },

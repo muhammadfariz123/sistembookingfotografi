@@ -15,6 +15,7 @@ class AdminPaymentApprovedNotification extends Mailable
     public $bookingCode;
     public $isLunas;
     public $amountPaid;
+    public $sessionTime; // Waktu Sesi (Otomatis hitung durasi jam selesai)
 
     /**
      * Create a new message instance.
@@ -27,6 +28,17 @@ class AdminPaymentApprovedNotification extends Mailable
 
         // Cek secara dinamis untuk menentukan subjek email
         $this->isLunas = strtoupper($booking->payment_type) === 'LUNAS' || strtoupper($booking->payment_type) === 'PELUNASAN';
+
+        // LOGIKA WAKTU SESI BERDASARKAN DURASI
+        $waktuMulaiStr = $booking->booking_time ? \Carbon\Carbon::parse($booking->booking_time)->format('H:i') : null;
+        $durasiJam = $booking->serviceType->duration ?? 0;
+        
+        if ($waktuMulaiStr && $durasiJam > 0) {
+            $waktuSelesaiStr = \Carbon\Carbon::parse($booking->booking_time)->addHours($durasiJam)->format('H:i');
+            $this->sessionTime = "{$waktuMulaiStr} - {$waktuSelesaiStr} WIB";
+        } else {
+            $this->sessionTime = $waktuMulaiStr ? "{$waktuMulaiStr} WIB" : '-';
+        }
     }
 
     /**

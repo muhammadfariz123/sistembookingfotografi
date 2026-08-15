@@ -15,6 +15,7 @@ class PaymentProofSubmitted extends Mailable
     public $bookingCode;
     public $amountToPay;
     public $paymentTypeText;
+    public $sessionTime; // Tambahan untuk durasi sesi
 
     public function __construct(Booking $booking, $bookingCode, $amountToPay)
     {
@@ -30,6 +31,17 @@ class PaymentProofSubmitted extends Mailable
             $this->paymentTypeText = 'Lunas Penuh';
         } else {
             $this->paymentTypeText = 'DP';
+        }
+
+        // LOGIKA WAKTU SESI BERDASARKAN DURASI
+        $waktuMulaiStr = $booking->booking_time ? \Carbon\Carbon::parse($booking->booking_time)->format('H:i') : null;
+        $durasiJam = $booking->serviceType->duration ?? 0;
+        
+        if ($waktuMulaiStr && $durasiJam > 0) {
+            $waktuSelesaiStr = \Carbon\Carbon::parse($booking->booking_time)->addHours($durasiJam)->format('H:i');
+            $this->sessionTime = "{$waktuMulaiStr} - {$waktuSelesaiStr} WIB";
+        } else {
+            $this->sessionTime = $waktuMulaiStr ? "{$waktuMulaiStr} WIB" : '-';
         }
     }
 

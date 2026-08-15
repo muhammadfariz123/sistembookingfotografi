@@ -95,10 +95,21 @@
                 <h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Detail Booking</h3>
             </div>
             <div class="border-t border-gray-200">
+                
+                @php
+                    $durasiJam = $booking->serviceType->duration ?? 0;
+                    $waktuMulaiStr = $booking->booking_time ? \Carbon\Carbon::parse($booking->booking_time)->format('H:i') : null;
+                    $waktuSelesaiStr = ($waktuMulaiStr && $durasiJam > 0) ? \Carbon\Carbon::parse($booking->booking_time)->addHours($durasiJam)->format('H:i') : null;
+                    $teksWaktuJadwal = $waktuSelesaiStr ? "{$waktuMulaiStr} - {$waktuSelesaiStr} WIB" : ($waktuMulaiStr ? "{$waktuMulaiStr} WIB" : '-');
+                @endphp
+
                 <div class="flex py-3 border-b border-gray-100 text-[13px]">
                     <div class="w-1/4 text-gray-500">Paket</div>
                     <div class="w-3/4">
                         <p class="font-bold text-gray-900">{{ $booking->serviceType->name ?? '-' }}</p>
+                        @if($durasiJam > 0)
+                            <p class="text-[12px] font-semibold text-gray-500 mt-0.5">Durasi {{ $durasiJam }} jam</p>
+                        @endif
                     </div>
                 </div>
                 <div class="flex py-3 border-b border-gray-100 text-[13px]">
@@ -107,14 +118,10 @@
                         {{ $booking->booking_date ? \Carbon\Carbon::parse($booking->booking_date)->translatedFormat('l, d F Y') : '-' }}
                     </div>
                 </div>
-                <div class="flex py-3 border-b border-gray-100 text-[13px]">
+                <div class="flex py-3 border-b border-gray-100 text-[13px] items-center">
                     <div class="w-1/4 text-gray-500">Jadwal</div>
                     <div class="w-3/4 font-bold text-gray-900">
-                        @if($booking->booking_time)
-                            {{ \Carbon\Carbon::parse($booking->booking_time)->format('H:i') }} WIB
-                        @else
-                            -
-                        @endif
+                        {{ $teksWaktuJadwal }}
                     </div>
                 </div>
                 <div class="flex py-3 border-b border-gray-100 text-[13px]">
@@ -143,6 +150,9 @@
                     <tr class="border-b border-gray-200">
                         <td class="py-4 px-4">
                             <p class="font-bold text-gray-900">{{ $booking->serviceType->name ?? '-' }}</p>
+                            @if($durasiJam > 0)
+                                <p class="text-[12px] font-semibold text-gray-500 mt-0.5">Durasi {{ $durasiJam }} jam</p>
+                            @endif
                         </td>
                         <td class="py-4 px-4 text-center">1</td>
                         <td class="py-4 px-4 text-right">Rp {{ number_format($booking->unit_price, 0, ',', '.') }}</td>

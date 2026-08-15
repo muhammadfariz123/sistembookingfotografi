@@ -1,3 +1,4 @@
+{{-- resources/views/bookings/form.blade.php --}}
 <x-app-layout>
     <div class="px-4 sm:px-6 lg:px-8 py-6 sm:py-8 bg-[#f5f7fb] min-h-screen relative" x-data="bookingForm(@js($booking ?? null), @js($serviceTypes ?? []))">
         
@@ -13,7 +14,7 @@
             <div class="bg-white border border-gray-200 rounded-[24px] shadow-sm p-6 sm:p-8 relative z-10">
                 
                 <div class="flex items-center justify-between border-b border-gray-100 pb-5 mb-6">
-                    <h2 class="text-[24px] font-bold text-gray-900" x-text="_editMode ? 'Edit Booking'"></h2>
+                    <h2 class="text-[24px] font-bold text-gray-900" x-text="_editMode ? 'Edit Booking' : 'Buat Booking Baru'"></h2>
                 </div>
 
                 <form id="booking-form" @submit.prevent="submitBooking()" class="space-y-6">
@@ -79,7 +80,12 @@
                                             <div class="flex-1 min-w-0 pr-2">
                                                 <p class="text-[14px] font-semibold text-gray-900 truncate" x-text="service.name"></p>
                                                 <p class="text-[12px] text-gray-500 mt-1 whitespace-pre-line leading-snug" x-text="service.description"></p>
-                                                <p class="text-[13px] font-bold text-blue-600 mt-2" x-text="formatCurrency(service.price)"></p>
+                                                <div class="flex justify-between items-center mt-2">
+                                                    <p class="text-[13px] font-bold text-blue-600" x-text="formatCurrency(service.price)"></p>
+                                                    <template x-if="service.duration && service.duration > 0">
+                                                        <span class="text-[10px] font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded-md" x-text="service.duration + ' Jam'"></span>
+                                                    </template>
+                                                </div>
                                             </div>
                                         </div>
                                     </template>
@@ -100,7 +106,10 @@
                                 <input type="date" x-model="bookingDate" :disabled="multiDay" :required="!multiDay" class="w-full h-[48px] rounded-xl border border-gray-300 px-4 text-[14px] outline-none shadow-sm focus:ring-2 focus:ring-blue-500/20">
                             </div>
                             <div>
-                                <label class="block text-[14px] font-medium text-gray-700 mb-2">Waktu <span class="text-gray-400 font-normal">(Opsional)</span></label>
+                                <div class="flex justify-between items-end mb-2">
+                                    <label class="block text-[14px] font-medium text-gray-700">Waktu Mulai <span class="text-gray-400 font-normal">(Opsional)</span></label>
+                                    <span x-show="selectedServiceDuration > 0 && bookingTime" x-cloak class="text-[11px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md" x-text="'Selesai: ' + sessionEndTime"></span>
+                                </div>
                                 <input type="time" x-model="bookingTime" :disabled="multiDay" class="w-full h-[48px] rounded-xl border border-gray-300 px-4 text-[14px] outline-none shadow-sm focus:ring-2 focus:ring-blue-500/20">
                             </div>
                         </div>
@@ -115,7 +124,10 @@
                                 <input type="date" x-model="endDate" :disabled="!multiDay" :required="multiDay" class="w-full h-[48px] rounded-xl border border-gray-300 px-4 text-[14px] outline-none shadow-sm focus:ring-2 focus:ring-blue-500/20">
                             </div>
                             <div>
-                                <label class="block text-[14px] font-medium text-gray-700 mb-2">Waktu <span class="text-gray-400 font-normal">(Opsional)</span></label>
+                                <div class="flex justify-between items-end mb-2">
+                                    <label class="block text-[14px] font-medium text-gray-700">Waktu Mulai <span class="text-gray-400 font-normal">(Opsional)</span></label>
+                                    <span x-show="selectedServiceDuration > 0 && bookingTime" x-cloak class="text-[11px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md" x-text="'Selesai: ' + sessionEndTime"></span>
+                                </div>
                                 <input type="time" x-model="bookingTime" :disabled="!multiDay" class="w-full h-[48px] rounded-xl border border-gray-300 px-4 text-[14px] outline-none shadow-sm focus:ring-2 focus:ring-blue-500/20">
                             </div>
                         </div>
@@ -128,9 +140,15 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-gray-100 pt-6">
                         <div>
                             <label class="block text-[14px] font-medium text-gray-700 mb-2">Status Jadwal</label>
+                            {{-- PERBAIKAN: List Dropdown Admin dilengkapi agar status tidak rejected (422) saat diedit --}}
                             <select x-model="status" class="w-full h-[48px] rounded-xl border border-gray-300 px-4 text-[14px] outline-none shadow-sm focus:ring-2 focus:ring-blue-500/20">
-                                <option value="Dijadwalkan">Dijadwalkan</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Belum Bayar">Belum Bayar</option>
                                 <option value="Pembayaran Tertunda">Pembayaran Tertunda</option>
+                                <option value="Dijadwalkan">Dijadwalkan</option>
+                                <option value="File Original Disiapkan">File Original Disiapkan</option>
+                                <option value="Pilih Foto">Pilih Foto</option>
+                                <option value="Pilihan Diterima">Pilihan Diterima</option>
                                 <option value="Proses Edit">Proses Edit</option>
                                 <option value="Selesai">Selesai</option>
                                 <option value="Dibatalkan">Dibatalkan</option>
@@ -238,7 +256,7 @@
             submitting: false, submitErrors: {}, 
             
             services: rawServices || [], 
-            selectedService: '', selectedServiceId: null,
+            selectedService: '', selectedServiceId: null, selectedServiceDuration: 0,
             showServiceDropdown: false,
 
             paymentProofUrl: null, // Tambahan untuk link foto bukti
@@ -248,6 +266,7 @@
                     this.selectedService   = this.services[0].name
                     this.selectedServiceId = this.services[0].id
                     this.unitPrice         = parseInt(this.services[0].price) || 0
+                    this.selectedServiceDuration = Number(this.services[0].duration) || 0
                 }
 
                 if(initialBooking) {
@@ -273,6 +292,17 @@
                 if (!this.startDate || !this.endDate) return 0
                 const diff = new Date(this.endDate) - new Date(this.startDate)
                 return diff < 0 ? 0 : Math.floor(diff / 86400000) + 1
+            },
+            get sessionEndTime() {
+                if (!this.bookingTime || !this.selectedServiceDuration || this.selectedServiceDuration <= 0) return '';
+                let parts = this.bookingTime.split(':');
+                if (parts.length < 2) return '';
+                let date = new Date();
+                date.setHours(parseInt(parts[0], 10), parseInt(parts[1], 10), 0);
+                date.setHours(date.getHours() + parseInt(this.selectedServiceDuration, 10));
+                let endHours = String(date.getHours()).padStart(2, '0');
+                let endMins = String(date.getMinutes()).padStart(2, '0');
+                return `${endHours}:${endMins} WIB`;
             },
             
             get formattedSubtotal()       { return this.formatCurrency(this.subtotal) },
@@ -309,7 +339,21 @@
                 this.selectedService = service.name; 
                 this.selectedServiceId = service.id;
                 this.unitPrice = parseInt(service.price) || 0; 
+                this.selectedServiceDuration = Number(service.duration) || 0;
                 this.showServiceDropdown = false;
+            },
+
+            safeDateExtract(val) {
+                if (!val) return '';
+                // Coba parsing date ke format lokal agar zona waktu UTC dari database (T17:00:00Z) dikonversi ke waktu lokal dengan benar (menjadi H+1)
+                const d = new Date(val);
+                if (!isNaN(d.getTime())) {
+                    const year = d.getFullYear();
+                    const month = String(d.getMonth() + 1).padStart(2, '0');
+                    const day = String(d.getDate()).padStart(2, '0');
+                    return `${year}-${month}-${day}`;
+                }
+                return String(val).substring(0, 10);
             },
             
             openEditBooking(booking) {
@@ -328,8 +372,8 @@
                 })
 
                 if (booking.start_date) {
-                    const sDate = String(booking.start_date).substring(0, 10);
-                    const eDate = String(booking.end_date ?? '').substring(0, 10);
+                    const sDate = this.safeDateExtract(booking.start_date);
+                    const eDate = this.safeDateExtract(booking.end_date);
                     
                     if (sDate === eDate) {
                         this.multiDay = false;
@@ -341,7 +385,7 @@
                     }
                 } else {
                     this.multiDay = false; 
-                    this.bookingDate = String(booking.booking_date ?? '').substring(0, 10);
+                    this.bookingDate = this.safeDateExtract(booking.booking_date);
                 }
 
                 this.discountValue = parseFloat(booking.discount_percent) || 0;
@@ -351,6 +395,7 @@
                     if (s) {
                         this.selectedService = s.name;
                         this.selectedServiceId = s.id;
+                        this.selectedServiceDuration = Number(s.duration) || 0;
                     }
                 }
                 this._editMode = true

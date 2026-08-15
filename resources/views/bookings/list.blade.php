@@ -94,7 +94,7 @@
                                     <th class="px-4 py-5 font-bold">NAMA KLIEN</th>
                                     <th class="px-4 py-5 font-bold">EMAIL</th>
                                     <th class="px-4 py-5 font-bold">TANGGAL</th>
-                                    <th class="px-4 py-5 font-bold">WAKTU</th>
+                                    <th class="px-4 py-5 font-bold">WAKTU SESI</th>
                                     <th class="px-4 py-5 font-bold">LOKASI</th>
                                     <th class="px-4 py-5 font-bold">PAKET / LAYANAN</th>
                                     <th class="px-4 py-5 font-bold">TOTAL HARGA</th>
@@ -135,10 +135,10 @@
                                                 <p class="text-[13px] font-medium text-gray-800"
                                                     x-text="formatDate(booking.booking_date || booking.start_date)"></p>
                                             </td>
-                                            {{-- Waktu --}}
+                                            {{-- Waktu Sesi (Menampilkan format cerdas misal: 14:00 - 21:00 WIB) --}}
                                             <td class="px-4 py-4 align-top">
-                                                <p class="text-[12px] text-gray-500"
-                                                    x-text="booking.booking_time || '-'"></p>
+                                                <p class="text-[12px] text-gray-500 font-semibold"
+                                                    x-text="formatTimeRange(booking.booking_time, booking.service_type?.duration)"></p>
                                             </td>
                                             {{-- Lokasi / Alamat --}}
                                             <td class="px-4 py-4 align-top">
@@ -271,10 +271,6 @@
                     }
                 },
                 mapStatusToTabKey(status, payment_status) {
-                    // Status booking menentukan tab, terlepas dari payment_status.
-                    // Selama admin belum konfirmasi pembayaran (approvePayment),
-                    // booking.status tetap 'Pending Bayar' meskipun payment_status
-                    // sudah berubah jadi 'Tunggu Konfirmasi' saat customer upload bukti.
                     const map = {
                         'Pending Bayar': 'pending_bayar',
                         'Pembayaran Tertunda': 'pending_bayar',
@@ -377,6 +373,30 @@
                 },
                 formatDate(d) {
                     return d ? new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Jakarta' }).format(new Date(d)) : '-'
+                },
+                formatTimeRange(timeStr, durationHours) {
+                    if (!timeStr) return '-';
+                    let baseTime = timeStr.substring(0, 5); // Potong detik jika format H:i:s
+                    
+                    let dur = parseFloat(durationHours);
+                    if (isNaN(dur) || dur <= 0) return baseTime + ' WIB';
+
+                    let parts = baseTime.split(':');
+                    if (parts.length < 2) return baseTime + ' WIB';
+
+                    let startH = parseInt(parts[0], 10);
+                    let startM = parseInt(parts[1], 10);
+
+                    // Menghitung total menit dari jam mulai + durasi jam
+                    let totalMins = Math.round((startH * 60) + startM + (dur * 60));
+                    
+                    let endH = Math.floor(totalMins / 60) % 24; // Modulo 24 jika lewat tengah malam
+                    let endM = totalMins % 60;
+
+                    let strEndH = String(endH).padStart(2, '0');
+                    let strEndM = String(endM).padStart(2, '0');
+
+                    return `${baseTime} - ${strEndH}:${strEndM} WIB`;
                 },
                 formatDateTime(d) {
                     if (!d) return '-';

@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\PaymentConfirmedToCustomer;
-use App\Mail\AdminPaymentApprovedNotification; // Import Mailable Admin
+use App\Mail\AdminPaymentApprovedNotification; 
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\BookingExport;
 use Carbon\Carbon;
@@ -22,7 +22,7 @@ class BookingController extends Controller
     {
         if ($request->wantsJson()) {
             $bookings = Booking::where('user_id', Auth::id())
-                ->with(['serviceType', 'transactions']) // <-- Sertakan relasi transactions
+                ->with(['serviceType', 'transactions']) 
                 ->latest()
                 ->get();
 
@@ -44,9 +44,9 @@ class BookingController extends Controller
                         'client_email' => $booking->client_email,
                         'client_address' => $booking->client_address,
                         'service_type' => $booking->serviceType,
-                        'payment_type' => $tx->payment_type, // DP, PELUNASAN, LUNAS
+                        'payment_type' => $tx->payment_type, 
                         'amount' => (int) $tx->amount,
-                        'payment_status' => $tx->payment_status, // Tunggu Konfirmasi, Berhasil, Ditolak, Pending
+                        'payment_status' => $tx->payment_status, 
                         'payment_proof' => $tx->payment_proof ?? $booking->payment_proof,
                         'admin_notes' => $tx->admin_notes ?? $booking->notes,
                         'paid_at' => $tx->paid_at?->timezone('Asia/Jakarta')->toIso8601String() ?? ($tx->payment_status === 'Berhasil' ? $tx->updated_at?->toIso8601String() : null),
@@ -65,6 +65,7 @@ class BookingController extends Controller
                         'id' => $booking->serviceType->id,
                         'name' => $booking->serviceType->name,
                         'price' => $booking->serviceType->price,
+                        'duration' => $booking->serviceType->duration, // <-- INI YANG DITAMBAHKAN
                     ] : null,
                     'unit_price' => (int) $booking->unit_price,
                     'total' => (int) $booking->total,
@@ -80,7 +81,7 @@ class BookingController extends Controller
                     'end_date' => $booking->end_date?->format('Y-m-d'),
                     'booking_time' => $booking->booking_time,
                     'notes' => $booking->notes,
-                    'transactions' => $mappedTransactions, // <-- Kirim data riwayat transaksi
+                    'transactions' => $mappedTransactions, 
                     'created_at' => $createdAtWib,
                     'updated_at' => $updatedAtWib,
                 ];

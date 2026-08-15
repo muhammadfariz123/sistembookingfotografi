@@ -20,6 +20,7 @@ class PaymentConfirmedToCustomer extends Mailable
     public $paymentTypeString;    // Label: "Pelunasan", "Pembayaran penuh", atau "DP (uang muka)"
     public $subjectString;        // Subjek Email
     public $isFullyPaid;          // Cek apakah hasil akhirnya Lunas (Boolean)
+    public $sessionTime;          // Waktu Sesi (Otomatis hitung durasi jam selesai)
 
     public function __construct(Booking $booking, $bookingCode, $companyName, $companyPhone, $currentPaymentAmount)
     {
@@ -44,6 +45,17 @@ class PaymentConfirmedToCustomer extends Mailable
             $this->paymentTypeString = 'DP (uang muka)';
             $this->subjectString = 'Pembayaran DP diterima • ' . $bookingCode;
             $this->isFullyPaid = false;
+        }
+
+        // LOGIKA WAKTU SESI BERDASARKAN DURASI
+        $waktuMulaiStr = $booking->booking_time ? \Carbon\Carbon::parse($booking->booking_time)->format('H:i') : null;
+        $durasiJam = $booking->serviceType->duration ?? 0;
+        
+        if ($waktuMulaiStr && $durasiJam > 0) {
+            $waktuSelesaiStr = \Carbon\Carbon::parse($booking->booking_time)->addHours($durasiJam)->format('H:i');
+            $this->sessionTime = "{$waktuMulaiStr} - {$waktuSelesaiStr} WIB";
+        } else {
+            $this->sessionTime = $waktuMulaiStr ? "{$waktuMulaiStr} WIB" : '-';
         }
     }
 

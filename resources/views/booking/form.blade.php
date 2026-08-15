@@ -29,6 +29,7 @@
         $initialServicePrice = 0;
         $initialServiceName = '';
         $initialCategory = '';
+        $initialServiceDuration = 0;
 
         if ($initialServiceId) {
             $found = $services->firstWhere('id', $initialServiceId);
@@ -36,11 +37,12 @@
                 $initialServicePrice = $found->price;
                 $initialServiceName = $found->name;
                 $initialCategory = $found->category ? $found->category->name : 'Lain-lain';
+                $initialServiceDuration = $found->duration ?? 0;
             }
         }
     @endphp
 
-    <div class="max-w-3xl mx-auto px-4 py-10" x-data="bookingWizard('{{ $initialServiceId }}', {{ (int)$initialServicePrice }}, '{{ $initialServiceName }}', '{{ $initialCategory }}')">
+    <div class="max-w-3xl mx-auto px-4 py-10" x-data="bookingWizard('{{ $initialServiceId }}', {{ (int)$initialServicePrice }}, '{{ addslashes($initialServiceName) }}', '{{ addslashes($initialCategory) }}', {{ (int)$initialServiceDuration }})">
         <div class="text-center mb-10">
             <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Form Booking</h1>
             <p class="text-gray-500 mt-2 text-sm">Lengkapi 4 tahapan di bawah ini untuk menyelesaikan pesanan Anda.</p>
@@ -107,7 +109,7 @@
                     <div class="mb-8">
                         <label class="block text-sm font-bold text-gray-700 mb-2">1. Jenis Acara <span class="text-red-500">*</span></label>
                         <div class="relative">
-                            <select x-model="selectedCategory" @change="selectedServiceId = ''; unitPrice = 0; selectedServiceName = ''" class="w-full h-12 rounded-xl border border-gray-300 px-4 text-sm font-semibold focus:border-brand focus:ring-brand shadow-sm appearance-none bg-white cursor-pointer text-gray-900">
+                            <select x-model="selectedCategory" @change="selectedServiceId = ''; unitPrice = 0; selectedServiceName = ''; selectedServiceDuration = 0" class="w-full h-12 rounded-xl border border-gray-300 px-4 text-sm font-semibold focus:border-brand focus:ring-brand shadow-sm appearance-none bg-white cursor-pointer text-gray-900">
                                 <option value="" disabled selected>-- Klik untuk memilih jenis acara --</option>
                                 @foreach($groupedServices->keys() as $categoryName)
                                     <option value="{{ $categoryName }}">{{ $categoryName }}</option>
@@ -126,7 +128,7 @@
                             <div x-show="selectedCategory === '{{ $categoryName }}'" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 @foreach($catServices as $service)
                                     <label class="block cursor-pointer group h-full">
-                                        <input type="radio" name="service_type_id" value="{{ $service->id }}" x-model="selectedServiceId" @change="selectService('{{ $service->id }}', {{ (int) $service->price }}, '{{ $service->name }}')" class="sr-only">
+                                        <input type="radio" name="service_type_id" value="{{ $service->id }}" x-model="selectedServiceId" @change="selectService('{{ $service->id }}', {{ (int) $service->price }}, '{{ addslashes($service->name) }}', {{ (int)($service->duration ?? 0) }})" class="sr-only">
                                         <div class="border-2 rounded-xl p-5 h-full flex flex-col justify-between transition-all duration-200 relative overflow-hidden" :class="selectedServiceId === '{{ $service->id }}' ? 'border-brand bg-orange-50/10 shadow-sm' : 'border-gray-200 hover:border-gray-300'">
                                             
                                             <div x-show="selectedServiceId === '{{ $service->id }}'" class="absolute top-0 right-0 bg-brand text-white px-3 py-1 rounded-bl-xl font-bold text-xs" style="display: none;">✓ Terpilih</div>
@@ -139,6 +141,9 @@
                                             </div>
                                             <div class="flex justify-between items-end mt-auto pt-3 border-t border-dashed border-gray-200">
                                                 <p class="text-brand font-bold text-[17px] leading-none">Rp {{ number_format($service->price, 0, ',', '.') }}</p>
+                                                @if(($service->duration ?? 0) > 0)
+                                                    <span class="text-[10px] font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded-md">{{ $service->duration }} Jam</span>
+                                                @endif
                                             </div>
                                         </div>
                                     </label>
@@ -330,7 +335,7 @@
                                     </div>
                                     <div>
                                         <p class="font-bold text-gray-900 text-sm">DP 30%</p>
-                                        <p class="text-xs text-gray-500">Bayar sebagian sekarang, sisanya sebelum terima hasil.</p>
+                                        <p class="text-xs text-gray-500">Bayar sebagian sekarang, sisanya saat sesi, atau setelah sesi.</p>
                                     </div>
                                 </div>
                                 <p class="font-bold text-brand text-sm" x-text="formatCurrency(unitPrice * 0.3)"></p>
@@ -345,7 +350,8 @@
                         <div class="flex justify-between items-start gap-4"><span class="text-gray-500 font-medium shrink-0">WhatsApp</span><span class="font-bold text-right" x-text="clientContact"></span></div>
                         <div class="border-t border-gray-200 my-3"></div>
                         <div class="flex justify-between items-start gap-4"><span class="text-gray-500 font-medium shrink-0">Jadwal</span><span class="font-bold text-right" x-text="scheduleText"></span></div>
-                        <div class="flex justify-between items-start gap-4"><span class="text-gray-500 font-medium shrink-0">Waktu Mulai</span><span class="font-bold text-right" x-text="(bookingTime || '-') + (bookingTime ? ' WIB' : '')"></span></div>
+                        <div class="flex justify-between items-start gap-4"><span class="text-gray-500 font-medium shrink-0">Waktu Sesi</span><span class="font-bold text-right text-brand" x-text="sessionTimeText"></span></div>
+                        <div x-show="selectedServiceDuration > 0" class="flex justify-between items-start gap-4"><span class="text-gray-500 font-medium shrink-0">Durasi</span><span class="font-bold text-right" x-text="selectedServiceDuration + ' Jam'"></span></div>
                         <div class="flex justify-between items-start gap-4"><span class="text-gray-500 font-medium shrink-0">Paket</span><span class="font-bold text-right" x-text="selectedServiceName"></span></div>
                         <div class="flex justify-between items-start gap-4"><span class="text-gray-500 font-medium shrink-0">Harga Paket</span><span class="font-bold text-right" x-text="formatCurrency(unitPrice)"></span></div>
                         <div class="border-t border-gray-200 my-3"></div>
@@ -398,13 +404,14 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     
     <script>
-        function bookingWizard(initialId = '', initialPrice = 0, initialName = '', initialCategory = '') {
+        function bookingWizard(initialId = '', initialPrice = 0, initialName = '', initialCategory = '', initialDuration = 0) {
             return {
                 step: 1, errorMsg: '',
                 selectedCategory: initialCategory,
                 selectedServiceId: String(initialId), 
                 unitPrice: Number(initialPrice), 
                 selectedServiceName: initialName,
+                selectedServiceDuration: Number(initialDuration),
                 multiDay: false, bookingDate: '', startDate: '', endDate: '',
 
                 // LOKASI VARIABEL
@@ -427,8 +434,12 @@
                 paymentOption: 'DP', 
                 agreeTnC: false, showTermsModal: false,
                 
-                selectService(id, price, name) {
-                    this.selectedServiceId = String(id); this.unitPrice = price; this.selectedServiceName = name; this.errorMsg = '';
+                selectService(id, price, name, duration) {
+                    this.selectedServiceId = String(id); 
+                    this.unitPrice = price; 
+                    this.selectedServiceName = name; 
+                    this.selectedServiceDuration = Number(duration);
+                    this.errorMsg = '';
                 },
                 
                 nextStep() {
@@ -478,11 +489,37 @@
                 showError(msg) { this.errorMsg = msg; window.scrollTo({ top: 0, behavior: 'smooth' }); },
                 formatCurrency(value) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value || 0); },
                 
+                formatDateLocal(dateStr) {
+                    if (!dateStr || dateStr === '-') return '-';
+                    const parts = dateStr.split('-');
+                    if (parts.length !== 3) return dateStr;
+                    const year = parts[0];
+                    const monthIndex = parseInt(parts[1], 10) - 1;
+                    const day = parseInt(parts[2], 10);
+                    const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                    return `${day} ${months[monthIndex]} ${year}`;
+                },
+
                 get scheduleText() { 
                     if (this.multiDay) {
-                        return (this.startDate || '-') + ' s/d ' + (this.endDate || '-');
+                        return (this.startDate ? this.formatDateLocal(this.startDate) : '-') + ' s/d ' + (this.endDate ? this.formatDateLocal(this.endDate) : '-');
                     }
-                    return (this.bookingDate || '-'); 
+                    return this.bookingDate ? this.formatDateLocal(this.bookingDate) : '-'; 
+                },
+
+                get sessionTimeText() {
+                    if (!this.bookingTime) return '-';
+                    if (!this.selectedServiceDuration || this.selectedServiceDuration <= 0) return this.bookingTime + ' WIB';
+
+                    let parts = this.bookingTime.split(':');
+                    let date = new Date();
+                    date.setHours(parseInt(parts[0]), parseInt(parts[1]), 0);
+                    date.setHours(date.getHours() + parseInt(this.selectedServiceDuration));
+
+                    let endHours = String(date.getHours()).padStart(2, '0');
+                    let endMins = String(date.getMinutes()).padStart(2, '0');
+
+                    return this.bookingTime + ' - ' + endHours + ':' + endMins + ' WIB';
                 },
                 
                 submitForm() {

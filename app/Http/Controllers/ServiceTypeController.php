@@ -28,7 +28,8 @@ class ServiceTypeController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
-            'photo_limit' => 'nullable|integer|min:0', // Tambahkan ini
+            'duration' => 'nullable|integer|min:0', // Durasi dalam satuan Jam
+            'photo_limit' => 'nullable|integer|min:0',
         ]);
         
         $validated['user_id'] = Auth::id();
@@ -58,7 +59,8 @@ class ServiceTypeController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
-            'photo_limit' => 'nullable|integer|min:0', // Tambahkan ini
+            'duration' => 'nullable|integer|min:0', // Durasi dalam satuan Jam
+            'photo_limit' => 'nullable|integer|min:0',
         ]);
         
         $serviceType->update($validated);

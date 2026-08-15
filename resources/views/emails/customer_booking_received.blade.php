@@ -275,7 +275,7 @@
         <div class="section" style="border-top: none; padding-top: 0;">
             <div class="field-label">Jadwal Sesi</div>
             <div class="schedule-box">
-                🕐 {{ $booking->booking_time ? \Carbon\Carbon::parse($booking->booking_time)->format('H:i') : '-' }}
+                🕐 {{ $sessionTime }}
             </div>
         </div>
 

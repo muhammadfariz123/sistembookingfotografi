@@ -42,8 +42,11 @@
 <body class="min-h-screen bg-gray-50 font-sans antialiased pb-12">
     @php
         $tglLayanan = $booking->booking_date ?? $booking->start_date;
-        $tglFormat = $tglLayanan ? \Carbon\Carbon::parse($tglLayanan)->locale('id')->isoFormat('dddd, D MMMM YYYY') : '-';
-        $waktuPesan = \Carbon\Carbon::parse($booking->created_at)->locale('id')->isoFormat('D MMM YYYY');
+        // Ambil tanggal murni yang sudah di-shift ke WIB, kebal dari bug UTC database
+        $tglHanyaTanggal = $tglLayanan ? \Carbon\Carbon::parse($tglLayanan)->timezone('Asia/Jakarta')->format('Y-m-d') : \Carbon\Carbon::now('Asia/Jakarta')->format('Y-m-d');
+        
+        $tglFormat = \Carbon\Carbon::parse($tglHanyaTanggal)->locale('id')->isoFormat('dddd, D MMMM YYYY');
+        $waktuPesan = \Carbon\Carbon::parse($booking->created_at)->timezone('Asia/Jakarta')->locale('id')->isoFormat('D MMM YYYY');
         
         // Cek Status Pembayaran dan Jadwal
         $statusPembayaran = $booking->payment_status;
@@ -55,14 +58,14 @@
         // Variabel penentu apakah sebelumnya klien sudah pernah bayar (DP)
         $hasPaidSomething = $booking->paid_amount > 0;
 
-        // Hitung Countdown Hari Acara
-        $hariIni = \Carbon\Carbon::now()->startOfDay();
-        $tglAcara = $tglLayanan ? \Carbon\Carbon::parse($tglLayanan)->startOfDay() : null;
-        $selisihHari = $tglAcara ? $hariIni->diffInDays($tglAcara, false) : null;
+        // Hitung Countdown Hari Acara (Disamakan Timezonenya)
+        $hariIni = \Carbon\Carbon::now('Asia/Jakarta')->startOfDay();
+        $tglAcara = \Carbon\Carbon::parse($tglHanyaTanggal, 'Asia/Jakarta')->startOfDay();
+        $selisihHari = $hariIni->diffInDays($tglAcara, false);
 
         // Hitung Deadline Pilih Foto
-        $deadlineDb = $booking->deadline_pilih ? \Carbon\Carbon::parse($booking->deadline_pilih) : \Carbon\Carbon::parse($tglLayanan)->addDays(7);
-        $sisaHariPilih = max(0, \Carbon\Carbon::now()->startOfDay()->diffInDays($deadlineDb->startOfDay(), false));
+        $deadlineDb = $booking->deadline_pilih ? \Carbon\Carbon::parse($booking->deadline_pilih)->timezone('Asia/Jakarta') : \Carbon\Carbon::parse($tglHanyaTanggal)->timezone('Asia/Jakarta')->addDays(7);
+        $sisaHariPilih = max(0, \Carbon\Carbon::now('Asia/Jakarta')->startOfDay()->diffInDays($deadlineDb->startOfDay(), false));
         $deadlineStr = $deadlineDb->locale('id')->isoFormat('DD MMM YYYY');
 
         // LOGIKA NOMINAL "SEDANG DIVERIFIKASI"
@@ -84,33 +87,62 @@
         // Hitung jumlah foto yang dipilih
         $selectedPhotosArray = json_decode($booking->selected_photos ?? '[]');
         $totalSelectedPhotos = count($selectedPhotosArray);
-        $waktuPilihFoto = $booking->updated_at ? \Carbon\Carbon::parse($booking->updated_at)->format('d M Y, H:i') : '';
+        $waktuPilihFoto = $booking->updated_at ? \Carbon\Carbon::parse($booking->updated_at)->timezone('Asia/Jakarta')->format('d M Y, H:i') : '';
 
-        // LOGIKA WAKTU REAL-TIME (KHUSUS BANNER)
-        $now = \Carbon\Carbon::now()->timezone('Asia/Jakarta'); 
-        $tglHanyaTanggal = \Carbon\Carbon::parse($tglLayanan)->format('Y-m-d');
-        $jamHanyaWaktu = $booking->booking_time ? \Carbon\Carbon::parse($booking->booking_time)->format('H:i:s') : '00:00:00';
-        $hasTime = !empty($booking->booking_time);
+        // =================================================================
+        // LOGIKA WAKTU REAL-TIME & PERHITUNGAN DURASI CERDAS
+        // =================================================================
+        $now = \Carbon\Carbon::now('Asia/Jakarta'); 
         
-        $startSesi = \Carbon\Carbon::parse($tglHanyaTanggal . ' ' . $jamHanyaWaktu, 'Asia/Jakarta');
-        $endSesiInfo = $startSesi->copy()->addHours(2); 
+        // Ambil waktu secara presisi (H:i) menghindari bug format UTC Database
+        $jamRaw = $booking->booking_time ?? '';
+        $hasTime = !empty($jamRaw);
+        $jamFix = $hasTime ? substr(preg_replace('/[^0-9:]/', '', $jamRaw), 0, 5) : '00:00';
+        
+        $startSesi = \Carbon\Carbon::parse($tglHanyaTanggal . ' ' . $jamFix, 'Asia/Jakarta');
+        
+        // Ambil Durasi Paket (dalam jam) - dikonversi jadi int/float aman
+        $durasiJam = floatval($booking->serviceType->duration ?? 0);
+        
+        // Menentukan Estimasi Selesai (Untuk Real-time Indicator)
+        $estimasiDurasi = $durasiJam > 0 ? $durasiJam : 2;
+        $endSesiInfo = $startSesi->copy()->addMinutes((int)($estimasiDurasi * 60)); 
 
+        // Menyiapkan Teks Jadwal Tampil (Contoh: "13:00 - 21:00 WIB")
+        $waktuMulaiStr = $jamFix;
+        $waktuSelesaiStr = $durasiJam > 0 ? $endSesiInfo->format('H:i') : null;
+        $teksWaktuJadwal = $waktuSelesaiStr ? "{$waktuMulaiStr} - {$waktuSelesaiStr} WIB" : "{$waktuMulaiStr} WIB";
+
+        // Mengecek apakah saat ini masuk dalam waktu sesi foto
         $stateSesiRealTime = ''; 
-        if (($isPaymentApproved || ($statusPembayaran === 'Tunggu Konfirmasi' && $hasPaidSomething)) && $statusJadwal === 'Dijadwalkan') {
-            if ($hasTime) {
-                if ($now->between($startSesi, $endSesiInfo)) {
-                    $stateSesiRealTime = 'active'; // Sedang Sesi
-                } elseif ($now->greaterThan($endSesiInfo)) {
-                    $stateSesiRealTime = 'finished'; // Sesi Selesai (Nunggu Upload)
-                }
-            } else {
-                $todayStr = $now->format('Y-m-d');
-                if ($tglHanyaTanggal == $todayStr) {
-                    $stateSesiRealTime = 'active';
-                } elseif ($tglHanyaTanggal < $todayStr) {
-                    $stateSesiRealTime = 'finished';
-                }
+        $isSessionFinished = false;
+        
+        if ($hasTime) {
+            // Diperbaiki: Lebih spesifik membaca lebih dari/sama dengan (inclusive time)
+            if ($now->greaterThanOrEqualTo($startSesi) && $now->lessThanOrEqualTo($endSesiInfo)) {
+                $stateSesiRealTime = 'active'; // Sedang Sesi
+            } elseif ($now->greaterThan($endSesiInfo)) {
+                $stateSesiRealTime = 'finished'; // Sesi Selesai (Nunggu Upload)
+                $isSessionFinished = true;
             }
+        } else {
+            $todayStr = $now->format('Y-m-d');
+            if ($tglHanyaTanggal == $todayStr) {
+                $stateSesiRealTime = 'active';
+            } elseif ($tglHanyaTanggal < $todayStr) {
+                $stateSesiRealTime = 'finished';
+                $isSessionFinished = true;
+            }
+        }
+
+        // VALIDASI CERDAS: Tahan progress klien agar tidak masuk ke File Original Disiapkan 
+        // jika sesi belum benar-benar selesai (meskipun admin sudah upload link & klik toggle di workboard).
+        if ($statusJadwal === 'File Original Disiapkan' && !$isSessionFinished) {
+            $statusJadwal = 'Dijadwalkan';
+        }
+
+        if (!(($isPaymentApproved || ($statusPembayaran === 'Tunggu Konfirmasi' && $hasPaidSomething)) && $statusJadwal === 'Dijadwalkan')) {
+            $stateSesiRealTime = '';
         }
     @endphp
     
@@ -339,6 +371,9 @@
                     <div class="flex flex-col w-1/2 pl-2 text-right">
                         <span class="text-gray-500 text-[11px] uppercase tracking-wider font-bold mb-1">Paket</span>
                         <span class="font-bold text-gray-900 text-[14px] truncate">{{ $booking->serviceType->name ?? '-' }}</span>
+                        @if($durasiJam > 0)
+                            <span class="text-brand font-semibold text-[11px] mt-0.5">Durasi {{ $durasiJam }} Jam</span>
+                        @endif
                     </div>
                 </div>
 
@@ -358,7 +393,9 @@
                             @if($selisihHari !== null && $selisihHari > 0)
                                 <span class="text-gray-500 text-[12px] block">Sisa {{ $selisihHari }} hari lagi</span>
                             @elseif($selisihHari === 0 && $stateSesiRealTime === 'active')
-                                <span class="text-brand font-semibold text-[12px] block">Sesi sudah berlangsung</span>
+                                <span class="text-brand font-semibold text-[12px] block">Sesi sedang berlangsung</span>
+                            @elseif($selisihHari === 0 && $stateSesiRealTime === 'finished')
+                                <span class="text-emerald-600 font-semibold text-[12px] block">Sesi telah selesai</span>
                             @elseif($selisihHari === 0)
                                 <span class="text-emerald-600 font-semibold text-[12px] block">HARI INI</span>
                             @elseif($selisihHari < 0)
@@ -367,10 +404,15 @@
                         </div>
                     </div>
                     
-                    @if($booking->booking_time)
-                        <div class="bg-gray-50 rounded-lg p-3 mt-3 flex items-center gap-2 text-[13px] font-semibold text-gray-700 border border-gray-100">
-                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            {{ \Carbon\Carbon::parse($booking->booking_time)->format('H:i') }} WIB
+                    @if($hasTime)
+                        <div class="bg-gray-50 rounded-lg p-3 mt-3 flex items-center justify-between text-[13px] font-semibold text-gray-700 border border-gray-100">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                <span>{{ $teksWaktuJadwal }}</span>
+                            </div>
+                            @if($durasiJam > 0)
+                                <span class="bg-white border border-gray-200 px-2 py-1 rounded-md text-[10px] text-gray-500 font-bold leading-none shadow-sm">{{ $durasiJam }} Jam</span>
+                            @endif
                         </div>
                     @endif
                 </div>
@@ -413,9 +455,6 @@
                     $stateEdit = '';
                     $stateHasil = '';
 
-                    // PERUBAHAN UTAMA: Jika status sedang tunggu konfirmasi tapi belum pernah bayar DP, 
-                    // progress "Jadwal Dikonfirmasi" TIDAK aktif. 
-                    // Jika sudah pernah bayar DP (hasPaidSomething == true), maka progress tetap aktif meskipun upload pelunasan.
                     if (($isPaymentApproved || ($statusPembayaran === 'Tunggu Konfirmasi' && $hasPaidSomething)) && $currentLevel >= 1) {
                         
                         $hasReachedSession = ($stateSesiRealTime === 'active' || $stateSesiRealTime === 'finished');
@@ -425,8 +464,10 @@
                             $stateJadwal = 'completed';
                             $stateSesi = 'completed';
                         } elseif ($currentLevel == 1) {
-                            $stateJadwal = 'completed'; // Jadwal dipastikan sudah dikonfirmasi sebelumnya
-                            if ($hasReachedSession) {
+                            $stateJadwal = 'completed';
+                            if ($stateSesiRealTime === 'finished') {
+                                $stateSesi = 'completed';
+                            } elseif ($stateSesiRealTime === 'active') {
                                 $stateSesi = 'active';
                             } else {
                                 $stateSesi = ''; 
@@ -472,7 +513,7 @@
                         <div class="flex justify-between items-start">
                             <h4 class="font-bold text-gray-900 text-[14px]">Booking Masuk</h4>
                             @if($stateBooking === 'completed')
-                                <p class="text-[11px] text-gray-400 mt-0.5">{{ \Carbon\Carbon::parse($booking->created_at)->format('d M Y') }}</p>
+                                <p class="text-[11px] text-gray-400 mt-0.5">{{ \Carbon\Carbon::parse($booking->created_at)->timezone('Asia/Jakarta')->format('d M Y') }}</p>
                             @endif
                         </div>
                         <p class="text-[12px] text-gray-500 mt-0.5">Formulir berhasil diterima</p>
@@ -504,12 +545,12 @@
                         <p class="text-[12px] text-gray-500 mt-0.5">
                             @if($stateSesi === 'active' && $stateSesiRealTime === 'active')
                                 Sesi sedang berlangsung. Setelah sesi selesai, selanjutnya menunggu studio menyiapkan file original / RAW.
-                            @elseif($stateSesi === 'active' && $stateSesiRealTime === 'finished')
+                            @elseif($stateSesi === 'completed' || $stateSesiRealTime === 'finished')
                                 Sesi telah selesai. Selanjutnya menunggu studio menyiapkan file original / RAW.
                             @else
-                                {{ \Carbon\Carbon::parse($tglHanyaTanggal)->format('d M Y') }} 
+                                {{ \Carbon\Carbon::parse($tglHanyaTanggal)->timezone('Asia/Jakarta')->locale('id')->isoFormat('D MMM YYYY') }} 
                                 @if($hasTime)
-                                    · {{ \Carbon\Carbon::parse($jamHanyaWaktu)->format('H:i') }} WIB
+                                    · {{ $teksWaktuJadwal }}
                                 @endif
                             @endif
                         </p>
@@ -527,7 +568,7 @@
                         <div class="flex justify-between items-start">
                             <h4 class="font-bold text-gray-900 text-[14px]">File Original Disiapkan</h4>
                             @if($stateFile === 'active' || $stateFile === 'completed')
-                                <p class="text-[11px] text-gray-400 mt-0.5">{{ \Carbon\Carbon::parse($booking->updated_at)->format('d M Y') }}</p>
+                                <p class="text-[11px] text-gray-400 mt-0.5">{{ \Carbon\Carbon::parse($booking->updated_at)->timezone('Asia/Jakarta')->format('d M Y') }}</p>
                             @endif
                         </div>
                         <p class="text-[12px] text-gray-500 mt-0.5">
@@ -547,7 +588,7 @@
                         <div class="flex justify-between items-start">
                             <h4 class="font-bold text-gray-900 text-[14px]">Pilih Foto untuk Diedit</h4>
                             @if(($statusJadwal === 'Pilihan Diterima' || $statusJadwal === 'Proses Edit' || $statusJadwal === 'Selesai') && $totalSelectedPhotos > 0)
-                                <p class="text-[11px] text-gray-400 mt-0.5">{{ \Carbon\Carbon::parse($booking->updated_at)->format('d M Y') }}</p>
+                                <p class="text-[11px] text-gray-400 mt-0.5">{{ \Carbon\Carbon::parse($booking->updated_at)->timezone('Asia/Jakarta')->format('d M Y') }}</p>
                             @endif
                         </div>
                         <p class="text-[12px] text-gray-500 mt-0.5">
@@ -584,7 +625,7 @@
                         <div class="flex justify-between items-start">
                             <h4 class="font-bold text-gray-900 text-[14px]">Hasil Dikirim</h4>
                             @if($stateHasil === 'completed')
-                                <p class="text-[11px] text-gray-400 mt-0.5">{{ \Carbon\Carbon::parse($booking->updated_at)->format('d M Y') }}</p>
+                                <p class="text-[11px] text-gray-400 mt-0.5">{{ \Carbon\Carbon::parse($booking->updated_at)->timezone('Asia/Jakarta')->format('d M Y') }}</p>
                             @endif
                         </div>
                         <p class="text-[12px] text-gray-500 mt-0.5">Link hasil siap untuk diunduh</p>
@@ -608,11 +649,11 @@
                     <div class="bg-purple-50/60 border border-purple-100 rounded-xl p-4">
                         <p class="text-[11px] font-bold text-purple-700 uppercase tracking-wider mb-1">Estimasi Selesai</p>
                         <p class="text-[15px] font-extrabold text-purple-900">
-                            {{ $booking->estimate_date ? \Carbon\Carbon::parse($booking->estimate_date)->locale('id')->isoFormat('D MMM YYYY') : 'Menyusul' }}
+                            {{ $booking->estimate_date ? \Carbon\Carbon::parse($booking->estimate_date)->timezone('Asia/Jakarta')->locale('id')->isoFormat('D MMM YYYY') : 'Menyusul' }}
                         </p>
                         @if($booking->estimate_date)
                             @php
-                                $diffDaysEst = \Carbon\Carbon::now()->startOfDay()->diffInDays(\Carbon\Carbon::parse($booking->estimate_date)->startOfDay(), false);
+                                $diffDaysEst = \Carbon\Carbon::now('Asia/Jakarta')->startOfDay()->diffInDays(\Carbon\Carbon::parse($booking->estimate_date)->timezone('Asia/Jakarta')->startOfDay(), false);
                             @endphp
                             <p class="text-[11px] text-purple-700 font-bold mt-1">
                                 {{ $diffDaysEst > 0 ? $diffDaysEst . ' hari lagi' : ($diffDaysEst === 0 ? 'Hari ini' : 'Terlewat ' . abs($diffDaysEst) . ' hari') }}

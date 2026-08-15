@@ -87,7 +87,7 @@
                 </tr>
                 <tr>
                     <td class="label">Jadwal sesi</td>
-                    <td class="value">🕐 {{ $booking->booking_time ? \Carbon\Carbon::parse($booking->booking_time)->format('H:i') : '-' }}</td>
+                    <td class="value">🕐 {{ $sessionTime }}</td>
                 </tr>
                 <tr>
                     <td class="label">Paket</td>

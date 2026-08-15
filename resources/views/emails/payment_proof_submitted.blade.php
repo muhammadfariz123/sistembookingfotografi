@@ -45,7 +45,7 @@
                 
                 <div class="detail-row"><span class="detail-label">Layanan:</span> <span class="detail-value">{{ $booking->serviceType->name ?? '-' }}</span></div>
                 <div class="detail-row"><span class="detail-label">Tanggal Foto:</span> <span class="detail-value">{{ $tglFormat }}</span></div>
-                <div class="detail-row"><span class="detail-label">Jam:</span> <span class="detail-value">{{ $booking->booking_time ? \Carbon\Carbon::parse($booking->booking_time)->format('H:i') : '-' }}</span></div>
+                <div class="detail-row"><span class="detail-label">Jam Sesi:</span> <span class="detail-value">{{ $sessionTime }}</span></div>
                 
                 <div style="border-top: 1px solid #e5e7eb; margin: 15px 0;"></div>
                 

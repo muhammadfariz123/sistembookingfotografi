@@ -84,7 +84,41 @@
                         $onlyDate = \Carbon\Carbon::parse($b->booking_date ?? $b->start_date)->format('Y-m-d');
                         $dateStr = \Carbon\Carbon::parse($onlyDate)->format('d M Y');
 
-                        $timeStr = $b->booking_time ? \Carbon\Carbon::parse($b->booking_time)->format('H:i') . ' WIB' : '-';
+                        // --- LOGIKA DURASI CERDAS ---
+                        $jamRaw = $b->booking_time ?? '';
+                        $sessionNotEnded = false;
+
+                        if (!empty($jamRaw)) {
+                            $jamMulai = substr(preg_replace('/[^0-9:]/', '', $jamRaw), 0, 5);
+                            $durasiJam = floatval($b->serviceType->duration ?? 0);
+                            
+                            // Kalkulasi waktu selesai sesi untuk status warning "Sesi belum selesai"
+                            $startSesi = \Carbon\Carbon::parse($onlyDate . ' ' . $jamMulai, 'Asia/Jakarta');
+                            $estimasiDurasi = $durasiJam > 0 ? $durasiJam : 2;
+                            $endSesiInfo = $startSesi->copy()->addMinutes((int)($estimasiDurasi * 60));
+                            $sessionNotEnded = \Carbon\Carbon::now('Asia/Jakarta')->lessThan($endSesiInfo);
+
+                            if ($durasiJam > 0) {
+                                $parts = explode(':', $jamMulai);
+                                if (count($parts) >= 2) {
+                                    $totalMins = round(((int)$parts[0] * 60) + (int)$parts[1] + ($durasiJam * 60));
+                                    $endH = floor($totalMins / 60) % 24;
+                                    $endM = $totalMins % 60;
+                                    $jamSelesai = str_pad($endH, 2, '0', STR_PAD_LEFT) . ':' . str_pad($endM, 2, '0', STR_PAD_LEFT);
+                                    $timeStr = "{$jamMulai} - {$jamSelesai} WIB";
+                                } else {
+                                    $timeStr = "{$jamMulai} WIB";
+                                }
+                            } else {
+                                $timeStr = "{$jamMulai} WIB";
+                            }
+                        } else {
+                            $timeStr = '-';
+                            // Kalau jam tidak ada, kita anggap selesai di penghujung hari tersebut
+                            $endSesiInfo = \Carbon\Carbon::parse($onlyDate, 'Asia/Jakarta')->endOfDay();
+                            $sessionNotEnded = \Carbon\Carbon::now('Asia/Jakarta')->lessThan($endSesiInfo);
+                        }
+                        // ----------------------------
 
                         $limitFoto = $b->serviceType->photo_limit ? $b->serviceType->photo_limit : '30';
                         $deadlineDb = $b->deadline_pilih ? \Carbon\Carbon::parse($b->deadline_pilih) : \Carbon\Carbon::parse($onlyDate)->addDays(7);
@@ -124,14 +158,15 @@
                             'adminNotes' => $b->admin_notes ?? '',
                             'queueNumber' => $b->queue_number ?? '',
                             'estimateDate' => $b->estimate_date ?? '',
-                            'updatedAt' => $b->updated_at ? \Carbon\Carbon::parse($b->updated_at)->timezone('Asia/Jakarta')->format('Y-m-d H:i:s') : \Carbon\Carbon::now()->timezone('Asia/Jakarta')->format('Y-m-d H:i:s')
+                            'updatedAt' => $b->updated_at ? \Carbon\Carbon::parse($b->updated_at)->timezone('Asia/Jakarta')->format('Y-m-d H:i:s') : \Carbon\Carbon::now()->timezone('Asia/Jakarta')->format('Y-m-d H:i:s'),
+                            'sessionNotEnded' => $sessionNotEnded
                         ];
                     @endphp
 
                     <div @click="openSidebar({{ json_encode($sidebarData) }})"
                         class="bg-white border border-gray-200 rounded-xl p-5 flex flex-col h-full shadow-sm hover:shadow-md hover:border-blue-300 cursor-pointer transition">
 
-                        <div class="mb-4 flex justify-between items-center">
+                        <div class="mb-3 flex justify-between items-center">
                             <span id="badge-{{ $b->id }}"
                                 class="inline-block {{ $ui['badge'] }} text-[11px] font-bold px-2.5 py-1 rounded-md transition-colors duration-300">
                                 {{ $ui['label'] }}
@@ -144,17 +179,15 @@
                             @endif
                         </div>
                         <h3 class="font-extrabold text-gray-900 text-[16px] leading-tight mb-0.5">{{ $b->client_name }}</h3>
-                        <p class="text-[12px] font-mono text-gray-400 font-semibold mb-3">{{ $bookingCode }}</p>
-                        <div>
-                            <span
-                                class="inline-block bg-gray-50 border border-gray-200 text-gray-600 text-[11px] font-bold px-2.5 py-1 rounded-lg">
-                                {{ $b->serviceType->name ?? 'Paket Layanan' }}
-                            </span>
-                        </div>
-                        <p class="text-[12px] text-gray-500 font-medium mt-3 flex items-center gap-1.5">
+                        <p class="text-[12px] font-mono text-gray-400 font-semibold mb-2">{{ $bookingCode }}</p>
+                        <p class="text-[13px] font-semibold text-gray-700 mb-2">{{ $b->serviceType->name ?? 'Paket Layanan' }}</p>
+                        <p class="text-[12px] text-gray-500 font-medium mb-3 flex items-center gap-1.5">
                             <i data-lucide="calendar" class="w-3.5 h-3.5 text-gray-400"></i>
-                            {{ $dateStr }}
+                            {{ $dateStr }} &middot; {{ $timeStr }}
                         </p>
+                        <div class="mt-auto pt-3 border-t border-gray-100">
+                            <p id="desc-{{ $b->id }}" class="text-[11px] text-gray-500">{{ $ui['desc'] }}</p>
+                        </div>
                     </div>
                 @empty
                     <div class="col-span-full py-16 text-center text-gray-400">
@@ -474,7 +507,7 @@
                                             </p>
                                             <p class="text-[12px] font-medium text-orange-600 mt-0.5"
                                                 x-show="activeData.time !== '-'"
-                                                x-text="'Jam Mulai: ' + activeData.time"></p>
+                                                x-text="(activeData.time.includes('-') ? 'Waktu Sesi: ' : 'Jam Mulai: ') + activeData.time"></p>
                                         </div>
                                         <div>
                                             <p
@@ -493,7 +526,7 @@
                                                 x-text="activeData.ig || '-'"></span>
                                         </div>
 
-                                        <div x-show="activeData.status !== 'Dijadwalkan'">
+                                        <div>
                                             <p
                                                 class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">
                                                 Batas Pilih Foto</p>
@@ -608,11 +641,7 @@
                                             </span>
                                         </button>
                                         <p class="text-[10px] text-gray-400 leading-relaxed mt-2.5 text-center px-2">
-                                            Folder Kerja / Master Folder dipakai untuk akses internal tim.<br>
-                                            <b>Contoh struktur:</b> JPG untuk link file original/seleksi klien, RAW EDIT
-                                            untuk bahan edit, Highlight, dan Hasil Edit.<br>
-                                            Link ini tidak mengubah stage Workboard, tidak mengirim email ke klien, dan
-                                            tidak dianggap sebagai Link Hasil Foto.
+                                            Untuk folder internal tim. Tidak mengubah stage, tidak mengirim email ke klien, dan tidak dianggap sebagai hasil foto terkirim.
                                         </p>
                                     </div>
 
@@ -688,14 +717,8 @@
                             </div>
                             <div class="p-6 flex-grow no-scrollbar">
                                 <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-6">
-                                    <p class="text-[12px] text-blue-800 leading-relaxed mb-2">
-                                        Folder Kerja / Master Folder dipakai untuk akses internal tim.<br>
-                                        <b>Contoh struktur:</b> JPG untuk link file original/seleksi klien, RAW EDIT
-                                        untuk bahan edit, Highlight, dan Hasil Edit.
-                                    </p>
-                                    <p class="text-[11px] text-blue-600 leading-relaxed">
-                                        Link ini tidak mengubah stage Workboard, tidak mengirim email ke klien, dan
-                                        tidak dianggap sebagai Link Hasil Foto.
+                                    <p class="text-[12px] text-blue-800 leading-relaxed">
+                                        Untuk folder internal tim. Tidak mengubah stage, tidak mengirim email ke klien, dan tidak dianggap sebagai hasil foto terkirim.
                                     </p>
                                 </div>
                                 <div>
@@ -729,6 +752,14 @@
                                         data-lucide="x" class="w-4 h-4"></i></button>
                             </div>
                             <div class="p-6 flex-grow no-scrollbar">
+                                <div x-show="activeData.sessionNotEnded" class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
+                                    <p class="text-[13px] font-bold text-yellow-800 mb-1 flex items-center gap-1.5">
+                                        ⚠️ Sesi foto belum selesai (<span x-text="activeData.date"></span>)
+                                    </p>
+                                    <p class="text-[11px] text-yellow-700 leading-relaxed">
+                                        Link Drive bisa disimpan dan toggle bisa diaktifkan, tapi di halaman tracking klien progress tidak akan bergeser ke tahap "File Original Tersedia" sampai hari sesi selesai.
+                                    </p>
+                                </div>
                                 <div class="mb-6">
                                     <label class="block text-[13px] font-bold text-gray-900 mb-2">Link Google Drive
                                         (File Original / RAW) <span class="text-red-500">*</span></label>
@@ -964,7 +995,7 @@
                 whatsappUrl: '',
 
                 activeData: {
-                    id: null, status: '', statusLabel: '', linkFolder: '', linkHasil: '', clientName: '', clientEmail: '', bookingCode: '', packageName: '', date: '', time: '', wa: '', ig: '', totalSelected: 0, selectedPhotos: [], clientNotes: '', adminNotes: '', queueNumber: '', estimateDate: '', companyName: '', photoLimit: '', deadline: '', deadlineRaw: '', sisaHari: 0, updatedAt: ''
+                    id: null, status: '', statusLabel: '', linkFolder: '', linkHasil: '', clientName: '', clientEmail: '', bookingCode: '', packageName: '', date: '', time: '', wa: '', ig: '', totalSelected: 0, selectedPhotos: [], clientNotes: '', adminNotes: '', queueNumber: '', estimateDate: '', companyName: '', photoLimit: '', deadline: '', deadlineRaw: '', sisaHari: 0, updatedAt: '', sessionNotEnded: false
                 },
 
                 // FUNGSI UNTUK MERUBAH ANGKA STATISTIK (DIBAGIAN ATAS) SECARA OTOMATIS
@@ -1015,6 +1046,7 @@
                 openSidebar(data) {
                     this.activeData = { ...data };
                     this.activeData.time = data.time || '-';
+                    this.activeData.sessionNotEnded = data.sessionNotEnded || false;
                     this.tempLink = data.linkFolder || '';
                     this.uploadLink = data.linkOriginal || '';
                     this.linkHasil = data.linkHasil || '';
@@ -1207,6 +1239,8 @@
                             this.activeData.status = newStatus;
                             this.activeData.linkOriginal = this.uploadLink;
 
+                            let descElement = document.getElementById('desc-' + this.activeData.id);
+
                             if (newStatus === 'File Original Disiapkan') {
                                 this.activeData.statusLabel = 'Belum Pilih Foto';
                             } else {
@@ -1219,9 +1253,11 @@
                                 if (newStatus === 'File Original Disiapkan') {
                                     badgeElement.textContent = 'Belum Pilih Foto';
                                     badgeElement.className = 'inline-block bg-orange-50 text-orange-600 text-[11px] font-bold px-2.5 py-1 rounded-md transition-colors duration-300';
+                                    if(descElement) descElement.textContent = 'Menunggu klien memilih foto';
                                 } else {
                                     badgeElement.textContent = 'Belum Upload';
                                     badgeElement.className = 'inline-block bg-gray-100 text-gray-600 text-[11px] font-bold px-2.5 py-1 rounded-md transition-colors duration-300';
+                                    if(descElement) descElement.textContent = 'Menunggu upload file original';
                                 }
                             }
 
@@ -1269,9 +1305,11 @@
 
                                 // VISUAL UPDATE INSTAN PADA KARTU GRID
                                 let badgeElement = document.getElementById('badge-' + this.activeData.id);
+                                let descElement = document.getElementById('desc-' + this.activeData.id);
                                 if (badgeElement) {
                                     badgeElement.textContent = 'Sedang Diedit';
                                     badgeElement.className = 'inline-block bg-purple-50 text-purple-600 text-[11px] font-bold px-2.5 py-1 rounded-md transition-colors duration-300';
+                                    if(descElement) descElement.textContent = 'Sedang dalam proses editing';
                                 }
 
                                 this.openPanel('main');
@@ -1323,9 +1361,11 @@
 
                                 // VISUAL UPDATE INSTAN PADA KARTU GRID
                                 let badgeElement = document.getElementById('badge-' + this.activeData.id);
+                                let descElement = document.getElementById('desc-' + this.activeData.id);
                                 if (badgeElement) {
                                     badgeElement.textContent = 'Terkirim';
                                     badgeElement.className = 'inline-block bg-emerald-50 text-emerald-600 text-[11px] font-bold px-2.5 py-1 rounded-md transition-colors duration-300';
+                                    if(descElement) descElement.textContent = 'Hasil akhir sudah dikirim';
                                 }
 
                                 // Siapkan Data untuk Notifikasi Toast
@@ -1429,9 +1469,11 @@
 
                                 // VISUAL UPDATE INSTAN PADA KARTU GRID
                                 let badgeElement = document.getElementById('badge-' + this.activeData.id);
+                                let descElement = document.getElementById('desc-' + this.activeData.id);
                                 if (badgeElement) {
                                     badgeElement.textContent = 'Terkirim';
                                     badgeElement.className = 'inline-block bg-emerald-50 text-emerald-600 text-[11px] font-bold px-2.5 py-1 rounded-md transition-colors duration-300';
+                                    if(descElement) descElement.textContent = 'Hasil akhir sudah dikirim';
                                 }
                             }
                         })
