@@ -87,6 +87,7 @@
 
         <form method="POST" action="{{ route('booking.public.store', $ownerId) }}" id="booking-form" class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 sm:p-8">
             @csrf
+            
             <input type="hidden" name="payment_type" id="hidden_payment_type" :value="paymentOption">
             <input type="hidden" name="booking_time" :value="bookingTime">
             
@@ -335,7 +336,7 @@
                                     </div>
                                     <div>
                                         <p class="font-bold text-gray-900 text-sm">DP 30%</p>
-                                        <p class="text-xs text-gray-500">Bayar sebagian sekarang, sisanya saat sesi, atau setelah sesi.</p>
+                                        <p class="text-xs text-gray-500">Bayar sebagian sekarang, sisanya sebelum terima hasil.</p>
                                     </div>
                                 </div>
                                 <p class="font-bold text-brand text-sm" x-text="formatCurrency(unitPrice * 0.3)"></p>

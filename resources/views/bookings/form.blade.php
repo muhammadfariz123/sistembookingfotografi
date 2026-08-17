@@ -18,6 +18,7 @@
                 </div>
 
                 <form id="booking-form" @submit.prevent="submitBooking()" class="space-y-6">
+                    @csrf
                     
                     <div x-show="Object.keys(submitErrors).length > 0" x-cloak class="bg-red-50 border border-red-200 rounded-2xl px-4 py-3">
                         <p class="text-[13px] font-semibold text-red-600 mb-1">Mohon periksa kembali:</p>
@@ -140,11 +141,11 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-gray-100 pt-6">
                         <div>
                             <label class="block text-[14px] font-medium text-gray-700 mb-2">Status Jadwal</label>
-                            {{-- PERBAIKAN: List Dropdown Admin dilengkapi agar status tidak rejected (422) saat diedit --}}
                             <select x-model="status" class="w-full h-[48px] rounded-xl border border-gray-300 px-4 text-[14px] outline-none shadow-sm focus:ring-2 focus:ring-blue-500/20">
                                 <option value="Pending">Pending</option>
                                 <option value="Belum Bayar">Belum Bayar</option>
                                 <option value="Pembayaran Tertunda">Pembayaran Tertunda</option>
+                                <option value="Tunggu Konfirmasi">Tunggu Konfirmasi</option>
                                 <option value="Dijadwalkan">Dijadwalkan</option>
                                 <option value="File Original Disiapkan">File Original Disiapkan</option>
                                 <option value="Pilih Foto">Pilih Foto</option>
@@ -404,10 +405,18 @@
             async submitBooking() {
                 this.submitting = true; this.submitErrors = {}
                 const isEdit = this.editingBookingId !== null
+                
+                // Fix 419 CSRF Token
+                const token = document.querySelector('input[name="_token"]')?.value || document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
                 try {
                     const res = await fetch(isEdit ? `/bookings/${this.editingBookingId}` : '/bookings', {
                         method: isEdit ? 'PUT' : 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
+                        headers: { 
+                            'Content-Type': 'application/json', 
+                            'Accept': 'application/json', 
+                            'X-CSRF-TOKEN': token 
+                        },
                         body: JSON.stringify({
                             client_name: this.clientName, client_contact: this.clientContact, client_address: this.clientAddress,
                             service_type_id: this.selectedServiceId,
