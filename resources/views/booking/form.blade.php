@@ -42,7 +42,8 @@
         }
     @endphp
 
-    <div class="max-w-3xl mx-auto px-4 py-10" x-data="bookingWizard('{{ $initialServiceId }}', {{ (int)$initialServicePrice }}, '{{ addslashes($initialServiceName) }}', '{{ addslashes($initialCategory) }}', {{ (int)$initialServiceDuration }})">
+    {{-- Pass bookedTimeSlots ke Alpine JS --}}
+    <div class="max-w-3xl mx-auto px-4 py-10" x-data="bookingWizard('{{ $initialServiceId }}', {{ (int)$initialServicePrice }}, '{{ addslashes($initialServiceName) }}', '{{ addslashes($initialCategory) }}', {{ (int)$initialServiceDuration }}, @js($bookedTimeSlots ?? new \stdClass()))">
         <div class="text-center mb-10">
             <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Form Booking</h1>
             <p class="text-gray-500 mt-2 text-sm">Lengkapi 4 tahapan di bawah ini untuk menyelesaikan pesanan Anda.</p>
@@ -172,6 +173,23 @@
                     <p class="text-gray-500 text-sm mt-1">Tentukan tanggal dan jam berapa sesi foto atau acara Anda akan dimulai.</p>
                 </div>
 
+                {{-- KOTAK INFORMASI JAM BENTROK (Otomatis Muncul) --}}
+                <div x-show="todayBookedSlots.length > 0" x-cloak class="mb-6 bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                    <div class="flex gap-3">
+                        <svg class="w-5 h-5 text-yellow-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                        <div>
+                            <p class="font-bold text-yellow-800 text-sm mb-1">Informasi Ketersediaan</p>
+                            <p class="text-yellow-700 text-sm">Pada rentang hari acara Anda, tim kami sudah memiliki jadwal berikut:</p>
+                            <ul class="mt-2 space-y-1">
+                                <template x-for="(slot, index) in todayBookedSlots" :key="index">
+                                    <li class="inline-block bg-white text-yellow-800 border border-yellow-200 text-xs font-bold px-2 py-1 rounded mr-2 mb-1 shadow-sm" x-text="slot.text"></li>
+                                </template>
+                            </ul>
+                            <p class="text-yellow-700 text-xs mt-2 font-medium italic">Mohon pilih rentang jam yang berbeda agar tidak terjadi bentrok jadwal.</p>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-3 text-sm text-amber-800">
                     <svg class="w-5 h-5 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                     <div>
@@ -187,58 +205,56 @@
                     </label>
                 </div>
                 
-                {{-- SATU HARI --}}
-                <div x-show="!multiDay" class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <div>
+                {{-- JADWAL DINAMIS (GABUNGAN SATU HARI & MULTI HARI) --}}
+                <div class="grid grid-cols-1 sm:grid-cols-12 gap-5">
+                    
+                    {{-- Form Tanggal Acara (Satu Hari) --}}
+                    <div x-show="!multiDay" class="sm:col-span-6">
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">Tanggal Acara <span class="text-red-500">*</span></label>
                         <input type="date" name="booking_date" x-model="bookingDate" :disabled="multiDay" :required="!multiDay" :min="todayDate" class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm">
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Jam Mulai Sesi Foto / Acara <span class="text-red-500">*</span></label>
-                        <div class="relative flex items-center">
-                            <input type="text" 
-                                x-model="bookingTime" 
-                                x-init="flatpickr($el, { enableTime: true, noCalendar: true, dateFormat: 'H:i', time_24hr: true, disableMobile: true, onChange: function(sd, ds) { bookingTime = ds } })" 
-                                :disabled="multiDay" 
-                                :required="!multiDay" 
-                                placeholder="-- : --"
-                                class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm pl-4 pr-[75px] cursor-pointer bg-white">
-                            
-                            <div class="absolute right-3 flex items-center gap-1.5 text-gray-400 pointer-events-none">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                <span class="text-xs font-bold">WIB</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
-                {{-- MULTI HARI --}}
-                <div x-show="multiDay" class="grid grid-cols-1 sm:grid-cols-3 gap-5" style="display: none;">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Mulai <span class="text-red-500">*</span></label>
+                    {{-- Form Mulai & Selesai (Multi Hari) --}}
+                    <div x-show="multiDay" class="sm:col-span-4" style="display: none;">
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Tanggal Mulai <span class="text-red-500">*</span></label>
                         <input type="date" name="start_date" x-model="startDate" :disabled="!multiDay" :required="multiDay" :min="todayDate" class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm">
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Selesai <span class="text-red-500">*</span></label>
+                    <div x-show="multiDay" class="sm:col-span-4" style="display: none;">
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Tanggal Selesai <span class="text-red-500">*</span></label>
                         <input type="date" name="end_date" x-model="endDate" :disabled="!multiDay" :required="multiDay" :min="startDate || todayDate" class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm">
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Jam Mulai Hari Pertama <span class="text-red-500">*</span></label>
-                        <div class="relative flex items-center">
-                            <input type="text" 
-                                x-model="bookingTime" 
-                                x-init="flatpickr($el, { enableTime: true, noCalendar: true, dateFormat: 'H:i', time_24hr: true, disableMobile: true, onChange: function(sd, ds) { bookingTime = ds } })" 
-                                :disabled="!multiDay" 
-                                :required="multiDay" 
-                                placeholder="-- : --"
-                                class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm pl-4 pr-[75px] cursor-pointer bg-white">
-                            
-                            <div class="absolute right-3 flex items-center gap-1.5 text-gray-400 pointer-events-none">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                <span class="text-xs font-bold">WIB</span>
+
+                    {{-- JAM MULAI (Digunakan Bersama, Tanpa Duplikasi DOM) --}}
+                    <div :class="multiDay ? 'sm:col-span-4' : 'sm:col-span-6'">
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                            <span x-text="multiDay ? 'Jam Mulai Hari Pertama' : 'Jam Mulai Sesi Foto'"></span> <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative flex flex-col">
+                            <div class="relative flex items-center">
+                                {{-- DI SINI VALIDASI JAM OPERASIONAL FLATPIKR DIHILANGKAN, BEBAS 24 JAM --}}
+                                <input type="text" 
+                                    x-model="bookingTime" 
+                                    x-init="flatpickr($el, { enableTime: true, noCalendar: true, dateFormat: 'H:i', time_24hr: true, disableMobile: true, minuteIncrement: 30, onChange: function(sd, ds) { bookingTime = ds } })" 
+                                    required 
+                                    placeholder="-- : --"
+                                    class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm pl-4 pr-[75px] cursor-pointer bg-white">
+                                
+                                <div class="absolute right-3 flex items-center gap-1.5 text-gray-400 pointer-events-none">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    <span class="text-xs font-bold">WIB</span>
+                                </div>
                             </div>
+                            
+                            {{-- TEKS BANTUAN PINTAR (MICROCOPY) --}}
+                            <p x-show="(multiDay ? startDate : bookingDate) === todayDate && minTimeToday !== 'Tutup'" x-cloak class="text-[11.5px] text-orange-600 mt-2 font-medium leading-tight">
+                                * Khusus hari ini, jam awal yang bisa dipilih adalah <span x-text="minTimeToday" class="font-bold"></span> WIB.
+                            </p>
+                            <p x-show="(multiDay ? startDate : bookingDate) === todayDate && minTimeToday === 'Tutup'" x-cloak class="text-[11.5px] text-red-600 mt-2 font-bold leading-tight">
+                                * Maaf, jadwal hari ini tidak memungkinkan lagi (ganti hari). Silakan pilih besok.
+                            </p>
                         </div>
                     </div>
+
                 </div>
 
                 <div class="mt-8 flex justify-between items-center">
@@ -388,7 +404,7 @@
                 </button>
                 <h3 class="text-lg font-bold text-gray-900 leading-tight">Syarat dan Ketentuan</h3>
                 <div class="text-sm text-gray-600 mt-4 mb-6 leading-relaxed space-y-2">
-                    <p>1. Pemesanan (booking) dianggap sah hanya jika pembayaran DP/Lunas telah dikonfirmasi oleh Admin.</p>
+                    <p>1. Pemesanan (booking) dianggap sah hanya jika pembayaran DP/Lunas telah dikonfirmasi oleh Admin. <b>Jadwal Anda hanya akan kami amankan sementara maksimal 2 jam. Jika tidak ada konfirmasi pembayaran, sistem berhak membatalkan pesanan secara sepihak.</b></p>
                     <p>2. Diharapkan hadir tepat waktu sesuai waktu mulai yang dipilih. Keterlambatan dapat memotong durasi sesi foto Anda.</p>
                     <p>3. Reschedule hanya dapat dilakukan maksimal H-3 sebelum tanggal pemotretan.</p>
                     <p>4. Pembatalan sepihak oleh klien akan mengakibatkan uang muka (DP) hangus.</p>
@@ -405,7 +421,7 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     
     <script>
-        function bookingWizard(initialId = '', initialPrice = 0, initialName = '', initialCategory = '', initialDuration = 0) {
+        function bookingWizard(initialId = '', initialPrice = 0, initialName = '', initialCategory = '', initialDuration = 0, bookedSlots = {}) {
             return {
                 step: 1, errorMsg: '',
                 selectedCategory: initialCategory,
@@ -415,7 +431,9 @@
                 selectedServiceDuration: Number(initialDuration),
                 multiDay: false, bookingDate: '', startDate: '', endDate: '',
 
-                // LOKASI VARIABEL
+                // Data Jam Booking Yang Sudah Terisi
+                bookedTimeSlots: bookedSlots,
+
                 get todayDate() {
                     const d = new Date();
                     const year = d.getFullYear();
@@ -424,7 +442,55 @@
                     return `${year}-${month}-${day}`;
                 },
 
-                // String Jam dari Flatpickr
+                // Menghitung batas waktu paling awal (30 menit dari sekarang) khusus untuk hari ini
+                get minTimeToday() {
+                    const now = new Date();
+                    const originalDate = now.getDate();
+                    now.setMinutes(now.getMinutes() + 30);
+                    
+                    // Jika setelah ditambah 30 menit ternyata melewati tengah malam (ganti hari)
+                    if (now.getDate() !== originalDate) {
+                        return 'Tutup';
+                    }
+
+                    let h = now.getHours();
+                    let m = now.getMinutes();
+
+                    return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+                },
+
+                // Mendapatkan daftar jam ter-booking untuk SELURUH hari yang dipilih klien
+                get todayBookedSlots() {
+                    let slots = [];
+                    let datesToCheck = [];
+                    
+                    if (this.multiDay && this.startDate && this.endDate) {
+                        let currentD = new Date(this.startDate);
+                        let endD = new Date(this.endDate);
+                        while(currentD <= endD) {
+                            let y = currentD.getFullYear();
+                            let m = String(currentD.getMonth() + 1).padStart(2, '0');
+                            let d = String(currentD.getDate()).padStart(2, '0');
+                            datesToCheck.push(`${y}-${m}-${d}`);
+                            currentD.setDate(currentD.getDate() + 1);
+                        }
+                    } else if (!this.multiDay && this.bookingDate) {
+                        datesToCheck.push(this.bookingDate);
+                    }
+
+                    // Kumpulkan semua slot sibuk di tanggal-tanggal tersebut
+                    for (let d of datesToCheck) {
+                        if (this.bookedTimeSlots[d]) {
+                            for (let slot of this.bookedTimeSlots[d]) {
+                                slots.push({
+                                    text: `Tgl ${this.formatDateLocal(d)}: ${slot.text}`
+                                });
+                            }
+                        }
+                    }
+                    return slots;
+                },
+
                 bookingTime: '',
 
                 clientName: '{{ old('client_name') }}', clientContact: '{{ old('client_contact') }}',
@@ -442,6 +508,13 @@
                     this.selectedServiceDuration = Number(duration);
                     this.errorMsg = '';
                 },
+
+                timeToMinutes(timeStr) {
+                    if (!timeStr) return 0;
+                    if (timeStr === 'Tutup') return 9999;
+                    let parts = timeStr.split(':');
+                    return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+                },
                 
                 nextStep() {
                     if (this.step === 1 && !this.selectedCategory) { this.showError('Pilih jenis acara terlebih dahulu.'); return; }
@@ -452,27 +525,58 @@
                         if (this.multiDay && (!this.startDate || !this.endDate)) { this.showError('Pilih tanggal mulai dan selesai.'); return; }
                         if (!this.bookingTime) { this.showError('Pilih jam mulai pemotretan / acara.'); return; }
                         
-                        // --- LOGIKA TIME BLOCKING JIKA BOOKING HARI INI ---
                         let checkDate = this.multiDay ? this.startDate : this.bookingDate;
-                        if (checkDate === this.todayDate && this.bookingTime) {
-                            const now = new Date();
+                        let startMin = this.timeToMinutes(this.bookingTime);
+                        
+                        // LOGIKA 2: TIME BLOCKING KHUSUS HARI INI BERSAMA MICROCOPY
+                        if (checkDate === this.todayDate) {
+                            let minAllowedMin = this.timeToMinutes(this.minTimeToday);
                             
-                            // Hapus detik dan milidetik agar perhitungan dimulai persis di awal menit
-                            now.setSeconds(0, 0);
+                            if (this.minTimeToday === 'Tutup') {
+                                this.showError('Maaf, jadwal hari ini tidak memungkinkan lagi (ganti hari). Silakan pilih besok atau seterusnya.');
+                                return;
+                            }
                             
-                            const selectedTime = new Date(`${checkDate}T${this.bookingTime}:00`);
-                            
-                            // Set jeda kelonggaran menjadi 30 menit
-                            const bufferMinutes = 25;
-                            const minTime = new Date(now.getTime() + (bufferMinutes * 60 * 1000)); 
-                            
-                            if (selectedTime < minTime) {
-                                this.showError('Untuk pemesanan hari ini, waktu mulai minimal 30 menit dari jam sekarang untuk persiapan tim.');
+                            if (startMin < minAllowedMin) {
+                                this.showError(`Untuk pemesanan hari ini, jam paling awal yang bisa Anda pilih adalah pukul ${this.minTimeToday} WIB untuk waktu persiapan tim.`);
                                 return;
                             }
                         }
 
-                        // Jika multiDay false, pastikan endDate kosong agar tidak bentrok
+                        // LOGIKA 3: CEK TABRAKAN JADWAL MULTI-HARI (Mengecek ke seluruh hari yang dipilih)
+                        let datesToCheck = [];
+                        if (!this.multiDay) {
+                            datesToCheck.push(this.bookingDate);
+                        } else {
+                            let currentD = new Date(this.startDate);
+                            let endD = new Date(this.endDate);
+                            while(currentD <= endD) {
+                                let y = currentD.getFullYear();
+                                let m = String(currentD.getMonth() + 1).padStart(2, '0');
+                                let d = String(currentD.getDate()).padStart(2, '0');
+                                datesToCheck.push(`${y}-${m}-${d}`);
+                                currentD.setDate(currentD.getDate() + 1);
+                            }
+                        }
+
+                        let newEndMin = startMin + (this.selectedServiceDuration * 60);
+
+                        for (let d of datesToCheck) {
+                            if (this.bookedTimeSlots[d]) {
+                                for (let slot of this.bookedTimeSlots[d]) {
+                                    let existStartMin = this.timeToMinutes(slot.start);
+                                    let existEndMin = this.timeToMinutes(slot.end);
+
+                                    // Rumus Tabrakan: (Start Baru < End Lama) DAN (End Baru > Start Lama)
+                                    if (startMin < existEndMin && newEndMin > existStartMin) {
+                                        this.showError(`Waktu bertabrakan! Tim kami sudah memiliki jadwal pukul ${slot.text} pada tanggal ${this.formatDateLocal(d)}. Mohon pilih jam atau tanggal lain.`);
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+
+                        // Bersihkan field agar tidak rancu
                         if (!this.multiDay) {
                             this.startDate = '';
                             this.endDate = '';
@@ -481,7 +585,7 @@
                         }
                     }
                     
-                    if (this.step === 3 && (!this.clientName || !this.clientContact)) { this.showError('Isi kontak yang wajib (*).'); return; }
+                    if (this.step === 3 && (!this.clientName || !this.clientContact || !this.clientAddress)) { this.showError('Isi kontak yang wajib (*).'); return; }
                     
                     this.errorMsg = ''; this.step++; window.scrollTo({ top: 0, behavior: 'smooth' });
                 },
@@ -527,7 +631,6 @@
                     if (!this.agreeTnC) { this.showError('Centang persetujuan dahulu.'); return; }
                     document.getElementById('hidden_payment_type').value = this.paymentOption;
                     
-                    // Input type hidden dikelola manual untuk mensubmit format 24 jam dengan presisi
                     const hiddenTimeInput = document.querySelector('input[type="hidden"][name="booking_time"]');
                     if (hiddenTimeInput) {
                         hiddenTimeInput.value = this.bookingTime;

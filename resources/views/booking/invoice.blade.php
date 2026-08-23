@@ -33,14 +33,20 @@
 
         {{-- HEADER INVOICE --}}
         <div class="flex justify-between items-start border-b-2 border-gray-900 pb-6 mb-6">
-            <div>
-                <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">{{ $company?->company_name ?? $booking->user->name }}</h1>
-                <div class="mt-2 text-[13px] text-gray-500">
-                    <p>{{ $company?->company_email ?? $booking->user->email }}</p>
-                    <p>{{ $company?->company_phone ?? '-' }}</p>
+            <div class="flex items-center gap-5">
+                {{-- Menampilkan Logo Perusahaan Jika Ada --}}
+                @if(!empty($company?->company_logo))
+                    <img src="{{ asset('storage/' . $company->company_logo) }}" alt="Logo Perusahaan" class="h-20 w-auto object-contain shrink-0">
+                @endif
+                <div>
+                    <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">{{ $company?->company_name ?? $booking->user->name }}</h1>
+                    <div class="mt-1 text-[13px] text-gray-500">
+                        <p>{{ $company?->company_email ?? $booking->user->email }}</p>
+                        <p>{{ $company?->company_phone ?? '-' }}</p>
+                    </div>
                 </div>
             </div>
-            <div class="text-right">
+            <div class="text-right shrink-0">
                 <h2 class="text-2xl font-bold text-gray-900 uppercase tracking-widest">Bukti Pembayaran</h2>
                 <p class="text-sm text-gray-500 mt-1 font-mono">#{{ $bookingCode }}</p>
                 <div class="mt-2 flex justify-end">

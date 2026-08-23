@@ -15,32 +15,50 @@ class PublicBookingController extends Controller
     public function show(string $ownerId)
     {
         $owner = User::findOrFail($ownerId);
-        // PASTIKAN MELOAD RELASI CATEGORY
         $services = ServiceType::with('category')->where('user_id', $owner->id)->orderBy('name')->get();
         $companySetting = CompanySetting::where('user_id', $owner->id)->first();
 
-        $bookedDates = Booking::where('user_id', $owner->id)
-            ->whereIn('status', ['Dijadwalkan'])
-            ->get()
-            ->flatMap(function ($booking) {
-                if ($booking->booking_date) {
-                    return [Carbon::parse($booking->booking_date)->format('Y-m-d')];
-                }
-                if ($booking->start_date && $booking->end_date) {
-                    $dates = [];
-                    $start = Carbon::parse($booking->start_date);
-                    $end = Carbon::parse($booking->end_date);
-                    while ($start->lte($end)) {
-                        $dates[] = $start->format('Y-m-d');
-                        $start->addDay();
-                    }
-                    return $dates;
-                }
-                return [];
-            })
-            ->unique()->values()->toArray();
+        $activeBookings = Booking::with('serviceType')
+            ->where('user_id', $owner->id)
+            ->where('status', '!=', 'Dibatalkan')
+            ->whereNotNull('booking_time') // <-- Cukup ini saja untuk PostgreSQL
+            ->get();
 
-        return view('booking.public', compact('owner', 'services', 'companySetting', 'bookedDates', 'ownerId'));
+        $bookedTimeSlots = new \stdClass();
+
+        foreach ($activeBookings as $b) {
+            $dates = [];
+            // Menampung semua tanggal jika multi-hari
+            if ($b->booking_date) {
+                $dates[] = Carbon::parse($b->booking_date)->format('Y-m-d');
+            } elseif ($b->start_date && $b->end_date) {
+                $start = Carbon::parse($b->start_date);
+                $end = Carbon::parse($b->end_date);
+                while ($start->lte($end)) {
+                    $dates[] = $start->format('Y-m-d');
+                    $start->addDay();
+                }
+            }
+
+            if (!empty($dates) && !empty($b->booking_time)) {
+                $duration = $b->serviceType->duration ?? 0;
+                $startStr = Carbon::parse($b->booking_time);
+                $endStr = $startStr->copy()->addHours($duration);
+
+                foreach ($dates as $d) {
+                    if (!isset($bookedTimeSlots->{$d})) {
+                        $bookedTimeSlots->{$d} = [];
+                    }
+                    $bookedTimeSlots->{$d}[] = [
+                        'start' => $startStr->format('H:i'),
+                        'end'   => $endStr->format('H:i'),
+                        'text'  => $startStr->format('H:i') . ' - ' . $endStr->format('H:i') . ' WIB'
+                    ];
+                }
+            }
+        }
+
+        return view('booking.public', compact('owner', 'services', 'companySetting', 'bookedTimeSlots', 'ownerId'));
     }
 
     public function store(Request $request, string $ownerId)
@@ -51,7 +69,7 @@ class PublicBookingController extends Controller
             'client_email' => 'nullable|email|max:255',
             'client_instagram' => 'nullable|string|max:255',
             'client_address' => 'nullable|string',
-            'link_gmaps' => 'nullable|url|max:1000', // <-- TAMBAHAN UNTUK GMAPS
+            'link_gmaps' => 'nullable|url|max:1000',
             'service_type_id' => 'required|exists:service_types,id',
             'booking_date' => 'nullable|date',
             'start_date' => 'nullable|date',
@@ -76,7 +94,7 @@ class PublicBookingController extends Controller
             'client_email' => $validated['client_email'] ?? null,
             'client_instagram' => $validated['client_instagram'] ?? null,
             'client_address' => $validated['client_address'] ?? null,
-            'link_gmaps' => $validated['link_gmaps'] ?? null, // <-- MASUKKAN KE DATABASE
+            'link_gmaps' => $validated['link_gmaps'] ?? null,
             'booking_date' => $validated['booking_date'] ?? null,
             'start_date' => $validated['start_date'] ?? null,
             'end_date' => $validated['end_date'] ?? null,
@@ -96,12 +114,9 @@ class PublicBookingController extends Controller
             'remaining' => $tpsData['remaining'],
         ]);
 
-        // Generate Booking Code & Transaksi Pertama
         $bookingCodeFormatted = 'BKG-' . Carbon::parse($booking->created_at)->format('Ymd') . '-' . strtoupper(substr(md5($booking->id), 0, 4));
-
         $amountExpected = ($validated['payment_type'] === 'LUNAS') ? $tpsData['total'] : (int) ceil($tpsData['total'] * 0.3);
 
-        // Buat Baris Transaksi di Tabel payment_transactions
         \App\Models\PaymentTransaction::create([
             'booking_id' => $booking->id,
             'user_id' => $owner->id,
@@ -127,7 +142,7 @@ class PublicBookingController extends Controller
         }
 
         return redirect()->route('booking.public.pembayaran', ['ownerId' => $ownerId, 'bookingId' => $booking->id])
-            ->with('success', 'Booking berhasil! Silakan selesaikan pembayaran.');
+            ->with('success', 'Booking berhasil! Silakan selesaikan pembayaran dalam 10 Menit.');
     }
 
     public function checkPage()
@@ -145,7 +160,6 @@ class PublicBookingController extends Controller
     {
         $owner = User::findOrFail($ownerId);
         $companySetting = CompanySetting::where('user_id', $owner->id)->first();
-        // PASTIKAN MELOAD RELASI CATEGORY DAN GALLERIES-NYA
         $service = ServiceType::with('category.galleries')
             ->where('id', $serviceId)
             ->where('user_id', $owner->id)
@@ -157,7 +171,6 @@ class PublicBookingController extends Controller
     public function allServices(string $ownerId)
     {
         $owner = User::findOrFail($ownerId);
-        // PASTIKAN MELOAD RELASI CATEGORY
         $services = ServiceType::with('category')->where('user_id', $owner->id)->orderBy('name')->get();
         $companySetting = CompanySetting::where('user_id', $owner->id)->first();
 
@@ -168,7 +181,6 @@ class PublicBookingController extends Controller
     {
         $owner = User::findOrFail($ownerId);
         $companySetting = CompanySetting::where('user_id', $owner->id)->first();
-        // PASTIKAN MELOAD RELASI CATEGORY DAN GALLERIES-NYA
         $service = ServiceType::with('category.galleries')
             ->where('id', $serviceId)
             ->where('user_id', $owner->id)
@@ -187,15 +199,11 @@ class PublicBookingController extends Controller
         $inputCode = strtoupper(trim($request->booking_code));
         $inputEmail = strtolower(trim($request->email));
 
-        // Mencari booking berdasarkan email
         $bookings = Booking::where('client_email', $inputEmail)->with('serviceType')->get();
         $matchedBooking = null;
 
         foreach ($bookings as $b) {
-            // Kita membangun ulang kode dari masing-masing booking milik email tersebut
             $expectedCode = 'BKG-' . \Carbon\Carbon::parse($b->created_at)->format('Ymd') . '-' . strtoupper(substr(md5($b->id), 0, 4));
-
-            // Mencocokkan kode yang diketik customer dengan yang di database
             if ($expectedCode === $inputCode) {
                 $matchedBooking = $b;
                 break;
@@ -212,7 +220,6 @@ class PublicBookingController extends Controller
         $companySetting = CompanySetting::where('user_id', $ownerId)->first();
         $bookingCode = $inputCode;
 
-        // Logika Nominal
         $isLunas = strtoupper($booking->payment_type) === 'LUNAS' || strtoupper($booking->payment_type) === 'PELUNASAN';
         $amountToPay = 0;
         $dpAmount = (int) ceil($booking->total * 0.3);
@@ -223,7 +230,6 @@ class PublicBookingController extends Controller
             $amountToPay = $booking->remaining;
         }
 
-        // Memanggil View track-result.blade.php
         return view('booking.track-result', compact(
             'booking',
             'owner',
@@ -239,7 +245,6 @@ class PublicBookingController extends Controller
     {
         $owner = User::findOrFail($ownerId);
         $companySetting = CompanySetting::where('user_id', $owner->id)->first();
-        // PASTIKAN MELOAD RELASI CATEGORY
         $services = ServiceType::with('category')->where('user_id', $owner->id)->orderBy('name')->get();
 
         $selectedService = null;
@@ -247,7 +252,45 @@ class PublicBookingController extends Controller
             $selectedService = $services->firstWhere('id', $serviceId);
         }
 
-        return view('booking.form', compact('owner', 'companySetting', 'services', 'ownerId', 'selectedService'));
+        $activeBookings = Booking::with('serviceType')
+            ->where('user_id', $owner->id)
+            ->where('status', '!=', 'Dibatalkan')
+            ->whereNotNull('booking_time') // <-- Cukup ini saja untuk PostgreSQL
+            ->get();
+
+        $bookedTimeSlots = new \stdClass();
+        foreach ($activeBookings as $b) {
+            $dates = [];
+            if ($b->booking_date) {
+                $dates[] = Carbon::parse($b->booking_date)->format('Y-m-d');
+            } elseif ($b->start_date && $b->end_date) {
+                $start = Carbon::parse($b->start_date);
+                $end = Carbon::parse($b->end_date);
+                while ($start->lte($end)) {
+                    $dates[] = $start->format('Y-m-d');
+                    $start->addDay();
+                }
+            }
+
+            if (!empty($dates) && !empty($b->booking_time)) {
+                $duration = $b->serviceType->duration ?? 0;
+                $startStr = Carbon::parse($b->booking_time);
+                $endStr = $startStr->copy()->addHours($duration);
+
+                foreach ($dates as $d) {
+                    if (!isset($bookedTimeSlots->{$d})) {
+                        $bookedTimeSlots->{$d} = [];
+                    }
+                    $bookedTimeSlots->{$d}[] = [
+                        'start' => $startStr->format('H:i'),
+                        'end'   => $endStr->format('H:i'),
+                        'text'  => $startStr->format('H:i') . ' - ' . $endStr->format('H:i') . ' WIB'
+                    ];
+                }
+            }
+        }
+
+        return view('booking.form', compact('owner', 'companySetting', 'services', 'ownerId', 'selectedService', 'bookedTimeSlots'));
     }
 
     public function paymentSuccess($ownerId, $bookingId)
@@ -289,6 +332,20 @@ class PublicBookingController extends Controller
         ]);
 
         $booking = Booking::where('id', $bookingId)->where('user_id', $ownerId)->with('serviceType')->firstOrFail();
+
+        // 1. LOGIKA VALIDASI EXPIRED SAAT UPLOAD DARI BACKEND
+        if (in_array($booking->payment_status, ['Pending', 'Belum Bayar'])) {
+            $expiresAt = Carbon::parse($booking->created_at)->addMinutes(10);
+            if (Carbon::now('Asia/Jakarta')->greaterThan($expiresAt)) {
+                // Auto batalkan jika tembus via Postman / tab lama
+                $booking->update([
+                    'status' => 'Dibatalkan',
+                    'payment_status' => 'Dibatalkan',
+                    'notes' => ltrim($booking->notes . "\n\n[SISTEM]: Dibatalkan otomatis karena melewati waktu pembayaran 10 menit.")
+                ]);
+                return back()->withErrors(['payment_proof' => 'Gagal Upload. Waktu pembayaran 10 menit telah habis. Booking dibatalkan otomatis.']);
+            }
+        }
 
         if ($booking->client_email && strtolower(trim($request->client_email)) !== strtolower(trim($booking->client_email))) {
             return back()->withErrors(['client_email' => 'Email verifikasi tidak sesuai dengan data email saat booking.']);
@@ -368,6 +425,23 @@ class PublicBookingController extends Controller
             ->firstOrFail();
         $companySetting = CompanySetting::where('user_id', $owner->id)->first();
 
+        // 2. LOGIKA MENGHITUNG EXPIRED 10 MENIT
+        $expiresAt = Carbon::parse($booking->created_at)->addMinutes(10);
+        $isExpired = $booking->status === 'Dibatalkan' || $booking->payment_status === 'Dibatalkan';
+
+        // Hanya cek kadaluarsa jika status awal masih Pending
+        if (in_array($booking->payment_status, ['Pending', 'Belum Bayar'])) {
+            if (Carbon::now('Asia/Jakarta')->greaterThan($expiresAt)) {
+                // Eksekusi Pembatalan Otomatis
+                $booking->update([
+                    'status' => 'Dibatalkan',
+                    'payment_status' => 'Dibatalkan',
+                    'notes' => ltrim($booking->notes . "\n\n[SISTEM]: Dibatalkan otomatis karena melewati waktu pembayaran 10 menit.")
+                ]);
+                $isExpired = true;
+            }
+        }
+
         $subtotal = (int) $booking->subtotal;
         $discountAmount = (int) $booking->discount_amount;
         $discountPercent = (float) $booking->discount_percent;
@@ -394,7 +468,7 @@ class PublicBookingController extends Controller
         $paymentType = strtoupper($booking->payment_type);
 
         $amountToPay = 0;
-        if (in_array($booking->payment_status, ['Pending', 'Belum Bayar', 'Tunggu Konfirmasi'])) {
+        if (in_array($booking->payment_status, ['Pending', 'Belum Bayar', 'Tunggu Konfirmasi', 'Dibatalkan'])) {
             $amountToPay = ($paymentType === 'LUNAS' || $paymentType === 'PELUNASAN') ? $total : $dpAmount;
         } elseif ($booking->payment_status === 'Down Payment') {
             $amountToPay = $booking->remaining;
@@ -415,13 +489,14 @@ class PublicBookingController extends Controller
             'amountToPay',
             'sisaAfterDp',
             'bookingCode',
-            'ownerId'
+            'ownerId',
+            'expiresAt',
+            'isExpired'
         ));
     }
 
     public function selectionPage($bookingCode)
     {
-        // 1. Cari data booking berdasarkan Hash Kode
         $booking = \App\Models\Booking::with(['serviceType', 'user'])->get()->first(function ($b) use ($bookingCode) {
             $generatedCode = 'BKG-' . \Carbon\Carbon::parse($b->created_at)->format('Ymd') . '-' . strtoupper(substr(md5($b->id), 0, 4));
             return $generatedCode === $bookingCode;
@@ -435,13 +510,11 @@ class PublicBookingController extends Controller
         $companyName = $companySetting->company_name ?? $booking->user->name ?? 'Studio Foto';
         $limitFoto = $booking->serviceType->photo_limit ?? 30;
 
-        // 2. Tarik Foto ASLI dari Google Drive terlebih dahulu untuk mendapatkan daftar filename
         $photos = [];
         $apiError = null;
 
         if (!empty($booking->link_original)) {
             $folderId = $this->extractDriveFolderId($booking->link_original);
-
             if ($folderId) {
                 $driveData = $this->getRealImagesFromDrive($folderId);
                 $photos = $driveData['photos'];
@@ -451,26 +524,23 @@ class PublicBookingController extends Controller
             }
         }
 
-        // Ambil data selected_photos dari database
         $rawSelected = json_decode($booking->selected_photos ?? '[]');
         $previousSelected = [];
 
-        // Mapping aman: Jika data lama berupa ID Google Drive, cocokkan dengan filename fotonya agar otomatis tercentang
         foreach ($rawSelected as $item) {
             if (is_string($item)) {
-                // Cek apakah item ini adalah filename atau ID Drive
                 $found = collect($photos)->firstWhere('id', $item);
                 if ($found) {
-                    $previousSelected[] = $found['filename']; // Ubah ID lama menjadi filename
+                    $previousSelected[] = $found['filename'];
                 } else {
-                    $previousSelected[] = $item; // Jika sudah berupa filename
+                    $previousSelected[] = $item;
                 }
             }
         }
 
         return view('booking.seleksi', compact('booking', 'bookingCode', 'companyName', 'limitFoto', 'photos', 'apiError', 'previousSelected'));
     }
-    // Fungsi Bantuan 1: Ambil ID Folder dari URL
+
     private function extractDriveFolderId($url)
     {
         if (preg_match('/folders\/([a-zA-Z0-9-_]+)/', $url, $matches)) {
@@ -481,7 +551,6 @@ class PublicBookingController extends Controller
         return null;
     }
 
-    // Fungsi Bantuan 2: Koneksi API Google Drive untuk Menarik File ASLI
     private function getRealImagesFromDrive($folderId)
     {
         try {
@@ -491,14 +560,12 @@ class PublicBookingController extends Controller
                 return ['photos' => [], 'error' => 'File google-credential.json tidak ditemukan di folder storage/app/.'];
             }
 
-            // Inisialisasi Google Client dengan aman
             $client = new \Google\Client();
             $client->setAuthConfig($credentialPath);
             $client->addScope(\Google\Service\Drive::DRIVE_READONLY);
 
             $service = new \Google\Service\Drive($client);
 
-            // Query untuk mengambil file gambar asli di dalam folder Google Drive
             $results = $service->files->listFiles([
                 'q' => "'{$folderId}' in parents and mimeType contains 'image/' and trashed = false",
                 'fields' => "files(id, name, thumbnailLink, webContentLink)",
@@ -509,9 +576,7 @@ class PublicBookingController extends Controller
 
             $photos = [];
             foreach ($results->getFiles() as $file) {
-                // Ambil link gambar resolusi tinggi dari Google Drive
                 $thumbnail = $file->getThumbnailLink();
-                // Ubah parameter ukuran thumbnail bawaan Google (s220) menjadi lebih besar (s1000) agar jernih
                 $imageUrl = $thumbnail ? str_replace('=s220', '=s1000', $thumbnail) : $file->getWebContentLink();
 
                 if ($imageUrl) {
@@ -539,7 +604,6 @@ class PublicBookingController extends Controller
         }
     }
 
-    // Fungsi untuk menyimpan pilihan foto dari klien
     public function submitSelection(Request $request, $bookingCode)
     {
         $booking = \App\Models\Booking::with(['serviceType', 'user'])->get()->first(function ($b) use ($bookingCode) {
@@ -551,17 +615,14 @@ class PublicBookingController extends Controller
             return response()->json(['success' => false, 'message' => 'Booking tidak ditemukan.'], 404);
         }
 
-        // Data yang dikirim dari JavaScript sekarang berupa array objek lengkap atau array string nama file
         $selectedPhotos = $request->input('photos', []);
         $clientNotes = $request->input('notes', '');
 
-        // Simpan data ke database
         $booking->selected_photos = json_encode($selectedPhotos);
         $booking->client_notes = $clientNotes;
         $booking->status = 'Pilihan Diterima';
         $booking->save();
 
-        // Kirim Email Notifikasi ke Customer
         if (!empty($booking->client_email)) {
             try {
                 $companySetting = \App\Models\CompanySetting::where('user_id', $booking->user_id)->first();
@@ -583,7 +644,6 @@ class PublicBookingController extends Controller
         ]);
     }
 
-    // Fungsi untuk menampilkan Halaman Sukses (Pilihan Terkirim!)
     public function successPage($bookingCode)
     {
         $booking = \App\Models\Booking::with(['user'])->get()->first(function ($b) use ($bookingCode) {
@@ -601,7 +661,7 @@ class PublicBookingController extends Controller
         $selectedPhotos = json_decode($booking->selected_photos ?? '[]');
         $totalSelected = count($selectedPhotos);
         $adminPhone = $companySetting->phone ?? '6281234567890';
-        $ownerId = $booking->user_id; // <-- Ambil ownerId
+        $ownerId = $booking->user_id; 
 
         return view('booking.sukses-seleksi', compact('booking', 'bookingCode', 'companyName', 'totalSelected', 'adminPhone', 'ownerId'));
     }

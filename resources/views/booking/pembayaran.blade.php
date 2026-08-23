@@ -13,6 +13,7 @@
         .text-brand { color: #f59e0b; }
         .bg-brand { background-color: #fbbf59; }
         .hover-bg-brand:hover { background-color: #f7a934; }
+        [x-cloak] { display: none !important; }
     </style>
 </head>
 <body class="min-h-screen bg-gray-50 font-sans antialiased pb-12">
@@ -20,12 +21,13 @@
         $tglLayanan = $booking->booking_date ?? $booking->start_date;
         $isLunas = strtoupper($booking->payment_type) === 'LUNAS' || strtoupper($booking->payment_type) === 'PELUNASAN';
         
-        // Logika Dinamis Label Total Pembayaran
         if ($booking->payment_status === 'Down Payment') {
             $paymentLabelText = 'Total Harus Dibayar (PELUNASAN)';
         } else {
             $paymentLabelText = $isLunas ? 'Total Harus Dibayar (LUNAS)' : 'Total Harus Dibayar (DP 30%)';
         }
+        
+        $showTimer = in_array($booking->payment_status, ['Pending', 'Belum Bayar']) && !$isExpired;
     @endphp
 
     <div class="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between shadow-sm sticky top-0 z-50">
@@ -36,7 +38,8 @@
         <h1 class="text-[15px] font-extrabold text-gray-900">{{ $companySetting?->company_name ?? $owner->name }}</h1>
     </div>
 
-    <div class="max-w-xl mx-auto px-4 pt-12" x-data="{ showPelunasanSummary: {{ $booking->payment_status === 'Down Payment' ? 'true' : 'false' }} }">
+    {{-- BUNGKUS DENGAN x-data UNTUK TIMER DAN LOGIKA --}}
+    <div class="max-w-xl mx-auto px-4 pt-12" x-data="paymentLogic()" x-init="initTimer()">
 
         {{-- ========================================================== --}}
         {{-- VIEW KHUSUS: PELUNASAN BOOKING (Tampil Jika Status DP) --}}
@@ -52,7 +55,7 @@
                     Halaman ini belum menandai pembayaran sebagai berhasil. Pembayaran baru diproses setelah kamu menekan tombol pembayaran dan menyelesaikan instruksi dari payment gateway atau upload bukti transfer.
                 </p>
 
-                <div class="bg-gray-50 rounded-xl p-4 flex justify-between items-center border border-gray-100 mb-8" x-data="{ copied: false, copyKode() { navigator.clipboard.writeText('{{ $bookingCode }}'); this.copied = true; setTimeout(() => this.copied = false, 1500); } }">
+                <div class="bg-gray-50 rounded-xl p-4 flex justify-between items-center border border-gray-100 mb-8">
                     <div>
                         <p class="text-[12px] font-medium text-gray-500 uppercase tracking-wider mb-1">Kode Booking</p>
                         <p class="font-mono font-bold text-gray-900 text-[16px]">{{ $bookingCode }}</p>
@@ -130,173 +133,250 @@
         {{-- ========================================================== --}}
         <div x-show="!showPelunasanSummary" x-cloak>
             
-            {{-- Tombol Kembali Jika Berasal dari View Pelunasan --}}
-            <template x-if="{{ $booking->payment_status === 'Down Payment' ? 'true' : 'false' }}">
-                <button @click="showPelunasanSummary = true" class="text-sm font-semibold text-gray-500 hover:text-gray-900 flex items-center gap-1.5 mb-6 transition">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-                    Kembali ke Rincian Pelunasan
-                </button>
+            {{-- BATCH 1: TAMPIL JIKA SUDAH EXPIRED --}}
+            <template x-if="isExpired">
+                <div class="bg-red-50 border border-red-200 text-red-800 rounded-2xl p-6 sm:p-8 mb-6 text-center shadow-sm">
+                    <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <h3 class="font-extrabold text-xl mb-2">Waktu Pembayaran Habis!</h3>
+                    <p class="text-sm leading-relaxed mb-6">Maaf, pemesanan Anda dibatalkan secara otomatis karena melewati batas waktu tunggu pembayaran (10 Menit). Silakan mengulangi proses pemesanan jika jadwal masih tersedia.</p>
+                    <a href="{{ route('booking.public.show', $ownerId) }}" class="inline-block bg-white text-gray-800 font-bold px-6 py-2.5 rounded-lg border border-gray-300 hover:bg-gray-50 transition text-sm">Kembali ke Beranda</a>
+                </div>
             </template>
 
-            <div class="text-center mb-8">
-                <div class="w-14 h-14 bg-orange-50 text-brand rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-                </div>
-                <h1 class="text-2xl font-bold text-gray-900">
-                    {{ $booking->payment_status === 'Lunas' ? 'Pembayaran Berhasil' : 'Selesaikan Pembayaran' }}
-                </h1>
-                <p class="text-gray-500 text-sm mt-1">Booking <span class="font-bold text-brand">{{ $bookingCode }}</span></p>
-            </div>
+            {{-- BATCH 2: TAMPIL JIKA BELUM EXPIRED --}}
+            <div x-show="!isExpired">
+                <template x-if="{{ $booking->payment_status === 'Down Payment' ? 'true' : 'false' }}">
+                    <button @click="showPelunasanSummary = true" class="text-sm font-semibold text-gray-500 hover:text-gray-900 flex items-center gap-1.5 mb-6 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                        Kembali ke Rincian Pelunasan
+                    </button>
+                </template>
 
-            @if(session('success'))
-                <div class="bg-green-50 border border-green-200 text-green-700 rounded-2xl px-5 py-4 mb-6 text-sm font-medium text-center">
-                    {{ session('success') }}
-                </div>
-            @endif
-            @if($errors->any())
-                <div class="bg-red-50 border border-red-200 text-red-600 rounded-2xl px-5 py-3 mb-6 text-sm font-medium">
-                    {{ $errors->first() }}
-                </div>
-            @endif
-
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-                <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">
-                    {{ $paymentLabelText }}
-                </p>
-                <p class="text-4xl font-extrabold text-brand mb-1">
-                    @if($booking->payment_status === 'Lunas')
-                        LUNAS
-                    @else
-                        Rp {{ number_format($amountToPay, 0, ',', '.') }}
-                    @endif
-                </p>
-                <p class="text-xs text-gray-400 mb-6">Kode Booking: {{ $bookingCode }}</p>
-                
-                <div class="flex justify-between border-t border-gray-100 pt-5 text-sm">
-                    <div>
-                        <p class="text-gray-400 text-[11px] mb-0.5">Nama Klien</p>
-                        <p class="font-semibold text-gray-900">{{ $booking->client_name }}</p>
+                <div class="text-center mb-8">
+                    <div class="w-14 h-14 bg-orange-50 text-brand rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
                     </div>
-                    <div class="text-right">
-                        <p class="text-gray-400 text-[11px] mb-0.5">Tanggal Sesi</p>
-                        <p class="font-semibold text-gray-900">
-                            {{ $tglLayanan ? \Carbon\Carbon::parse($tglLayanan)->locale('id')->isoFormat('D MMM YYYY') : '-' }}
+                    <h1 class="text-2xl font-bold text-gray-900">
+                        {{ $booking->payment_status === 'Lunas' ? 'Pembayaran Berhasil' : 'Selesaikan Pembayaran' }}
+                    </h1>
+                    <p class="text-gray-500 text-sm mt-1">Booking <span class="font-bold text-brand">{{ $bookingCode }}</span></p>
+                </div>
+
+                {{-- WIDGET TIMER MUNDUR 10 MENIT --}}
+                <div x-show="isTimerRunning" x-cloak class="bg-red-50 text-red-700 border border-red-200 rounded-2xl p-4 sm:p-5 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+                    <div class="text-center sm:text-left">
+                        <p class="font-bold text-[15px] mb-0.5 flex items-center justify-center sm:justify-start gap-2">
+                            <svg class="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Selesaikan Pembayaran
                         </p>
+                        <p class="text-[12px] opacity-90">Upload bukti transfer sebelum waktu habis agar jadwal tidak dibatalkan otomatis.</p>
+                    </div>
+                    <div class="bg-white px-4 py-2 rounded-xl shadow-sm border border-red-100 flex shrink-0">
+                        <span class="text-2xl font-black tabular-nums tracking-wider text-red-600" x-text="timerDisplay"></span>
                     </div>
                 </div>
-            </div>
 
-            @if($booking->payment_status !== 'Lunas' && $booking->payment_status !== 'Tunggu Konfirmasi')
-                
-                {{-- LOGIKA DINAMIS QRIS ATAU TRANSFER BANK --}}
-                @if($companySetting?->payment_method === 'qris' && $companySetting?->qris_image)
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6 text-center">
-                        <h3 class="font-bold text-gray-900 mb-4 text-[15px]">Scan QRIS untuk Membayar</h3>
-                        <div class="bg-white p-2 rounded-xl inline-block border border-gray-200 shadow-sm mb-3">
-                            <img src="{{ asset('storage/' . $companySetting->qris_image) }}" alt="QRIS" class="w-64 h-64 object-contain">
-                        </div>
-                        <p class="text-sm text-gray-500">Gunakan aplikasi M-Banking atau e-Wallet Anda untuk melakukan pembayaran.</p>
-                    </div>
-                @else
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-                        <h3 class="font-bold text-gray-900 mb-4 text-[15px]">Transfer Bank</h3>
-                        <div class="space-y-4">
-                            @if($companySetting?->bank_name && $companySetting?->bank_account)
-                                <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm">
-                                    <p class="text-gray-500 mb-1">Bank <span class="font-bold text-gray-900">{{ $companySetting->bank_name }}</span></p>
-                                    <p class="text-lg font-bold text-gray-900 tracking-wider mb-1">{{ $companySetting->bank_account }}</p>
-                                    @if($companySetting->bank_holder)
-                                        <p class="text-[13px] text-gray-600">a.n <span class="font-semibold text-gray-800">{{ $companySetting->bank_holder }}</span></p>
-                                    @endif
-                                </div>
-                            @endif
-                            @if($companySetting?->bank_name_2 && $companySetting?->bank_account_2)
-                                <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm">
-                                    <p class="text-gray-500 mb-1">Bank <span class="font-bold text-gray-900">{{ $companySetting->bank_name_2 }}</span></p>
-                                    <p class="text-lg font-bold text-gray-900 tracking-wider mb-1">{{ $companySetting->bank_account_2 }}</p>
-                                    @if($companySetting->bank_holder_2)
-                                        <p class="text-[13px] text-gray-600">a.n <span class="font-semibold text-gray-800">{{ $companySetting->bank_holder_2 }}</span></p>
-                                    @endif
-                                </div>
-                            @endif
-                        </div>
+                @if(session('success'))
+                    <div class="bg-green-50 border border-green-200 text-green-700 rounded-2xl px-5 py-4 mb-6 text-sm font-medium text-center">
+                        {{ session('success') }}
                     </div>
                 @endif
-
-                @if($companySetting?->payment_instruction)
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-6">
-                        <h3 class="font-bold text-gray-900 mb-2 text-[14px]">Informasi Pembayaran</h3>
-                        <p class="text-sm text-gray-600 leading-relaxed">{{ $companySetting->payment_instruction }}</p>
+                @if($errors->any())
+                    <div class="bg-red-50 border border-red-200 text-red-600 rounded-2xl px-5 py-3 mb-6 text-sm font-medium">
+                        {{ $errors->first() }}
                     </div>
                 @endif
 
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-                    <h3 class="font-bold text-gray-900 mb-1 text-[16px]">Upload Bukti Pembayaran</h3>
-                    <p class="text-[13px] text-gray-500 mb-5">Foto / screenshot struk transfer. Maks. 5 MB (JPG, PNG)</p>
-                    <form action="{{ route('booking.public.upload-proof', ['ownerId' => $ownerId, 'bookingId' => $booking->id]) }}" method="POST" enctype="multipart/form-data">
-                        @csrf
-                        <input type="hidden" name="client_instagram" value="{{ $booking->client_instagram }}">
-                        <div class="mb-4">
-                            <label class="block text-[13px] font-semibold text-gray-800 mb-1.5">Email Booking <span class="text-red-500">*</span></label>
-                            <input type="email" name="client_email" required placeholder="email yang kamu pakai saat booking" value="{{ $booking->client_email }}"
-                                class="w-full h-12 rounded-xl border border-gray-300 px-4 text-sm focus:border-brand focus:ring-brand shadow-sm">
-                            <p class="text-[12px] text-gray-400 mt-1.5">Masukkan email yang kamu gunakan saat booking untuk verifikasi.</p>
-                        </div>
-                        <div x-data="{ fileName: '' }" class="mb-6">
-                            <label class="block border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-brand hover:bg-orange-50/10 transition">
-                                <div class="flex flex-col items-center justify-center gap-2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M4 6h16a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V7a1 1 0 011-1z" />
-                                        <circle cx="9" cy="9" r="1.5" fill="currentColor" stroke="none" />
-                                    </svg>
-                                    <span class="text-[14px] font-semibold text-gray-700" x-text="fileName ? fileName : 'Klik atau drag & drop foto bukti transfer'"></span>
-                                </div>
-                                <input type="file" name="payment_proof" required accept="image/*" @change="fileName = $event.target.files[0].name" class="hidden">
-                            </label>
-                        </div>
-                        <button type="submit" class="w-full h-12 rounded-xl bg-brand hover-bg-brand text-white font-bold text-[14px] flex items-center justify-center gap-2 transition-colors shadow-sm">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-                            Kirim Bukti Pembayaran
-                        </button>
-                    </form>
-                </div>
-                
-            @elseif($booking->payment_status === 'Tunggu Konfirmasi')
-                <div class="bg-white border border-gray-200 rounded-2xl p-8 text-center mb-6 shadow-sm">
-                    <div class="w-16 h-16 bg-green-100 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                    </div>
-                    <h3 class="text-xl font-extrabold text-gray-900 mb-2">Bukti Pembayaran Terkirim!</h3>
-                    <p class="text-sm text-gray-500 mb-6 leading-relaxed px-4">
-                        Terima kasih, bukti transfer dan data Anda telah kami terima. Admin akan memverifikasi pembayaran Anda dalam waktu maksimal 1x24 jam.
+                    <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                        {{ $paymentLabelText }}
                     </p>
-                    <div class="bg-gray-50 rounded-xl p-5 text-left border border-gray-100 max-w-sm mx-auto">
-                        <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-3 border-b border-gray-200 pb-2">Data Konfirmasi Anda</p>
-                        <div class="space-y-2.5 text-sm">
-                            <div class="flex justify-between items-center">
-                                <span class="text-gray-500">Email:</span>
-                                <span class="font-semibold text-gray-900">{{ $booking->client_email }}</span>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-gray-500">Pembayaran:</span>
-                                <span class="font-semibold text-gray-900">{{ $isLunas ? 'Lunas Penuh' : 'Down Payment (DP)' }}</span>
-                            </div>
-                            <div class="flex justify-between items-center pt-3 mt-1 border-t border-gray-200">
-                                <span class="text-gray-500 font-medium">Status:</span>
-                                <span class="font-bold text-orange-500 bg-orange-50 px-2 py-1 rounded-md text-[12px] uppercase tracking-wide animate-pulse">Tunggu Konfirmasi</span>
-                            </div>
+                    <p class="text-4xl font-extrabold text-brand mb-1">
+                        @if($booking->payment_status === 'Lunas')
+                            LUNAS
+                        @else
+                            Rp {{ number_format($amountToPay, 0, ',', '.') }}
+                        @endif
+                    </p>
+                    <p class="text-xs text-gray-400 mb-6">Kode Booking: {{ $bookingCode }}</p>
+                    
+                    <div class="flex justify-between border-t border-gray-100 pt-5 text-sm">
+                        <div>
+                            <p class="text-gray-400 text-[11px] mb-0.5">Nama Klien</p>
+                            <p class="font-semibold text-gray-900">{{ $booking->client_name }}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-gray-400 text-[11px] mb-0.5">Tanggal Sesi</p>
+                            <p class="font-semibold text-gray-900">
+                                {{ $tglLayanan ? \Carbon\Carbon::parse($tglLayanan)->locale('id')->isoFormat('D MMM YYYY') : '-' }}
+                            </p>
                         </div>
                     </div>
-                    <a href="{{ route('booking.public.show', $ownerId) }}" class="inline-block mt-8 px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-sm transition">
-                        Kembali ke Beranda
-                    </a>
                 </div>
-            @endif
+
+                @if($booking->payment_status !== 'Lunas' && $booking->payment_status !== 'Tunggu Konfirmasi')
+                    
+                    {{-- LOGIKA DINAMIS QRIS ATAU TRANSFER BANK --}}
+                    @if($companySetting?->payment_method === 'qris' && $companySetting?->qris_image)
+                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6 text-center">
+                            <h3 class="font-bold text-gray-900 mb-4 text-[15px]">Scan QRIS untuk Membayar</h3>
+                            <div class="bg-white p-2 rounded-xl inline-block border border-gray-200 shadow-sm mb-3">
+                                <img src="{{ asset('storage/' . $companySetting->qris_image) }}" alt="QRIS" class="w-64 h-64 object-contain">
+                            </div>
+                            <p class="text-sm text-gray-500">Gunakan aplikasi M-Banking atau e-Wallet Anda untuk melakukan pembayaran.</p>
+                        </div>
+                    @else
+                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+                            <h3 class="font-bold text-gray-900 mb-4 text-[15px]">Transfer Bank</h3>
+                            <div class="space-y-4">
+                                @if($companySetting?->bank_name && $companySetting?->bank_account)
+                                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm">
+                                        <p class="text-gray-500 mb-1">Bank <span class="font-bold text-gray-900">{{ $companySetting->bank_name }}</span></p>
+                                        <p class="text-lg font-bold text-gray-900 tracking-wider mb-1">{{ $companySetting->bank_account }}</p>
+                                        @if($companySetting->bank_holder)
+                                            <p class="text-[13px] text-gray-600">a.n <span class="font-semibold text-gray-800">{{ $companySetting->bank_holder }}</span></p>
+                                        @endif
+                                    </div>
+                                @endif
+                                @if($companySetting?->bank_name_2 && $companySetting?->bank_account_2)
+                                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm">
+                                        <p class="text-gray-500 mb-1">Bank <span class="font-bold text-gray-900">{{ $companySetting->bank_name_2 }}</span></p>
+                                        <p class="text-lg font-bold text-gray-900 tracking-wider mb-1">{{ $companySetting->bank_account_2 }}</p>
+                                        @if($companySetting->bank_holder_2)
+                                            <p class="text-[13px] text-gray-600">a.n <span class="font-semibold text-gray-800">{{ $companySetting->bank_holder_2 }}</span></p>
+                                        @endif
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
+
+                    @if($companySetting?->payment_instruction)
+                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-6">
+                            <h3 class="font-bold text-gray-900 mb-2 text-[14px]">Informasi Pembayaran</h3>
+                            <p class="text-sm text-gray-600 leading-relaxed">{{ $companySetting->payment_instruction }}</p>
+                        </div>
+                    @endif
+
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+                        <h3 class="font-bold text-gray-900 mb-1 text-[16px]">Upload Bukti Pembayaran</h3>
+                        <p class="text-[13px] text-gray-500 mb-5">Foto / screenshot struk transfer. Maks. 5 MB (JPG, PNG)</p>
+                        <form action="{{ route('booking.public.upload-proof', ['ownerId' => $ownerId, 'bookingId' => $booking->id]) }}" method="POST" enctype="multipart/form-data">
+                            @csrf
+                            <input type="hidden" name="client_instagram" value="{{ $booking->client_instagram }}">
+                            <div class="mb-4">
+                                <label class="block text-[13px] font-semibold text-gray-800 mb-1.5">Email Booking <span class="text-red-500">*</span></label>
+                                <input type="email" name="client_email" required placeholder="email yang kamu pakai saat booking" value="{{ $booking->client_email }}"
+                                    class="w-full h-12 rounded-xl border border-gray-300 px-4 text-sm focus:border-brand focus:ring-brand shadow-sm">
+                                <p class="text-[12px] text-gray-400 mt-1.5">Masukkan email yang kamu gunakan saat booking untuk verifikasi.</p>
+                            </div>
+                            <div class="mb-6">
+                                <label class="block border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-brand hover:bg-orange-50/10 transition">
+                                    <div class="flex flex-col items-center justify-center gap-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M4 6h16a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V7a1 1 0 011-1z" />
+                                            <circle cx="9" cy="9" r="1.5" fill="currentColor" stroke="none" />
+                                        </svg>
+                                        <span class="text-[14px] font-semibold text-gray-700" x-text="fileName ? fileName : 'Klik atau drag & drop foto bukti transfer'"></span>
+                                    </div>
+                                    <input type="file" name="payment_proof" required accept="image/*" @change="fileName = $event.target.files[0].name" class="hidden">
+                                </label>
+                            </div>
+                            <button type="submit" class="w-full h-12 rounded-xl bg-brand hover-bg-brand text-white font-bold text-[14px] flex items-center justify-center gap-2 transition-colors shadow-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                                Kirim Bukti Pembayaran
+                            </button>
+                        </form>
+                    </div>
+                    
+                @elseif($booking->payment_status === 'Tunggu Konfirmasi')
+                    <div class="bg-white border border-gray-200 rounded-2xl p-8 text-center mb-6 shadow-sm">
+                        <div class="w-16 h-16 bg-green-100 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                        </div>
+                        <h3 class="text-xl font-extrabold text-gray-900 mb-2">Bukti Pembayaran Terkirim!</h3>
+                        <p class="text-sm text-gray-500 mb-6 leading-relaxed px-4">
+                            Terima kasih, bukti transfer dan data Anda telah kami terima. Admin akan memverifikasi pembayaran Anda dalam waktu maksimal 1x24 jam.
+                        </p>
+                        <div class="bg-gray-50 rounded-xl p-5 text-left border border-gray-100 max-w-sm mx-auto">
+                            <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-3 border-b border-gray-200 pb-2">Data Konfirmasi Anda</p>
+                            <div class="space-y-2.5 text-sm">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-500">Email:</span>
+                                    <span class="font-semibold text-gray-900">{{ $booking->client_email }}</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-500">Pembayaran:</span>
+                                    <span class="font-semibold text-gray-900">{{ $isLunas ? 'Lunas Penuh' : 'Down Payment (DP)' }}</span>
+                                </div>
+                                <div class="flex justify-between items-center pt-3 mt-1 border-t border-gray-200">
+                                    <span class="text-gray-500 font-medium">Status:</span>
+                                    <span class="font-bold text-orange-500 bg-orange-50 px-2 py-1 rounded-md text-[12px] uppercase tracking-wide animate-pulse">Tunggu Konfirmasi</span>
+                                </div>
+                            </div>
+                        </div>
+                        <a href="{{ route('booking.public.show', $ownerId) }}" class="inline-block mt-8 px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-sm transition">
+                            Kembali ke Beranda
+                        </a>
+                    </div>
+                @endif
+            </div>
 
             <p class="text-center text-[11px] text-gray-400 mt-8">
                 Pembayaran diverifikasi dalam 1x24 jam.<br>Powered by <b>BookPhoto</b>
             </p>
         </div>
     </div>
+
+    <script>
+        function paymentLogic() {
+            return {
+                showPelunasanSummary: {{ $booking->payment_status === 'Down Payment' ? 'true' : 'false' }},
+                copied: false,
+                fileName: '',
+                
+                // Variabel Timer
+                isExpired: {{ $isExpired ? 'true' : 'false' }},
+                isTimerRunning: {{ $showTimer ? 'true' : 'false' }},
+                expiresAtTime: {{ isset($expiresAt) ? $expiresAt->timestamp * 1000 : 0 }},
+                timerDisplay: '10:00',
+                intervalId: null,
+
+                initTimer() {
+                    if (this.isTimerRunning && !this.isExpired) {
+                        this.updateTimer(); // panggil sekali dulu
+                        this.intervalId = setInterval(() => this.updateTimer(), 1000);
+                    }
+                },
+
+                updateTimer() {
+                    const now = new Date().getTime();
+                    const distance = this.expiresAtTime - now;
+
+                    if (distance <= 0) {
+                        clearInterval(this.intervalId);
+                        this.timerDisplay = '00:00';
+                        this.isExpired = true;
+                        this.isTimerRunning = false;
+                        
+                        // Otomatis refresh halaman agar PHP mendeteksi Dibatalkan
+                        setTimeout(() => window.location.reload(), 1500);
+                    } else {
+                        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                        this.timerDisplay = String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+                    }
+                },
+
+                copyKode() { 
+                    navigator.clipboard.writeText('{{ $bookingCode }}'); 
+                    this.copied = true; 
+                    setTimeout(() => this.copied = false, 1500); 
+                }
+            }
+        }
+    </script>
 </body>
 </html>

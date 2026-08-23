@@ -65,7 +65,7 @@ class BookingController extends Controller
                         'id' => $booking->serviceType->id,
                         'name' => $booking->serviceType->name,
                         'price' => $booking->serviceType->price,
-                        'duration' => $booking->serviceType->duration, // <-- INI YANG DITAMBAHKAN
+                        'duration' => $booking->serviceType->duration, 
                     ] : null,
                     'unit_price' => (int) $booking->unit_price,
                     'total' => (int) $booking->total,
@@ -81,6 +81,11 @@ class BookingController extends Controller
                     'end_date' => $booking->end_date?->format('Y-m-d'),
                     'booking_time' => $booking->booking_time,
                     'notes' => $booking->notes,
+                    'link_folder_kerja' => $booking->link_folder_kerja,
+                    'link_original' => $booking->link_original,
+                    'link_hasil' => $booking->link_hasil,
+                    'deadline_pilih' => $booking->deadline_pilih,
+                    'queue_number' => $booking->queue_number,
                     'transactions' => $mappedTransactions, 
                     'created_at' => $createdAtWib,
                     'updated_at' => $updatedAtWib,
@@ -326,20 +331,23 @@ class BookingController extends Controller
     {
         $validated = $request->validated();
         ServiceType::where('id', $validated['service_type_id'])->where('user_id', Auth::id())->firstOrFail();
+        
         $tps = Booking::calculateTps(
             unitPrice: (int) $validated['unit_price'],
-            discountPercent: (float) ($validated['discount_percent'] ?? 0),
+            discountPercent: 0, // Diskon dihilangkan
             paidAmount: (int) ($validated['paid_amount'] ?? 0),
         );
+
         $booking = Booking::create(array_merge($validated, [
             'user_id' => Auth::id(),
             'subtotal' => $tps['subtotal'],
-            'discount_amount' => $tps['discount_amount'],
+            'discount_amount' => 0, // Set 0
             'total' => $tps['total'],
             'remaining' => $tps['remaining'],
             'payment_status' => $tps['payment_status'],
             'paid_at' => $tps['payment_status'] === 'Lunas' ? Carbon::now('Asia/Jakarta') : null,
         ]));
+
         return response()->json([
             'success' => true,
             'message' => 'Booking berhasil disimpan.',
@@ -351,21 +359,25 @@ class BookingController extends Controller
     {
         if ($booking->user_id !== Auth::id())
             abort(403);
+        
         $validated = $request->validated();
         ServiceType::where('id', $validated['service_type_id'])->where('user_id', Auth::id())->firstOrFail();
+        
         $tps = Booking::calculateTps(
             unitPrice: (int) $validated['unit_price'],
-            discountPercent: (float) ($validated['discount_percent'] ?? 0),
+            discountPercent: 0, // Diskon dihilangkan
             paidAmount: (int) ($validated['paid_amount'] ?? 0),
         );
+
         $booking->update(array_merge($validated, [
             'subtotal' => $tps['subtotal'],
-            'discount_amount' => $tps['discount_amount'],
+            'discount_amount' => 0, // Set 0
             'total' => $tps['total'],
             'remaining' => $tps['remaining'],
             'payment_status' => $tps['payment_status'],
             'paid_at' => $tps['payment_status'] === 'Lunas' && !$booking->paid_at ? Carbon::now('Asia/Jakarta') : $booking->paid_at,
         ]));
+
         return response()->json([
             'success' => true,
             'message' => 'Booking berhasil diperbarui.',
