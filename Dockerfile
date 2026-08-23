@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y \
     nodejs \
     npm
 
-# Konfigurasi dan install ekstensi PHP (termasuk pdo, zip, dan gd)
+# Konfigurasi dan install ekstensi PHP
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg
 RUN docker-php-ext-install pdo pdo_pgsql zip gd
 
@@ -24,12 +24,13 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 WORKDIR /app
 COPY . .
 
-# Install dependency Laravel & Build Frontend (Tailwind/Vite)
+# Install dependency Laravel & Build Frontend
 RUN composer install --no-dev --optimize-autoloader
 RUN npm install && npm run build
 
-# Buat link storage untuk foto
+# Buat link storage & Berikan izin akses folder storage agar session/cache tidak error 500
 RUN php artisan storage:link
+RUN chmod -R 777 storage bootstrap/cache
 
-# Perintah otomatis saat server menyala
-CMD bash -c "php artisan migrate:fresh --force && php artisan db:seed --class=AdminSeeder --force && php -S 0.0.0.0:$PORT -t public"
+# Perintah otomatis saat server menyala (Tanpa migrate:fresh lagi agar data akun di Neon aman tidak terhapus)
+CMD bash -c "php artisan config:clear && php artisan cache:clear && php artisan migrate --force && php -S 0.0.0.0:$PORT -t public"
