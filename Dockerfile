@@ -1,6 +1,6 @@
 FROM php:8.2-cli
 
-# Install alat yang dibutuhkan Laravel, PostgreSQL, dan ekstensi GD (untuk Excel)
+# Install alat yang dibutuhkan Laravel, PostgreSQL, dan ekstensi GD
 RUN apt-get update && apt-get install -y \
     libpq-dev \
     libzip-dev \
@@ -31,5 +31,5 @@ RUN npm install && npm run build
 # Buat link storage untuk foto
 RUN php artisan storage:link
 
-# Perintah otomatis saat server menyala (Tanpa cache:clear di awal agar tabel siap dulu)
+# Perintah otomatis saat server menyala
 CMD bash -c "php artisan migrate:fresh --force && php artisan db:seed --class=AdminSeeder --force && php -S 0.0.0.0:$PORT -t public"
