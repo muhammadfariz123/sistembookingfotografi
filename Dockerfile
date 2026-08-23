@@ -1,17 +1,21 @@
 FROM php:8.2-cli
 
-# Install alat yang dibutuhkan Laravel & PostgreSQL
+# Install alat yang dibutuhkan Laravel, PostgreSQL, dan ekstensi GD (untuk Excel)
 RUN apt-get update && apt-get install -y \
     libpq-dev \
     libzip-dev \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
     zip \
     unzip \
     git \
     nodejs \
     npm
 
-# Install ekstensi PHP untuk PostgreSQL
-RUN docker-php-ext-install pdo pdo_pgsql zip
+# Konfigurasi dan install ekstensi PHP (termasuk pdo, zip, dan gd)
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg
+RUN docker-php-ext-install pdo pdo_pgsql zip gd
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
