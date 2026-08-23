@@ -28,9 +28,9 @@ COPY . .
 RUN composer install --no-dev --optimize-autoloader
 RUN npm install && npm run build
 
-# Buat link storage & Berikan izin akses folder storage agar session/cache tidak error 500
+# Buat link storage & Berikan izin akses folder storage
 RUN php artisan storage:link
 RUN chmod -R 777 storage bootstrap/cache
 
-# Perintah otomatis saat server menyala (Tanpa migrate:fresh lagi agar data akun di Neon aman tidak terhapus)
-CMD bash -c "php artisan config:clear && php artisan cache:clear && php artisan migrate --force && php -S 0.0.0.0:$PORT -t public"
+# Perintah otomatis saat server menyala (Tanpa config:clear/cache:clear agar tidak error cache table)
+CMD bash -c "php artisan migrate --force && php -S 0.0.0.0:$PORT -t public"
