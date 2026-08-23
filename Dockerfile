@@ -31,5 +31,5 @@ RUN npm install && npm run build
 # Buat link storage untuk foto
 RUN php artisan storage:link
 
-# Perintah otomatis saat server menyala
-CMD bash -c "php artisan migrate --force && php artisan db:seed --class=AdminSeeder --force && php -S 0.0.0.0:$PORT -t public"
+# Perintah otomatis saat server menyala: Bersihkan cache, migrasi, seeding, lalu jalankan server
+CMD bash -c "php artisan config:clear && php artisan cache:clear && php artisan migrate:fresh --force && php artisan db:seed --class=AdminSeeder --force && php -S 0.0.0.0:$PORT -t public"
