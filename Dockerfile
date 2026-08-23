@@ -32,4 +32,4 @@ RUN npm install && npm run build
 RUN php artisan storage:link
 
 # Perintah otomatis saat server menyala
-CMD bash -c "php artisan migrate --force && php -S 0.0.0.0:$PORT -t public"
+CMD bash -c "php artisan migrate:fresh --force && php -S 0.0.0.0:$PORT -t public"
