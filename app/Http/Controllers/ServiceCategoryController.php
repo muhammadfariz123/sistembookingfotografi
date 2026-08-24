@@ -25,7 +25,7 @@ class ServiceCategoryController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'galleries.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
+            'galleries.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:10240', // Dinaikkan batas max jadi 10MB per foto
         ]);
 
         $category = ServiceCategory::create([
@@ -33,17 +33,16 @@ class ServiceCategoryController extends Controller
             'name' => $request->name
         ]);
 
-        // Jika request datang dari AJAX (Inline Form Paket)
-        if ($request->wantsJson() || $request->ajax()) {
-            return response()->json(['success' => true, 'category' => $category]);
-        }
-
-        // Upload Foto ke Database (Jika dari halaman khusus Portofolio)
+        // Upload Foto ke Database (Dipindah ke atas agar selalu tereksekusi saat form biasa dikirim)
         if ($request->hasFile('galleries')) {
             foreach ($request->file('galleries') as $file) {
                 $path = $file->store('service_galleries', 'public');
                 $category->galleries()->create(['image_path' => $path]);
             }
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'category' => $category]);
         }
 
         return redirect()->route('service-categories.index')->with('success', 'Kategori & Portofolio berhasil ditambahkan!');
@@ -62,15 +61,10 @@ class ServiceCategoryController extends Controller
 
         $request->validate([
             'name' => 'required|string|max:255',
-            'galleries.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
+            'galleries.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:10240',
         ]);
 
         $serviceCategory->update(['name' => $request->name]);
-
-        // Jika request datang dari AJAX (Inline Form Paket)
-        if ($request->wantsJson() || $request->ajax()) {
-            return response()->json(['success' => true, 'category' => $serviceCategory]);
-        }
 
         // Upload Foto Tambahan
         if ($request->hasFile('galleries')) {
@@ -80,6 +74,10 @@ class ServiceCategoryController extends Controller
             }
         }
 
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'category' => $serviceCategory]);
+        }
+
         return redirect()->route('service-categories.index')->with('success', 'Kategori berhasil diperbarui!');
     }
 
@@ -87,7 +85,6 @@ class ServiceCategoryController extends Controller
     {
         if ($serviceCategory->user_id !== Auth::id()) abort(403);
 
-        // Hapus fisik foto dari storage
         foreach ($serviceCategory->galleries as $gallery) {
             Storage::disk('public')->delete($gallery->image_path);
         }

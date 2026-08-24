@@ -31,6 +31,10 @@ RUN npm install && npm run build
 # Buat link storage & Berikan izin akses folder storage
 RUN php artisan storage:link
 RUN chmod -R 777 storage bootstrap/cache
+# Buat file konfigurasi custom untuk PHP agar batas upload foto besar (misal 64M)
+RUN echo "post_max_size = 64M" > /usr/local/etc/php/conf.d/uploads.ini \
+    && echo "upload_max_filesize = 64M" >> /usr/local/etc/php/conf.d/uploads.ini \
+    && echo "memory_limit = 256M" >> /usr/local/etc/php/conf.d/uploads.ini
 
-# Perintah otomatis saat server menyala (Hapus route:cache dan config:cache)
+# Perintah otomatis saat server menyala
 CMD bash -c "php artisan migrate --force && php -S 0.0.0.0:$PORT -t public"
