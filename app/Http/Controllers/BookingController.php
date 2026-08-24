@@ -25,14 +25,39 @@ class BookingController extends Controller
             ->latest()
             ->get();
 
-        $mappedBookings = $bookings->map(function ($booking) {
-            $bookingCode = 'BKG-' . Carbon::parse($booking->created_at)->format('Ymd') . '-' . strtoupper(substr(md5($booking->id), 0, 4));
+        $now = Carbon::now('Asia/Jakarta');
+        $currentMonth = $now->month;
+        $currentYear = $now->year;
+        $todayStr = $now->format('Y-m-d');
+        $lastMonthDate = $now->copy()->subMonth();
+        $lastMonth = $lastMonthDate->month;
+        $lastYear = $lastMonthDate->year;
 
-            $createdAtWib = $booking->created_at ? Carbon::parse($booking->created_at)->timezone('Asia/Jakarta')->toIso8601String() : null;
-            $updatedAtWib = $booking->updated_at ? Carbon::parse($booking->updated_at)->timezone('Asia/Jakarta')->toIso8601String() : null;
-            $paidAtWib = $booking->paid_at ? Carbon::parse($booking->paid_at)->timezone('Asia/Jakarta')->toIso8601String() : null;
+        $bookingThisMonthCount = 0;
+        $revenueThisMonth = 0;
+        $bookingLastMonthCount = 0;
+        $revenueLastMonth = 0;
+        $pendingCount = 0;
+        $pendingValue = 0;
+        $todaySessionCount = 0;
+        $allTodaySessionsCount = 0;
+        $todaySchedules = [];
 
-            // Mapping semua baris transaksi (payment_transactions)
+        $mappedBookings = $bookings->map(function ($booking) use (
+            $currentMonth, $currentYear, $lastMonth, $lastYear, $todayStr,
+            &$bookingThisMonthCount, &$revenueThisMonth, &$bookingLastMonthCount, &$revenueLastMonth,
+            &$pendingCount, &$pendingValue, &$todaySessionCount, &$allTodaySessionsCount, &$todaySchedules
+        ) {
+            $created_at = $booking->created_at;
+            $updated_at = $booking->updated_at;
+            $paid_at = $booking->paid_at;
+            
+            $bookingCode = 'BKG-' . ($created_at ? $created_at->format('Ymd') : date('Ymd')) . '-' . strtoupper(substr(md5($booking->id), 0, 4));
+
+            $createdAtWib = $created_at ? $created_at->copy()->timezone('Asia/Jakarta')->toIso8601String() : null;
+            $updatedAtWib = $updated_at ? $updated_at->copy()->timezone('Asia/Jakarta')->toIso8601String() : null;
+            $paidAtWib = $paid_at ? $paid_at->copy()->timezone('Asia/Jakarta')->toIso8601String() : null;
+
             $mappedTransactions = $booking->transactions->map(function ($tx) use ($bookingCode, $booking) {
                 return [
                     'id' => $tx->id,
@@ -48,12 +73,14 @@ class BookingController extends Controller
                     'payment_status' => $tx->payment_status, 
                     'payment_proof' => $tx->payment_proof ?? $booking->payment_proof,
                     'admin_notes' => $tx->admin_notes ?? $booking->notes,
-                    'paid_at' => $tx->paid_at?->timezone('Asia/Jakarta')->toIso8601String() ?? ($tx->payment_status === 'Berhasil' ? $tx->updated_at?->toIso8601String() : null),
-                    'created_at' => $tx->created_at?->timezone('Asia/Jakarta')->toIso8601String(),
+                    'paid_at' => $tx->paid_at ? $tx->paid_at->copy()->timezone('Asia/Jakarta')->toIso8601String() : ($tx->payment_status === 'Berhasil' && $tx->updated_at ? $tx->updated_at->copy()->timezone('Asia/Jakarta')->toIso8601String() : null),
+                    'created_at' => $tx->created_at ? $tx->created_at->copy()->timezone('Asia/Jakarta')->toIso8601String() : null,
                 ];
             });
 
-            return [
+            $tglLayananStr = $booking->booking_date ? $booking->booking_date->format('Y-m-d') : ($booking->start_date ? $booking->start_date->format('Y-m-d') : null);
+
+            $item = [
                 'id' => $booking->id,
                 'booking_code' => $bookingCode,
                 'client_name' => $booking->client_name,
@@ -75,9 +102,9 @@ class BookingController extends Controller
                 'payment_type' => $booking->payment_type,
                 'payment_proof' => $booking->payment_proof,
                 'status' => $booking->status,
-                'booking_date' => $booking->booking_date?->format('Y-m-d'),
-                'start_date' => $booking->start_date?->format('Y-m-d'),
-                'end_date' => $booking->end_date?->format('Y-m-d'),
+                'booking_date' => $booking->booking_date ? $booking->booking_date->format('Y-m-d') : null,
+                'start_date' => $booking->start_date ? $booking->start_date->format('Y-m-d') : null,
+                'end_date' => $booking->end_date ? $booking->end_date->format('Y-m-d') : null,
                 'booking_time' => $booking->booking_time,
                 'notes' => $booking->notes,
                 'link_folder_kerja' => $booking->link_folder_kerja,
@@ -89,48 +116,44 @@ class BookingController extends Controller
                 'created_at' => $createdAtWib,
                 'updated_at' => $updatedAtWib,
             ];
-        });
 
-        $now = Carbon::now('Asia/Jakarta');
-        $currentMonth = $now->month;
-        $currentYear = $now->year;
-        $todayStr = $now->format('Y-m-d');
-        $lastMonthDate = $now->copy()->subMonth();
-        $lastMonth = $lastMonthDate->month;
-        $lastYear = $lastMonthDate->year;
+            // Hitung statistik dalam satu perulangan yang sama
+            if ($created_at) {
+                // Hati-hati zona waktu saat menghitung bulan
+                $localDate = $created_at->copy()->timezone('Asia/Jakarta');
+                if ($localDate->month == $currentMonth && $localDate->year == $currentYear) {
+                    $bookingThisMonthCount++;
+                    $revenueThisMonth += $booking->paid_amount;
+                } elseif ($localDate->month == $lastMonth && $localDate->year == $lastYear) {
+                    $bookingLastMonthCount++;
+                    $revenueLastMonth += $booking->paid_amount;
+                }
+            }
 
-        $bookingsThisMonth = collect($mappedBookings)->filter(function ($b) use ($currentMonth, $currentYear) {
-            $date = Carbon::parse($b['created_at'])->timezone('Asia/Jakarta');
-            return $date->month == $currentMonth && $date->year == $currentYear;
-        });
-        $bookingThisMonthCount = $bookingsThisMonth->count();
-        $revenueThisMonth = $bookingsThisMonth->sum('paid_amount');
+            if (in_array($booking->payment_status, ['Pending', 'Belum Bayar', 'Tunggu Konfirmasi'])) {
+                $pendingCount++;
+                $pendingValue += $booking->remaining;
+            }
 
-        $bookingsLastMonth = collect($mappedBookings)->filter(function ($b) use ($lastMonth, $lastYear) {
-            $date = Carbon::parse($b['created_at'])->timezone('Asia/Jakarta');
-            return $date->month == $lastMonth && $date->year == $lastYear;
+            if ($tglLayananStr === $todayStr) {
+                $allTodaySessionsCount++;
+                if ($booking->status === 'Dijadwalkan') {
+                    $todaySessionCount++;
+                    $todaySchedules[] = $item;
+                }
+            }
+
+            return $item;
         });
-        $bookingLastMonthCount = $bookingsLastMonth->count();
-        $revenueLastMonth = $bookingsLastMonth->sum('paid_amount');
 
         $bookingGrowth = $bookingLastMonthCount > 0 ? (($bookingThisMonthCount - $bookingLastMonthCount) / $bookingLastMonthCount) * 100 : ($bookingThisMonthCount > 0 ? 100 : 0);
         $revenueGrowth = $revenueLastMonth > 0 ? (($revenueThisMonth - $revenueLastMonth) / $revenueLastMonth) * 100 : ($revenueThisMonth > 0 ? 100 : 0);
+        $todayConversionRate = $allTodaySessionsCount > 0 ? round(($todaySessionCount / $allTodaySessionsCount) * 100) : 0;
 
-        $pendingBookings = collect($mappedBookings)->filter(function ($b) {
-            return in_array($b['payment_status'], ['Pending', 'Belum Bayar', 'Tunggu Konfirmasi']);
+        // Urutkan jadwal hari ini berdasarkan waktu
+        usort($todaySchedules, function($a, $b) {
+            return strcmp($a['booking_time'] ?? '99:99', $b['booking_time'] ?? '99:99');
         });
-
-        $todaySessions = collect($mappedBookings)->filter(function ($b) use ($todayStr) {
-            $tglLayanan = $b['booking_date'] ?? $b['start_date'];
-            return $tglLayanan === $todayStr && $b['status'] === 'Dijadwalkan';
-        });
-
-        $allTodaySessions = collect($mappedBookings)->filter(function ($b) use ($todayStr) {
-            $tglLayanan = $b['booking_date'] ?? $b['start_date'];
-            return $tglLayanan === $todayStr;
-        });
-
-        $todayConversionRate = $allTodaySessions->count() > 0 ? round(($todaySessions->count() / $allTodaySessions->count()) * 100) : 0;
 
         $summary = [
             'current_month_name' => $now->locale('id')->isoFormat('MMM'),
@@ -139,12 +162,12 @@ class BookingController extends Controller
             'booking_growth' => round($bookingGrowth),
             'revenue_this_month' => $revenueThisMonth,
             'revenue_growth' => round($revenueGrowth),
-            'pending_count' => $pendingBookings->count(),
-            'pending_value' => $pendingBookings->sum('remaining'),
-            'today_session_count' => $todaySessions->count(),
-            'today_session_confirmed' => $todaySessions->count(),
+            'pending_count' => $pendingCount,
+            'pending_value' => $pendingValue,
+            'today_session_count' => $todaySessionCount,
+            'today_session_confirmed' => $todaySessionCount,
             'today_conversion_rate' => $todayConversionRate,
-            'today_schedules' => $todaySessions->sortBy('booking_time')->values()->toArray(),
+            'today_schedules' => $todaySchedules,
         ];
 
         return [
