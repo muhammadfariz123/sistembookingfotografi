@@ -86,13 +86,14 @@
                         if (response.ok) {
                             const data = await response.json()
                             this.success = true
-                            setTimeout(() => window.location.href = data.redirect, 1000)
+                            // Dioptimalkan: Langsung alihkan tanpa jeda waktu lama (cukup 200ms untuk efek visual)
+                            setTimeout(() => window.location.href = data.redirect, 200)
                         } else {
                             this.error = true
+                            this.loading = false
                         }
                     } catch (e) {
                         this.error = true
-                    } finally {
                         this.loading = false
                     }
                 }
