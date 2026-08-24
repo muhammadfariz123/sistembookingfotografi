@@ -497,7 +497,7 @@
                 <p class="text-[13px] font-bold text-gray-900 truncate">{{ Auth::user()->email }}</p>
             </div>
         </div>
-        <form method="POST" action="{{ route('logout') }}" class="w-full">
+        <form method="POST" action="{{ route('logout') }}" class="w-full" data-turbo="false">
             @csrf
             <button type="submit" title="Keluar"
                 class="flex items-center text-red-600 bg-white hover:bg-red-50 border border-gray-200 hover:border-red-100 font-semibold text-[13px] transition w-full rounded-xl"
