@@ -15,8 +15,8 @@
 
     <div class="py-6 px-4 sm:px-6 lg:px-8">
         <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-5 sm:p-6"
-            x-data="bookingCalendar()"
-            x-init="loadBookings()"
+            x-data="bookingCalendar(@js($initialBookings ?? null))"
+            x-init="init()"
             @reload-bookings.window="loadBookings()"
             @reload-data-silent.window="loadBookings(true)">
 
@@ -138,10 +138,10 @@
     </div>
 
     <script>
-    function bookingCalendar() {
+    function bookingCalendar(initialBookings = null) {
         return {
-            bookings: [],
-            loading: true,
+            bookings: initialBookings || [],
+            loading: initialBookings ? false : true,
             showDetail: false,
             detailDate: '',
             detailBookings: [],
@@ -150,6 +150,12 @@
             monthNames: ['Januari','Februari','Maret','April','Mei','Juni',
                          'Juli','Agustus','September','Oktober','November','Desember'],
             currentDate: new Date(),
+
+            init() {
+                if (!initialBookings) {
+                    this.loadBookings();
+                }
+            },
 
             async loadBookings(silent = false) {
                 if (!silent) this.loading = true

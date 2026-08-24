@@ -169,7 +169,8 @@ class BookingController extends Controller
 
     public function calendarPage()
     {
-        return view('bookings.calendar');
+        $initialData = $this->getBookingData();
+        return view('bookings.calendar', ['initialBookings' => $initialData['data']]);
     }
 
     public function edit(Booking $booking)
