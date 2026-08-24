@@ -279,7 +279,6 @@
 
     </div>
 
-    <script src="https://unpkg.com/lucide@latest"></script>
     <script>
         function transactionPage(initialBookings = null) {
             return {

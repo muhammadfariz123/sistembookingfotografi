@@ -9,6 +9,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
@@ -59,8 +61,10 @@
     </div>
 
     <script type="module">
-        document.addEventListener('turbo:load', () => {
-            lucide.createIcons();
+        const initApp = () => {
+            if (window.lucide) {
+                window.lucide.createIcons();
+            }
 
             @if (session('success'))
                 Swal.fire({ icon: 'success', title: 'Berhasil', text: @json(session('success')), confirmButtonColor: '#2563eb', timer: 2500, showConfirmButton: false, customClass: { popup: 'rounded-[28px]' } })
@@ -68,15 +72,27 @@
             @if (session('error'))
                 Swal.fire({ icon: 'error', title: 'Terjadi Kesalahan', text: @json(session('error')), confirmButtonColor: '#dc2626', customClass: { popup: 'rounded-[28px]' } })
             @endif
+        };
+
+        // Run immediately since module script runs after DOM is parsed
+        initApp();
+
+        // Also run on DOMContentLoaded and alpine:updated to ensure icons are always rendered
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initApp);
+        }
+        document.addEventListener('alpine:updated', () => {
+            if (window.lucide) window.lucide.createIcons();
         });
-        document.addEventListener('alpine:updated', () => { lucide.createIcons(); });
-        function confirmDelete(event, text = 'Data yang dihapus tidak bisa dikembalikan.') {
+
+        // Export confirmDelete to window object so it's globally available
+        window.confirmDelete = function(event, text = 'Data yang dihapus tidak bisa dikembalikan.') {
             event.preventDefault();
             Swal.fire({ title: 'Hapus data?', text: text, icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', cancelButtonColor: '#9ca3af', confirmButtonText: 'Ya, Hapus', cancelButtonText: 'Batal', reverseButtons: true, customClass: { popup: 'rounded-[28px]' } }).then((result) => {
                 if (result.isConfirmed) event.target.submit();
             })
             return false;
-        }
+        };
     </script>
 </body>
 </html>
