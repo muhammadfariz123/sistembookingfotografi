@@ -1,6 +1,6 @@
 {{-- resources/views/transactions/index.blade.php --}}
 <x-app-layout>
-    <div x-data="transactionPage()" x-init="init()" class="px-4 sm:px-6 lg:px-8 py-8 bg-[#f5f7fb] min-h-screen overflow-x-hidden">
+    <div x-data="transactionPage(@js($initialBookings ?? null))" x-init="init()" class="px-4 sm:px-6 lg:px-8 py-8 bg-[#f5f7fb] min-h-screen overflow-x-hidden">
         
         <div id="data-area" class="w-full">
             <div class="bg-white p-4 rounded-t-[24px] border border-gray-100 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
@@ -281,10 +281,10 @@
 
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
-        function transactionPage() {
+        function transactionPage(initialBookings = null) {
             return {
-                bookings: [],
-                loading: true,
+                bookings: initialBookings || [],
+                loading: initialBookings ? false : true,
                 activeSearch: '',
                 activePayment: 'semua',
                 statusTabs: [
@@ -305,7 +305,9 @@
 
                 init() {
                     this.$nextTick(() => { if (window.lucide) lucide.createIcons() })
-                    this.loadTransactions();
+                    if (!initialBookings) {
+                        this.loadTransactions();
+                    }
                 },
                 
                 async loadTransactions(silent = false) {

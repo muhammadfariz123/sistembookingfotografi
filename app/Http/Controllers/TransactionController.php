@@ -11,9 +11,9 @@ class TransactionController extends Controller
 {
     public function index()
     {
-        // Hanya melempar data service untuk filter/dropdown jika dibutuhkan di UI
         $services = ServiceType::where('user_id', Auth::id())->orderBy('name')->get();
-        return view('transactions.index', compact('services'));
+        $initialData = app(BookingController::class)->getBookingData();
+        return view('transactions.index', compact('services'))->with('initialBookings', $initialData['data']);
     }
 
     // Fungsi khusus untuk menghapus data Payment Transaction
