@@ -1,6 +1,6 @@
 {{-- resources/views/bookings/list.blade.php --}}
 <x-app-layout>
-    <div x-data="bookingListApp()" x-init="init()"
+    <div x-data="bookingListApp(@js($initialBookings ?? null))" x-init="init()"
         class="px-4 sm:px-6 lg:px-8 py-8 bg-[#f5f7fb] min-h-screen overflow-x-hidden">
         {{-- ========================================================= --}}
         {{-- TOOLBAR: JUDUL, SEARCH & TOMBOL BUAT BOOKING BARU --}}
@@ -232,12 +232,12 @@
             </div>
         </div>
     </div>
-    <script src="https://unpkg.com/lucide@latest"></script>
+
     <script>
-        function bookingListApp() {
+        function bookingListApp(initialBookings = null) {
             return {
-                bookings: [],
-                loading: true,
+                bookings: initialBookings || [],
+                loading: initialBookings ? false : true,
                 searchQuery: '',
                 filterStatus: 'semua',
                 statusTabs: [
@@ -254,7 +254,9 @@
                 isBulkDeleting: false,
                 init() {
                     this.$nextTick(() => { if (window.lucide) lucide.createIcons() })
-                    this.loadBookings();
+                    if (!initialBookings) {
+                        this.loadBookings();
+                    }
                     setInterval(() => { if (document.visibilityState === 'visible') this.loadBookings(true); }, 5000);
                 },
                 async loadBookings(silent = false) {
@@ -419,6 +421,6 @@
                 }
             }
         }
-        document.addEventListener('DOMContentLoaded', () => { if (window.lucide) lucide.createIcons() })
+        document.addEventListener('turbo:load', () => { if (window.lucide) lucide.createIcons() })
     </script>
 </x-app-layout>

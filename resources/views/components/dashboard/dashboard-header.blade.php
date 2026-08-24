@@ -1,5 +1,5 @@
 {{-- resources/views/components/dashboard/dashboard-header.blade.php --}}
-<div x-data="dashboardHeader()" @reload-bookings.window="load()" @reload-data-silent.window="load()" class="w-full mb-7">
+<div x-data="dashboardHeader(@js($initialSummary ?? null))" @reload-bookings.window="load()" @reload-data-silent.window="load()" class="w-full mb-7">
 
     <div class="grid grid-cols-1 xl:grid-cols-3 gap-5 items-stretch">
 
@@ -140,9 +140,9 @@
 </div>
 
 <script>
-function dashboardHeader() {
+function dashboardHeader(initialSummary = null) {
     return {
-        summary: { 
+        summary: initialSummary || { 
             current_month_name: 'Bulan Ini',
             today_date_name: 'Hari Ini',
             booking_this_month: 0, 
@@ -157,7 +157,11 @@ function dashboardHeader() {
             today_schedules: []
         }, 
 
-        init() { this.load() },
+        init() { 
+            if (!initialSummary) {
+                this.load();
+            }
+        },
 
         async load() {
             try {

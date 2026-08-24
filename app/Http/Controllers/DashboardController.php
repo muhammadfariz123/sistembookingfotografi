@@ -15,12 +15,16 @@ class DashboardController extends Controller
      */
     public function index()
     {
-        // Mengambil daftar layanan milik admin yang sedang login
-        // (Biasanya digunakan untuk dropdown filter atau form input)
         $services = ServiceType::where('user_id', Auth::id())
             ->orderBy('name')
             ->get();
 
-        return view('dashboard', compact('services'));
+        $bookingController = new \App\Http\Controllers\BookingController();
+        $initialData = $bookingController->getBookingData();
+
+        return view('dashboard', [
+            'services' => $services,
+            'initialSummary' => $initialData['summary']
+        ]);
     }
 }
