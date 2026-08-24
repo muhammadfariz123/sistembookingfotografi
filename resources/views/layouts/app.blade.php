@@ -77,10 +77,11 @@
         // Run immediately since module script runs after DOM is parsed
         initApp();
 
-        // Also run on DOMContentLoaded and alpine:updated to ensure icons are always rendered
+        // Also run on DOMContentLoaded, turbo:load, and alpine:updated to ensure icons are always rendered
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initApp);
         }
+        document.addEventListener('turbo:load', initApp);
         document.addEventListener('alpine:updated', () => {
             if (window.lucide) window.lucide.createIcons();
         });
