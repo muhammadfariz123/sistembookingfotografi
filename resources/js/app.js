@@ -1,6 +1,7 @@
 import './bootstrap';
-import '@hotwired/turbo';
+import * as Turbo from '@hotwired/turbo';
 
+Turbo.setProgressBarDelay(9999);
 import Alpine from 'alpinejs';
 import { createIcons, icons } from 'lucide';
 import Swal from 'sweetalert2';
