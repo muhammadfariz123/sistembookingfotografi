@@ -1,7 +1,7 @@
 import './bootstrap';
-import * as Turbo from '@hotwired/turbo';
 
-Turbo.setProgressBarDelay(9999);
+// Turbo dimatikan agar navigasi langsung diproses oleh browser tanpa delay SPA
+// import * as Turbo from '@hotwired/turbo';
 import Alpine from 'alpinejs';
 import { createIcons, icons } from 'lucide';
 import Swal from 'sweetalert2';

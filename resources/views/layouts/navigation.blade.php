@@ -23,7 +23,7 @@
 
 {{-- SIDEBAR KIRI --}}
 {{-- Lebar berubah dinamis: 260px jika terbuka, 80px jika collapsed (HANYA di desktop) --}}
-<aside x-data="{ isDesktop: window.innerWidth >= 1024 }" x-init="
+<aside data-turbo="false" x-data="{ isDesktop: window.innerWidth >= 1024 }" x-init="
             window.addEventListener('resize', () => {
                 isDesktop = window.innerWidth >= 1024;
             });
