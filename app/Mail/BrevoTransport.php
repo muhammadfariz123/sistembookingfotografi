@@ -65,7 +65,9 @@ class BrevoTransport extends AbstractTransport
         ])->post('https://api.brevo.com/v3/smtp/email', $payload);
 
         if (!$response->successful()) {
-            throw new \Exception("Brevo HTTP API failed to send email: " . $response->body());
+            $keyPrefix = substr($this->apiKey, 0, 8);
+            $keyLen = strlen($this->apiKey);
+            throw new \Exception("Brevo HTTP API failed to send email: " . $response->body() . " (Used Key Prefix: '{$keyPrefix}', Length: {$keyLen})");
         }
     }
 
