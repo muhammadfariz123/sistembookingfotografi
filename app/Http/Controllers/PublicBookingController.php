@@ -554,10 +554,11 @@ class PublicBookingController extends Controller
     private function getRealImagesFromDrive($folderId)
     {
         try {
-            $credentialPath = storage_path('google-credential.json');
+            // DI SINI LETAK PERBAIKANNYA MAS! (Menggunakan base_path)
+            $credentialPath = base_path('google-credential.json');
 
             if (!file_exists($credentialPath)) {
-                return ['photos' => [], 'error' => 'File google-credential.json tidak ditemukan di folder storage/app/.'];
+                return ['photos' => [], 'error' => 'File google-credential.json tidak ditemukan di folder utama (root) aplikasi. Pastikan Anda sudah mengunggahnya di fitur Secret Files Render.'];
             }
 
             $client = new \Google\Client();
