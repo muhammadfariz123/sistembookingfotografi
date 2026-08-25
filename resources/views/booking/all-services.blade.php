@@ -31,9 +31,9 @@
             </div>
         @else
             @php
-                // Mengelompokkan service berdasarkan category_name
+                // Mengelompokkan service berdasarkan nama kategori dari relasi
                 $groupedServices = $services->groupBy(function($item) {
-                    return trim($item->category_name) ?: 'Lain-lain';
+                    return $item->category ? trim($item->category->name) : 'Lain-lain';
                 });
             @endphp
 
