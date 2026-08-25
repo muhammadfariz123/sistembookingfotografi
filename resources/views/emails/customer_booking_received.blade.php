@@ -307,8 +307,8 @@
 
         <div class="track-box">
             Kamu bisa cek status booking & link file hasil foto (nantinya) di:
-            <a href="https://fariz.bookphoto.id/booking/track" class="track-link"
-                target="_blank">https://fariz.bookphoto.id/booking/track</a>
+            <a href="{{ route('booking.check.page') }}" class="track-link"
+                target="_blank">{{ route('booking.check.page') }}</a>
         </div>
 
         <div class="footer">
