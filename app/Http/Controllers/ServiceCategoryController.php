@@ -7,6 +7,7 @@ use App\Models\ServiceGallery;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Http;
 
 class ServiceCategoryController extends Controller
 {
@@ -21,6 +22,41 @@ class ServiceCategoryController extends Controller
         return view('service-categories.form');
     }
 
+    private function uploadToCloudinaryDirect($file)
+    {
+        $cloudinaryUrl = env('CLOUDINARY_URL');
+        
+        // Parse CLOUDINARY_URL format: cloudinary://API_KEY:API_SECRET@CLOUD_NAME
+        if (preg_match('/cloudinary:\/\/([0-9]+):(.[^@]+)@(.+)/', $cloudinaryUrl, $matches)) {
+            $apiKey = $matches[1];
+            $apiSecret = $matches[2];
+            $cloudName = $matches[3];
+
+            $timestamp = time();
+            $folder = 'service_galleries';
+            
+            // Generate signature untuk keamanan upload Cloudinary v3
+            $signatureString = "folder={$folder}&timestamp={$timestamp}{$apiSecret}";
+            $signature = sha1($signatureString);
+
+            $response = Http::attach(
+                'file', file_get_contents($file->getRealPath()), $file->getClientOriginalName()
+            )->post("https://api.cloudinary.com/v1_1/{$cloudName}/image/upload", [
+                'api_key' => $apiKey,
+                'timestamp' => $timestamp,
+                'folder' => $folder,
+                'signature' => $signature,
+            ]);
+
+            if ($response->successful()) {
+                return $response->json()['secure_url'];
+            }
+        }
+
+        // Fallback jika upload cloud gagal, simpan ke lokal sementara agar tidak 500 error
+        return $file->store('service_galleries', 'public');
+    }
+
     public function store(Request $request)
     {
         $request->validate([
@@ -33,17 +69,10 @@ class ServiceCategoryController extends Controller
             'name' => $request->name
         ]);
 
-        // =========================================================
-        // UPLOAD FOTO KE CLOUDINARY MENGGUNAKAN HELPER UTAMA
-        // =========================================================
         if ($request->hasFile('galleries')) {
             foreach ($request->file('galleries') as $file) {
-                // Menggunakan helper cloudinary() yang lebih kebal error di Laravel 12
-                $path = cloudinary()->upload($file->getRealPath(), [
-                    'folder' => 'service_galleries'
-                ])->getSecurePath();
-                
-                $category->galleries()->create(['image_path' => $path]);
+                $secureUrl = $this->uploadToCloudinaryDirect($file);
+                $category->galleries()->create(['image_path' => $secureUrl]);
             }
         }
 
@@ -72,17 +101,10 @@ class ServiceCategoryController extends Controller
 
         $serviceCategory->update(['name' => $request->name]);
 
-        // =========================================================
-        // UPLOAD FOTO TAMBAHAN KE CLOUDINARY
-        // =========================================================
         if ($request->hasFile('galleries')) {
             foreach ($request->file('galleries') as $file) {
-                // Menggunakan helper cloudinary() yang lebih kebal error di Laravel 12
-                $path = cloudinary()->upload($file->getRealPath(), [
-                    'folder' => 'service_galleries'
-                ])->getSecurePath();
-                
-                $serviceCategory->galleries()->create(['image_path' => $path]);
+                $secureUrl = $this->uploadToCloudinaryDirect($file);
+                $serviceCategory->galleries()->create(['image_path' => $secureUrl]);
             }
         }
 
@@ -98,7 +120,6 @@ class ServiceCategoryController extends Controller
         if ($serviceCategory->user_id !== Auth::id()) abort(403);
 
         foreach ($serviceCategory->galleries as $gallery) {
-            // Jika foto lama masih ada di lokal, hapus
             if (!str_starts_with($gallery->image_path, 'http')) {
                 Storage::disk('public')->delete($gallery->image_path);
             }
