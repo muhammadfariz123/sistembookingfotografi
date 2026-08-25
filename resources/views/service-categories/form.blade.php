@@ -14,11 +14,11 @@
                     {{ isset($category) ? 'Edit Kategori & Portofolio' : 'Tambah Kategori Baru' }}
                 </h2>
 
-                <form action="{{ isset($category) ? route('service-categories.update', $category->id) : route('service-categories.store') }}" method="POST" enctype="multipart/form-data" @submit="isSubmitting = true">
+                <form action="{{ isset($category) ? route('service-categories.update', $category->id) : route('service-categories.store') }}" method="POST" enctype="multipart/form-data" x-data="galleryManager()" @submit="isSubmitting = true">
                     @csrf
                     @if(isset($category)) @method('PUT') @endif
 
-                    <div class="space-y-4" x-data="galleryManager()">
+                    <div class="space-y-4">
                         <div>
                             <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Nama Kategori / Jenis Acara <span class="text-red-500">*</span></label>
                             <input type="text" name="name" required value="{{ old('name', $category->name ?? '') }}" placeholder="Contoh: Wedding, Wisuda, Prewedding..." class="w-full h-[44px] rounded-xl border border-gray-300 text-[14px] px-4 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
@@ -86,9 +86,9 @@
                         </div>
                     </div>
 
-                    <div class="mt-8 pt-5 border-t border-gray-100 flex flex-col-reverse sm:flex-row justify-end gap-3" x-data="{ isSubmitting: false }">
+                    <div class="mt-8 pt-5 border-t border-gray-100 flex flex-col-reverse sm:flex-row justify-end gap-3">
                         <a href="{{ route('service-categories.index') }}" class="h-[44px] px-6 rounded-xl border border-gray-300 text-gray-600 font-semibold text-[14px] hover:bg-gray-50 flex items-center justify-center transition-colors">Batal</a>
-                        <button type="submit" @click="isSubmitting = true" :disabled="isSubmitting" class="h-[44px] px-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[14px] rounded-xl shadow-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
+                        <button type="submit" :disabled="isSubmitting" class="h-[44px] px-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[14px] rounded-xl shadow-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
                             <span x-show="!isSubmitting">{{ isset($category) ? 'Simpan Perubahan' : 'Simpan Kategori' }}</span>
                             <span x-show="isSubmitting" class="flex items-center gap-2" x-cloak>
                                 <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
@@ -160,7 +160,7 @@
 
         function galleryManager() {
             return {
-                previewUrls: [], files: [], selectedPhotos: [], selectAll: false,
+                previewUrls: [], files: [], selectedPhotos: [], selectAll: false, isSubmitting: false,
                 async addFiles(e) {
                     const selectedFiles = Array.from(e.target.files);
                     for (let file of selectedFiles) {
