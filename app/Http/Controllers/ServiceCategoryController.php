@@ -25,7 +25,7 @@ class ServiceCategoryController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'galleries.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:10240', // Maks 10MB per foto
+            'galleries.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:10240',
         ]);
 
         $category = ServiceCategory::create([
@@ -34,12 +34,15 @@ class ServiceCategoryController extends Controller
         ]);
 
         // =========================================================
-        // UPLOAD FOTO KE CLOUDINARY (PERMANEN & ANTI HILANG)
+        // UPLOAD FOTO KE CLOUDINARY MENGGUNAKAN HELPER UTAMA
         // =========================================================
         if ($request->hasFile('galleries')) {
             foreach ($request->file('galleries') as $file) {
-                // Menitipkan file ke Cloudinary di dalam folder "service_galleries"
-                $path = $file->storeOnCloudinary('service_galleries')->getSecurePath();
+                // Menggunakan helper cloudinary() yang lebih kebal error di Laravel 12
+                $path = cloudinary()->upload($file->getRealPath(), [
+                    'folder' => 'service_galleries'
+                ])->getSecurePath();
+                
                 $category->galleries()->create(['image_path' => $path]);
             }
         }
@@ -74,7 +77,11 @@ class ServiceCategoryController extends Controller
         // =========================================================
         if ($request->hasFile('galleries')) {
             foreach ($request->file('galleries') as $file) {
-                $path = $file->storeOnCloudinary('service_galleries')->getSecurePath();
+                // Menggunakan helper cloudinary() yang lebih kebal error di Laravel 12
+                $path = cloudinary()->upload($file->getRealPath(), [
+                    'folder' => 'service_galleries'
+                ])->getSecurePath();
+                
                 $serviceCategory->galleries()->create(['image_path' => $path]);
             }
         }
@@ -91,8 +98,7 @@ class ServiceCategoryController extends Controller
         if ($serviceCategory->user_id !== Auth::id()) abort(403);
 
         foreach ($serviceCategory->galleries as $gallery) {
-            // Pengaman: Jika fotonya masih pakai link lokal lama, hapus dari folder lokal
-            // Jika foto baru (dimulai dengan http/Cloudinary), biarkan di Cloud (kuota sangat aman)
+            // Jika foto lama masih ada di lokal, hapus
             if (!str_starts_with($gallery->image_path, 'http')) {
                 Storage::disk('public')->delete($gallery->image_path);
             }
@@ -110,7 +116,6 @@ class ServiceCategoryController extends Controller
     {
         if ($gallery->category->user_id !== Auth::id()) abort(403);
 
-        // Pengaman penghapusan untuk URL Cloudinary vs Lokal
         if (!str_starts_with($gallery->image_path, 'http')) {
             Storage::disk('public')->delete($gallery->image_path);
         }
