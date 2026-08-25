@@ -50,6 +50,19 @@ Route::get('/invoices/{booking}', [InvoiceController::class, 'show'])->name('inv
 // Rute Halaman Seleksi Foto Klien
 Route::get('/seleksi/{bookingCode}', [PublicBookingController::class, 'selectionPage'])->name('booking.public.seleksi');
 
+Route::get('/test-email-send', function () {
+    try {
+        \Illuminate\Support\Facades\Mail::raw('Test email dari server Render (live website)', function($message) {
+            $message->to('warungkombas@gmail.com')
+                    ->subject('Test SMTP Live Render');
+        });
+        return 'SUCCESS: Email berhasil terkirim dari website online!';
+    } catch (\Exception $e) {
+        return 'ERROR: ' . $e->getMessage() . '<br><br><pre>' . $e->getTraceAsString() . '</pre>';
+    }
+});
+
+
 
 /*
 |--------------------------------------------------------------------------
