@@ -60,6 +60,7 @@
                                 <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4 mt-2">
                                     @foreach($category->galleries as $gallery)
                                         <div class="relative aspect-square rounded-xl bg-gray-100 border border-gray-200 overflow-hidden group" id="gallery-{{ $gallery->id }}">
+                                            <!-- DIPERBAIKI: Langsung panggil $gallery->image_path karena isinya sudah URL Cloudinary utuh -->
                                             <img src="{{ $gallery->image_path }}" class="w-full h-full object-cover">
                                             
                                             <!-- Checkbox untuk Pilih Massal -->
