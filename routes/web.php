@@ -101,4 +101,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/company-setting', [CompanySettingController::class, 'store'])->name('company-setting.store');
 });
 
+Route::get('/bersihkan-cache', function () {
+    \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+    return 'ALHAMDULILLAH! Cache konfigurasi berhasil dibersihkan! Silakan coba upload foto lagi.';
+});
 require __DIR__ . '/auth.php';
