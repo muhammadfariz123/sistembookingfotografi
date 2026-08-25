@@ -87,7 +87,7 @@
                                         </div>
                                     </a>        
                                 @else
-                                    <a href="{{ str_starts_with($gallery->image_path, 'http') ? $gallery->image_path : Storage::url($gallery->image_path) }}" class="glightbox aspect-square bg-gray-200 rounded-xl overflow-hidden shadow-sm block group">
+                                    <a href="{{ str_starts_with($gallery->image_path, 'http') ? $gallery->image_path : Storage::url($gallery->image_path) }}" data-gallery="service-gallery" class="glightbox aspect-square bg-gray-200 rounded-xl overflow-hidden shadow-sm block group">
                                         <img src="{{ str_starts_with($gallery->image_path, 'http') ? $gallery->image_path : Storage::url($gallery->image_path) }}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500" alt="Hasil Foto">
                                     </a>
                                 @endif
