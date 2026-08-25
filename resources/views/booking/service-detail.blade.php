@@ -80,15 +80,15 @@
                             @foreach($galleries->take(6) as $index => $gallery)
                                 @if($index == 5 && $totalPhotos > 6)
                                     <a href= "{{ route('booking.service.gallery', ['ownerId' => $ownerId, 'serviceId' => $service->id]) }}" class="relative aspect-square bg-gray-200 rounded-xl overflow-hidden shadow-sm block group">
-                                        <img src="{{ Storage::url($gallery->image_path) }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500 filter blur-[2px]" alt="Hasil Foto">
+                                        <img src="{{ str_starts_with($gallery->image_path, 'http') ? $gallery->image_path : Storage::url($gallery->image_path) }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500 filter blur-[2px]" alt="Hasil Foto">
                                         <div class="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white transition duration-300 group-hover:bg-black/60">
                                             <span class="text-2xl font-bold mb-1">+{{ $totalPhotos - 5 }}</span>
                                             <span class="text-xs font-medium px-2 text-center">Lihat Selengkapnya</span>
                                         </div>
                                     </a>        
                                 @else
-                                    <a href="{{ Storage::url($gallery->image_path) }}" class="glightbox aspect-square bg-gray-200 rounded-xl overflow-hidden shadow-sm block group">
-                                        <img src="{{ Storage::url($gallery->image_path) }}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500" alt="Hasil Foto">
+                                    <a href="{{ str_starts_with($gallery->image_path, 'http') ? $gallery->image_path : Storage::url($gallery->image_path) }}" class="glightbox aspect-square bg-gray-200 rounded-xl overflow-hidden shadow-sm block group">
+                                        <img src="{{ str_starts_with($gallery->image_path, 'http') ? $gallery->image_path : Storage::url($gallery->image_path) }}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500" alt="Hasil Foto">
                                     </a>
                                 @endif
                             @endforeach

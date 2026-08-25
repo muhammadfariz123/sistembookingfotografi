@@ -53,9 +53,9 @@
         @else
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                 @foreach($galleries as $gallery)
-                    <a href="{{ Storage::url($gallery->image_path) }}" 
+                    <a href="{{ str_starts_with($gallery->image_path, 'http') ? $gallery->image_path : Storage::url($gallery->image_path) }}" 
                        class="glightbox aspect-square bg-gray-200 rounded-2xl overflow-hidden shadow-sm block group relative">
-                        <img src="{{ Storage::url($gallery->image_path) }}" 
+                        <img src="{{ str_starts_with($gallery->image_path, 'http') ? $gallery->image_path : Storage::url($gallery->image_path) }}" 
                              class="w-full h-full object-cover group-hover:scale-110 transition duration-700" 
                              alt="Hasil Foto">
                         
