@@ -1,6 +1,7 @@
 <x-app-layout>
     <div x-data="{ services: @js($services) }" 
-         class="px-3 sm:px-6 lg:px-8 py-4 sm:py-6 bg-[#f5f7fb] w-full flex flex-col overflow-hidden index-container"> 
+         class="px-3 sm:px-6 lg:px-8 py-4 sm:py-6 bg-[#f5f7fb] w-full flex flex-col overflow-hidden"
+         style="height: calc(100vh - 65px);"> 
          
          <div class="bg-white border border-gray-200 rounded-[20px] sm:rounded-[30px] shadow-sm p-4 sm:p-6 lg:p-8 flex flex-col flex-1 min-h-0 overflow-hidden">
             
@@ -157,14 +158,6 @@
     <style>
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        @media (min-width: 1024px) {
-            .index-container {
-                height: calc(100vh - 65px);
-            }
-            body {
-                overflow: hidden !important;
-            }
-        }
+        body { overflow: hidden !important; }
     </style>
 </x-app-layout>
