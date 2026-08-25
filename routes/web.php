@@ -74,6 +74,8 @@ Route::middleware(['auth'])->group(function () {
     // Layanan & Portofolio Kategori
     Route::resource('service-categories', ServiceCategoryController::class);
     Route::delete('/category-galleries/{gallery}', [ServiceCategoryController::class, 'destroyGallery'])->name('category-galleries.destroy');
+// Tambahkan rute ini di dalam group middleware auth Anda:
+Route::post('/category-galleries/bulk-delete', [ServiceCategoryController::class, 'bulkDeleteGalleries'])->name('category-galleries.bulk-delete');
 
     // Paket Layanan
     Route::resource('service-types', ServiceTypeController::class);

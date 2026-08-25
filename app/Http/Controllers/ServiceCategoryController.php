@@ -22,24 +22,29 @@ class ServiceCategoryController extends Controller
         return view('service-categories.form');
     }
 
-    private function uploadToCloudinaryDirect($file)
+    // =========================================================
+    // OPTIMASI: UPLOAD PARALEL KE CLOUDINARY (SUPER CEPAT)
+    // =========================================================
+    private function uploadBatchToCloudinary($files)
     {
         $cloudinaryUrl = env('CLOUDINARY_URL');
-        
-        // Parse CLOUDINARY_URL format: cloudinary://API_KEY:API_SECRET@CLOUD_NAME
-        if (preg_match('/cloudinary:\/\/([0-9]+):(.[^@]+)@(.+)/', $cloudinaryUrl, $matches)) {
-            $apiKey = $matches[1];
-            $apiSecret = $matches[2];
-            $cloudName = $matches[3];
+        if (!preg_match('/cloudinary:\/\/([0-9]+):(.[^@]+)@(.+)/', $cloudinaryUrl, $matches)) {
+            return [];
+        }
 
+        $apiKey = $matches[1];
+        $apiSecret = $matches[2];
+        $cloudName = $matches[3];
+        $folder = 'service_galleries';
+        $uploadedUrls = [];
+
+        // Menggunakan Http::pool untuk mengirim banyak foto secara bersamaan (Parallel Request)
+        $responses = Http::pool(fn ($pool) => collect($files)->map(function ($file) use ($pool, $apiKey, $apiSecret, $cloudName, $folder) {
             $timestamp = time();
-            $folder = 'service_galleries';
-            
-            // Generate signature untuk keamanan upload Cloudinary v3
             $signatureString = "folder={$folder}&timestamp={$timestamp}{$apiSecret}";
             $signature = sha1($signatureString);
 
-            $response = Http::attach(
+            return $pool->attach(
                 'file', file_get_contents($file->getRealPath()), $file->getClientOriginalName()
             )->post("https://api.cloudinary.com/v1_1/{$cloudName}/image/upload", [
                 'api_key' => $apiKey,
@@ -47,14 +52,15 @@ class ServiceCategoryController extends Controller
                 'folder' => $folder,
                 'signature' => $signature,
             ]);
+        }));
 
-            if ($response->successful()) {
-                return $response->json()['secure_url'];
+        foreach ($responses as $response) {
+            if ($response && $response->successful()) {
+                $uploadedUrls[] = $response->json()['secure_url'];
             }
         }
 
-        // Fallback jika upload cloud gagal, simpan ke lokal sementara agar tidak 500 error
-        return $file->store('service_galleries', 'public');
+        return $uploadedUrls;
     }
 
     public function store(Request $request)
@@ -70,9 +76,9 @@ class ServiceCategoryController extends Controller
         ]);
 
         if ($request->hasFile('galleries')) {
-            foreach ($request->file('galleries') as $file) {
-                $secureUrl = $this->uploadToCloudinaryDirect($file);
-                $category->galleries()->create(['image_path' => $secureUrl]);
+            $secureUrls = $this->uploadBatchToCloudinary($request->file('galleries'));
+            foreach ($secureUrls as $url) {
+                $category->galleries()->create(['image_path' => $url]);
             }
         }
 
@@ -102,9 +108,9 @@ class ServiceCategoryController extends Controller
         $serviceCategory->update(['name' => $request->name]);
 
         if ($request->hasFile('galleries')) {
-            foreach ($request->file('galleries') as $file) {
-                $secureUrl = $this->uploadToCloudinaryDirect($file);
-                $serviceCategory->galleries()->create(['image_path' => $secureUrl]);
+            $secureUrls = $this->uploadBatchToCloudinary($request->file('galleries'));
+            foreach ($secureUrls as $url) {
+                $serviceCategory->galleries()->create(['image_path' => $url]);
             }
         }
 
@@ -127,7 +133,7 @@ class ServiceCategoryController extends Controller
         $serviceCategory->delete();
 
         if ($request->wantsJson() || $request->ajax()) {
-            return response()->json(['success' => true]);
+            return response()->json(['success`' => true]);
         }
 
         return redirect()->route('service-categories.index')->with('success', 'Kategori & foto berhasil dihapus!');
@@ -143,5 +149,23 @@ class ServiceCategoryController extends Controller
         $gallery->delete();
 
         return response()->json(['message' => 'Foto dihapus!']);
+    }
+
+    // Fungsi Baru untuk Hapus Massal Foto Ceklis
+    public function bulkDeleteGalleries(Request $request)
+    {
+        $ids = $request->input('ids', []);
+        $galleries = ServiceGallery::whereIn('id', $ids)->get();
+
+        foreach ($galleries as $gallery) {
+            if ($gallery->category->user_id === Auth::id()) {
+                if (!str_starts_with($gallery->image_path, 'http')) {
+                    Storage::disk('public')->delete($gallery->image_path);
+                }
+                $gallery->delete();
+            }
+        }
+
+        return response()->json(['success' => true]);
     }
 }
