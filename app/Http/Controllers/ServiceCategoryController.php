@@ -25,7 +25,7 @@ class ServiceCategoryController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'galleries.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:10240', // Dinaikkan batas max jadi 10MB per foto
+            'galleries.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:10240', // Maks 10MB per foto
         ]);
 
         $category = ServiceCategory::create([
@@ -33,10 +33,13 @@ class ServiceCategoryController extends Controller
             'name' => $request->name
         ]);
 
-        // Upload Foto ke Database (Dipindah ke atas agar selalu tereksekusi saat form biasa dikirim)
+        // =========================================================
+        // UPLOAD FOTO KE CLOUDINARY (PERMANEN & ANTI HILANG)
+        // =========================================================
         if ($request->hasFile('galleries')) {
             foreach ($request->file('galleries') as $file) {
-                $path = $file->store('service_galleries', 'public');
+                // Menitipkan file ke Cloudinary di dalam folder "service_galleries"
+                $path = $file->storeOnCloudinary('service_galleries')->getSecurePath();
                 $category->galleries()->create(['image_path' => $path]);
             }
         }
@@ -66,10 +69,12 @@ class ServiceCategoryController extends Controller
 
         $serviceCategory->update(['name' => $request->name]);
 
-        // Upload Foto Tambahan
+        // =========================================================
+        // UPLOAD FOTO TAMBAHAN KE CLOUDINARY
+        // =========================================================
         if ($request->hasFile('galleries')) {
             foreach ($request->file('galleries') as $file) {
-                $path = $file->store('service_galleries', 'public');
+                $path = $file->storeOnCloudinary('service_galleries')->getSecurePath();
                 $serviceCategory->galleries()->create(['image_path' => $path]);
             }
         }
@@ -86,7 +91,11 @@ class ServiceCategoryController extends Controller
         if ($serviceCategory->user_id !== Auth::id()) abort(403);
 
         foreach ($serviceCategory->galleries as $gallery) {
-            Storage::disk('public')->delete($gallery->image_path);
+            // Pengaman: Jika fotonya masih pakai link lokal lama, hapus dari folder lokal
+            // Jika foto baru (dimulai dengan http/Cloudinary), biarkan di Cloud (kuota sangat aman)
+            if (!str_starts_with($gallery->image_path, 'http')) {
+                Storage::disk('public')->delete($gallery->image_path);
+            }
         }
         $serviceCategory->delete();
 
@@ -101,7 +110,10 @@ class ServiceCategoryController extends Controller
     {
         if ($gallery->category->user_id !== Auth::id()) abort(403);
 
-        Storage::disk('public')->delete($gallery->image_path);
+        // Pengaman penghapusan untuk URL Cloudinary vs Lokal
+        if (!str_starts_with($gallery->image_path, 'http')) {
+            Storage::disk('public')->delete($gallery->image_path);
+        }
         $gallery->delete();
 
         return response()->json(['message' => 'Foto dihapus!']);
