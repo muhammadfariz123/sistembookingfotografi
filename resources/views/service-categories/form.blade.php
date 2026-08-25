@@ -103,15 +103,71 @@
     </div>
 
     <script>
+        function compressImage(file, maxWidth = 1600, maxHeight = 1600, quality = 0.8) {
+            return new Promise((resolve) => {
+                if (!file.type.startsWith('image/')) {
+                    resolve(file);
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > height) {
+                            if (width > maxWidth) {
+                                height = Math.round((height * maxWidth) / width);
+                                width = maxWidth;
+                            }
+                        } else {
+                            if (height > maxHeight) {
+                                width = Math.round((width * maxHeight) / height);
+                                height = maxHeight;
+                            }
+                        }
+
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        canvas.toBlob((blob) => {
+                            if (!blob) {
+                                resolve(file);
+                                return;
+                            }
+                            // Ganti ekstensi file menjadi .jpg karena dikompres ke jpeg
+                            const newName = file.name.replace(/\.[^/.]+$/, "") + ".jpg";
+                            const compressedFile = new File([blob], newName, {
+                                type: 'image/jpeg',
+                                lastModified: Date.now(),
+                            });
+                            resolve(compressedFile);
+                        }, 'image/jpeg', quality);
+                    };
+                    img.onerror = () => resolve(file);
+                };
+                reader.onerror = () => resolve(file);
+            });
+        }
+
         function galleryManager() {
             return {
                 previewUrls: [], files: [], selectedPhotos: [], selectAll: false,
-                addFiles(e) {
+                async addFiles(e) {
                     const selectedFiles = Array.from(e.target.files);
-                    selectedFiles.forEach(file => {
-                        this.files.push(file);
-                        this.previewUrls.push({ name: file.name, url: URL.createObjectURL(file) });
-                    });
+                    for (let file of selectedFiles) {
+                        const compressedFile = await compressImage(file);
+                        this.files.push(compressedFile);
+                        this.previewUrls.push({ name: compressedFile.name, url: URL.createObjectURL(compressedFile) });
+                    }
                     this.syncInputFiles();
                 },
                 removeFile(index) {
