@@ -387,10 +387,21 @@
                         </div>
                     </label>
                 </div>
+                
+                {{-- TOMBOL SUBMIT YANG SUDAH DI-OPTIMASI DENGAN LOADING STATE --}}
                 <div class="flex justify-between">
-                    <button type="button" @click="prevStep()" class="border border-gray-300 text-gray-600 hover:bg-gray-50 px-5 py-2.5 rounded-lg font-semibold transition text-sm">← Kembali</button>
-                    <button type="button" @click="submitForm()" class="bg-brand hover:opacity-90 text-white px-6 py-2.5 rounded-lg font-bold transition shadow-sm text-sm flex items-center gap-2"
-                        x-text="paymentOption === 'LUNAS' ? `Booking & Bayar Lunas ${formatCurrency(unitPrice)}` : `Booking & Bayar DP ${formatCurrency(unitPrice * 0.3)}`">
+                    <button type="button" @click="prevStep()" :disabled="isSubmitting" class="border border-gray-300 text-gray-600 hover:bg-gray-50 px-5 py-2.5 rounded-lg font-semibold transition text-sm disabled:opacity-50 disabled:cursor-not-allowed">← Kembali</button>
+                    
+                    <button type="button" @click="submitForm()" :disabled="isSubmitting" class="bg-brand hover:opacity-90 text-white px-6 py-2.5 rounded-lg font-bold transition shadow-sm text-sm flex items-center justify-center gap-2 disabled:opacity-75 disabled:cursor-wait">
+                        {{-- Ikon Spinner (Muncul saat isSubmitting = true) --}}
+                        <svg x-show="isSubmitting" x-cloak class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        
+                        {{-- Teks Tombol Berubah Otomatis --}}
+                        <span x-show="!isSubmitting" x-text="paymentOption === 'LUNAS' ? `Booking & Bayar Lunas ${formatCurrency(unitPrice)}` : `Booking & Bayar DP ${formatCurrency(unitPrice * 0.3)}`"></span>
+                        <span x-show="isSubmitting" x-cloak>Memproses Booking...</span>
                     </button>
                 </div>
             </div>
@@ -423,7 +434,7 @@
     <script>
         function bookingWizard(initialId = '', initialPrice = 0, initialName = '', initialCategory = '', initialDuration = 0, bookedSlots = {}) {
             return {
-                step: 1, errorMsg: '',
+                step: 1, errorMsg: '', isSubmitting: false, // Variabel isSubmitting ditambahkan di sini
                 selectedCategory: initialCategory,
                 selectedServiceId: String(initialId), 
                 unitPrice: Number(initialPrice), 
@@ -543,7 +554,7 @@
                             }
                         }
 
-                        // LOGIKA 3: CEK TABRAKAN JADWAL MULTI-HARI (Mengecek ke seluruh hari yang dipilih)
+                        // LOGIKA 3: CEK TABRAKAN JADWAL MULTI-HARI
                         let datesToCheck = [];
                         if (!this.multiDay) {
                             datesToCheck.push(this.bookingDate);
@@ -629,6 +640,10 @@
                 
                 submitForm() {
                     if (!this.agreeTnC) { this.showError('Centang persetujuan dahulu.'); return; }
+                    
+                    // AKTIFKAN LOADING SPINNER
+                    this.isSubmitting = true;
+                    
                     document.getElementById('hidden_payment_type').value = this.paymentOption;
                     
                     const hiddenTimeInput = document.querySelector('input[type="hidden"][name="booking_time"]');
