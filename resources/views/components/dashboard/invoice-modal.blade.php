@@ -214,7 +214,7 @@
                         <strong>Invoice DP</strong> untuk pembayaran awal,
                         <strong>Invoice Pelunasan</strong> untuk sisa pembayaran, atau
                         <strong>Invoice Penuh</strong> untuk pembayaran lengkap.
-                        Jatuh tempo dan jenis tagihan disesuaikan berdasarkan tipe pembayaran. Harga diatur dari halaman edit booking.
+                        PPN diatur dari halaman edit booking.
                     </div>
                 </div>
 
@@ -298,7 +298,6 @@
                                 <span class="text-gray-500">Subtotal:</span>
                                 <span class="font-medium text-gray-800" x-text="formatRp(booking?.subtotal ?? booking?.total ?? 0)"></span>
                             </div>
-
                             <div class="flex justify-between border-t border-gray-200 pt-2 mt-2">
                                 <span class="text-gray-700 font-medium">Total Keseluruhan:</span>
                                 <span class="font-bold text-gray-900" x-text="formatRp(booking?.total ?? 0)"></span>

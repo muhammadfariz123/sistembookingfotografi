@@ -370,7 +370,6 @@ class BookingController extends Controller
         $booking = Booking::create(array_merge($validated, [
             'user_id' => Auth::id(),
             'subtotal' => $tps['subtotal'],
-            'discount_amount' => 0, // Set 0
             'total' => $tps['total'],
             'remaining' => $tps['remaining'],
             'payment_status' => $tps['payment_status'],
@@ -399,7 +398,6 @@ class BookingController extends Controller
 
         $booking->update(array_merge($validated, [
             'subtotal' => $tps['subtotal'],
-            'discount_amount' => 0, // Set 0
             'total' => $tps['total'],
             'remaining' => $tps['remaining'],
             'payment_status' => $tps['payment_status'],

@@ -106,10 +106,8 @@ class PublicBookingController extends Controller
             'payment_type' => $validated['payment_type'],
 
             'unit_price' => $tpsData['subtotal'],
-            'discount_percent' => 0,
             'paid_amount' => 0,
             'subtotal' => $tpsData['subtotal'],
-            'discount_amount' => $tpsData['discount_amount'],
             'total' => $tpsData['total'],
             'remaining' => $tpsData['remaining'],
         ]);

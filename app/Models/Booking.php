@@ -57,10 +57,8 @@ class Booking extends Model
         'payment_type',   // ← [FIX] wajib ditambahkan, ini yang hilang
         'payment_proof',
         'unit_price',
-        'discount_percent',
         'paid_amount',
         'subtotal',
-        'discount_amount',
         'total',
         'remaining',
         'queue_number',
@@ -78,10 +76,8 @@ class Booking extends Model
         'start_date' => 'date',
         'end_date' => 'date',
         'unit_price' => 'integer',
-        'discount_percent' => 'decimal:2',
         'paid_amount' => 'integer',
         'subtotal' => 'integer',
-        'discount_amount' => 'integer',
         'total' => 'integer',
         'remaining' => 'integer',
     ];
@@ -106,7 +102,7 @@ class Booking extends Model
      * Jalankan semua kalkulasi TPS dan kembalikan array hasil.
      * Dipanggil di Controller sebelum simpan ke DB.
      *
-     * Rumus (Modifikasi tanpa Qty & Tanpa Diskon):
+     * Rumus (Modifikasi tanpa Qty & Diskon):
      * (3.1) Subtotal = P
      * (3.2) Total    = Subtotal
      * (3.3) Sisa     = Total - Db
@@ -136,7 +132,6 @@ class Booking extends Model
 
         return [
             'subtotal' => $subtotal,
-            'discount_amount' => 0,
             'total' => $total,
             'remaining' => $remaining,
             'payment_status' => $paymentStatus,

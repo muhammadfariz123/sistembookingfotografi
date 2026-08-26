@@ -537,7 +537,6 @@
                             booking_time: this.bookingTime || null, 
                             status: this.status,
                             unit_price: this.unitPrice, 
-                            discount_percent: 0,
                             paid_amount: this.paidAmount, 
                             notes: this.notes,
                             
