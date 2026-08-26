@@ -27,7 +27,6 @@ class BookingRequest extends FormRequest
             // [DIPERBARUI]: Menambahkan seluruh status Workboard agar lolos validasi saat diedit
             'status' => 'required|in:Pending,Belum Bayar,Pembayaran Tertunda,Tunggu Konfirmasi,Dijadwalkan,File Original Disiapkan,Pilih Foto,Pilihan Diterima,Proses Edit,Selesai,Dibatalkan',
             'unit_price' => 'required|integer|min:0',
-            'discount_percent' => 'nullable|numeric|min:0|max:100',
             'paid_amount' => 'nullable|integer|min:0',
             'notes' => 'nullable|string|max:2000',
         ];
@@ -42,7 +41,6 @@ class BookingRequest extends FormRequest
             'booking_date.date' => 'Format tanggal tidak valid.',
             'end_date.after_or_equal' => 'Tanggal selesai harus setelah tanggal mulai.',
             'unit_price.min' => 'Harga tidak boleh negatif.',
-            'discount_percent.max' => 'Diskon maksimal 100%.',
             'link_gmaps.url' => 'Format URL Google Maps tidak valid.',
             
         ];

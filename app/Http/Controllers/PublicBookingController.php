@@ -84,7 +84,7 @@ class PublicBookingController extends Controller
             ->where('user_id', $owner->id)
             ->firstOrFail();
 
-        $tpsData = Booking::calculateTps((int) $service->price, 0, 0);
+        $tpsData = Booking::calculateTps((int) $service->price, 0);
 
         $booking = Booking::create([
             'user_id' => $owner->id,
@@ -443,19 +443,15 @@ class PublicBookingController extends Controller
         }
 
         $subtotal = (int) $booking->subtotal;
-        $discountAmount = (int) $booking->discount_amount;
-        $discountPercent = (float) $booking->discount_percent;
         $total = (int) $booking->total;
 
         if ($total === 0 && (int) $booking->unit_price > 0) {
-            $tps = Booking::calculateTps((int) $booking->unit_price, $discountPercent, (int) $booking->paid_amount);
+            $tps = Booking::calculateTps((int) $booking->unit_price, (int) $booking->paid_amount);
             $subtotal = $tps['subtotal'];
-            $discountAmount = $tps['discount_amount'];
             $total = $tps['total'];
 
             $booking->update([
                 'subtotal' => $subtotal,
-                'discount_amount' => $discountAmount,
                 'total' => $total,
                 'remaining' => $tps['remaining'],
                 'payment_status' => $tps['payment_status'],
@@ -482,8 +478,6 @@ class PublicBookingController extends Controller
             'companySetting',
             'subtotal',
             'total',
-            'discountAmount',
-            'discountPercent',
             'dpPercent',
             'dpAmount',
             'amountToPay',

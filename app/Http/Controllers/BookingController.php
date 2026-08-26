@@ -364,7 +364,6 @@ class BookingController extends Controller
         
         $tps = Booking::calculateTps(
             unitPrice: (int) $validated['unit_price'],
-            discountPercent: 0, // Diskon dihilangkan
             paidAmount: (int) ($validated['paid_amount'] ?? 0),
         );
 
@@ -395,7 +394,6 @@ class BookingController extends Controller
         
         $tps = Booking::calculateTps(
             unitPrice: (int) $validated['unit_price'],
-            discountPercent: 0, // Diskon dihilangkan
             paidAmount: (int) ($validated['paid_amount'] ?? 0),
         );
 

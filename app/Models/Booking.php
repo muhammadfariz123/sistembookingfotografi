@@ -101,36 +101,31 @@ class Booking extends Model
     {
         return $this->hasMany(PaymentTransaction::class);
     }
-    // ── TPS Processing — Rumus 3.1 s/d 3.5 ─────────────────────
+    // ── TPS Processing — Rumus 3.1 s/d 3.4 ─────────────────────
     /**
      * Jalankan semua kalkulasi TPS dan kembalikan array hasil.
      * Dipanggil di Controller sebelum simpan ke DB.
      *
-     * Rumus (Modifikasi tanpa Qty):
+     * Rumus (Modifikasi tanpa Qty & Tanpa Diskon):
      * (3.1) Subtotal = P
-     * (3.2) Nd       = Subtotal × D/100
-     * (3.3) Total    = Subtotal - Nd
-     * (3.4) Sisa     = Total - Db
-     * (3.5) Status   = kondisional berdasarkan Db vs Total
+     * (3.2) Total    = Subtotal
+     * (3.3) Sisa     = Total - Db
+     * (3.4) Status   = kondisional berdasarkan Db vs Total
      */
     public static function calculateTps(
         int $unitPrice,
-        float $discountPercent,
         int $paidAmount
     ): array {
         // (3.1) Subtotal = P (Tanpa perlu dikalikan Quantity)
         $subtotal = $unitPrice;
 
-        // (3.2) Nd = Subtotal × D/100
-        $discountAmount = (int) round($subtotal * ($discountPercent / 100));
+        // (3.2) Total = Subtotal
+        $total = $subtotal;
 
-        // (3.3) Total = Subtotal - Nd
-        $total = max($subtotal - $discountAmount, 0);
-
-        // (3.4) Sisa = Total - Db
+        // (3.3) Sisa = Total - Db
         $remaining = max($total - $paidAmount, 0);
 
-        // (3.5) Status pembayaran — otomatis
+        // (3.4) Status pembayaran — otomatis
         if ($paidAmount <= 0) {
             $paymentStatus = 'Pending';
         } elseif ($paidAmount >= $total) {
@@ -141,7 +136,7 @@ class Booking extends Model
 
         return [
             'subtotal' => $subtotal,
-            'discount_amount' => $discountAmount,
+            'discount_amount' => 0,
             'total' => $total,
             'remaining' => $remaining,
             'payment_status' => $paymentStatus,
