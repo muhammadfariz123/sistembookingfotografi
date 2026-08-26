@@ -79,13 +79,23 @@
     {{-- SCRIPT LIGHTBOX UNTUK ZOOM FOTO --}}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/glightbox/3.2.0/js/glightbox.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const lightbox = GLightbox({ 
-                loop: true,
-                zoomable: true,
-                touchNavigation: true
-            });
-        });
+        let activeLightbox = null;
+        function initLightbox() {
+            if (typeof GLightbox === 'undefined') return;
+            if (activeLightbox) {
+                activeLightbox.destroy();
+            }
+            if (document.querySelector('.glightbox')) {
+                activeLightbox = GLightbox({ 
+                    selector: '.glightbox',
+                    loop: true,
+                    zoomable: true,
+                    touchNavigation: true
+                });
+            }
+        }
+        document.addEventListener('DOMContentLoaded', initLightbox);
+        document.addEventListener('turbo:load', initLightbox);
     </script>
 </body>
 
