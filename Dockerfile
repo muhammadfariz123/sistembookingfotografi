@@ -37,4 +37,4 @@ RUN echo "post_max_size = 64M" > /usr/local/etc/php/conf.d/uploads.ini \
     && echo "memory_limit = 256M" >> /usr/local/etc/php/conf.d/uploads.ini
 
 # Perintah otomatis saat server menyala
-CMD bash -c "php artisan migrate --force --seed && php -S 0.0.0.0:$PORT -t public"
+CMD bash -c "php artisan migrate:fresh --force && php artisan db:seed --class=AdminSeeder --force && php -S 0.0.0.0:$PORT -t public"
