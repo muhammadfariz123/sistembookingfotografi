@@ -16,14 +16,14 @@
 
                         @php
                             $completedCount = collect($checklist)->filter()->count();
-                            $percent = ($completedCount / 10) * 100;
+                            $percent = ($completedCount / 9) * 100;
                         @endphp
 
                         <!-- Progress Bar -->
                         <div class="mb-6 bg-gray-50 border border-gray-100 p-4 rounded-xl">
                             <div class="flex items-center justify-between text-xs font-semibold text-gray-600 mb-2">
                                 <span>Progress Setup Sistem</span>
-                                <span class="text-blue-600">{{ $completedCount }} dari 10 Langkah Selesai ({{ round($percent) }}%)</span>
+                                <span class="text-blue-600">{{ $completedCount }} dari 9 Langkah Selesai ({{ round($percent) }}%)</span>
                             </div>
                             <div class="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
                                 <div class="bg-blue-600 h-2 rounded-full transition-all duration-500" style="width: {{ $percent }}%"></div>
@@ -124,8 +124,8 @@
                                         @endif
                                     </div>
                                     <div class="min-w-0">
-                                        <h4 class="text-sm font-bold truncate">4. Buat Booking Klien</h4>
-                                        <p class="text-xs text-gray-400 truncate">Kirim link atau tambah manual</p>
+                                        <h4 class="text-sm font-bold truncate">4. Pantau Daftar Booking</h4>
+                                        <p class="text-xs text-gray-400 truncate">Pantau pesanan masuk & status sesi</p>
                                     </div>
                                 </div>
                                 @if(!$checklist['bookings'])
@@ -134,31 +134,6 @@
                             </a>
 
                             <!-- Langkah 5 -->
-                            <a href="{{ route('bookings.listPage') }}" 
-                               class="flex items-center justify-between p-4 rounded-xl border transition-all duration-300 group
-                               {{ $checklist['confirmed_bookings'] 
-                                   ? 'bg-emerald-50/30 border-emerald-100 text-emerald-800 font-medium' 
-                                   : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-sm text-gray-800' }}">
-                                <div class="flex items-center gap-3 min-w-0">
-                                    <div class="w-8 h-8 rounded-full shrink-0 flex items-center justify-center font-bold text-sm
-                                        {{ $checklist['confirmed_bookings'] ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-400 group-hover:bg-blue-50 group-hover:text-blue-600' }}">
-                                        @if($checklist['confirmed_bookings'])
-                                            <i data-lucide="check" class="w-4 h-4"></i>
-                                        @else
-                                            5
-                                        @endif
-                                    </div>
-                                    <div class="min-w-0">
-                                        <h4 class="text-sm font-bold truncate">5. Konfirmasi Booking</h4>
-                                        <p class="text-xs text-gray-400 truncate">Setujui booking klien yang masuk</p>
-                                    </div>
-                                </div>
-                                @if(!$checklist['confirmed_bookings'])
-                                    <i data-lucide="chevron-right" class="w-4 h-4 text-gray-300 group-hover:text-blue-500 group-hover:translate-x-0.5 transition shrink-0"></i>
-                                @endif
-                            </a>
-
-                            <!-- Langkah 6 -->
                             <a href="{{ route('bookings.calendar') }}" 
                                class="flex items-center justify-between p-4 rounded-xl border transition-all duration-300 group
                                {{ $checklist['calendar'] 
@@ -170,11 +145,11 @@
                                         @if($checklist['calendar'])
                                             <i data-lucide="check" class="w-4 h-4"></i>
                                         @else
-                                            6
+                                            5
                                         @endif
                                     </div>
                                     <div class="min-w-0">
-                                        <h4 class="text-sm font-bold truncate">6. Kalender Jadwal</h4>
+                                        <h4 class="text-sm font-bold truncate">5. Kalender Jadwal</h4>
                                         <p class="text-xs text-gray-400 truncate">Pantau jadwal sesi foto mendatang</p>
                                     </div>
                                 </div>
@@ -183,7 +158,7 @@
                                 @endif
                             </a>
 
-                            <!-- Langkah 7 -->
+                            <!-- Langkah 6 -->
                             <a href="{{ route('workboard.index') }}" 
                                class="flex items-center justify-between p-4 rounded-xl border transition-all duration-300 group
                                {{ $checklist['workboard'] 
@@ -195,11 +170,11 @@
                                         @if($checklist['workboard'])
                                             <i data-lucide="check" class="w-4 h-4"></i>
                                         @else
-                                            7
+                                            6
                                         @endif
                                     </div>
                                     <div class="min-w-0">
-                                        <h4 class="text-sm font-bold truncate">7. Papan Kerja (Workboard)</h4>
+                                        <h4 class="text-sm font-bold truncate">6. Papan Kerja (Workboard)</h4>
                                         <p class="text-xs text-gray-400 truncate">Kirim folder kerja & link hasil foto</p>
                                     </div>
                                 </div>
@@ -208,7 +183,7 @@
                                 @endif
                             </a>
 
-                            <!-- Langkah 8 -->
+                            <!-- Langkah 7 -->
                             <a href="{{ route('transactions.index') }}" 
                                class="flex items-center justify-between p-4 rounded-xl border transition-all duration-300 group
                                {{ $checklist['transactions'] 
@@ -220,12 +195,12 @@
                                         @if($checklist['transactions'])
                                             <i data-lucide="check" class="w-4 h-4"></i>
                                         @else
-                                            8
+                                            7
                                         @endif
                                     </div>
                                     <div class="min-w-0">
-                                        <h4 class="text-sm font-bold truncate">8. Catat Transaksi Klien</h4>
-                                        <p class="text-xs text-gray-400 truncate">Setujui bukti pembayaran masuk</p>
+                                        <h4 class="text-sm font-bold truncate">7. Pantau Daftar Transaksi</h4>
+                                        <p class="text-xs text-gray-400 truncate">Konfirmasi bukti pembayaran klien</p>
                                     </div>
                                 </div>
                                 @if(!$checklist['transactions'])
@@ -233,7 +208,7 @@
                                 @endif
                             </a>
 
-                            <!-- Langkah 9 -->
+                            <!-- Langkah 8 -->
                             <a href="{{ route('financial.index') }}" 
                                class="flex items-center justify-between p-4 rounded-xl border transition-all duration-300 group
                                {{ $checklist['financial'] 
@@ -245,11 +220,11 @@
                                         @if($checklist['financial'])
                                             <i data-lucide="check" class="w-4 h-4"></i>
                                         @else
-                                            9
+                                            8
                                         @endif
                                     </div>
                                     <div class="min-w-0">
-                                        <h4 class="text-sm font-bold truncate">9. Laporan Keuangan</h4>
+                                        <h4 class="text-sm font-bold truncate">8. Laporan Keuangan</h4>
                                         <p class="text-xs text-gray-400 truncate">Pantau pendapatan & pengeluaran</p>
                                     </div>
                                 </div>
@@ -258,7 +233,7 @@
                                 @endif
                             </a>
 
-                            <!-- Langkah 10 -->
+                            <!-- Langkah 9 -->
                             <a href="{{ route('bookings.export') }}" 
                                class="flex items-center justify-between p-4 rounded-xl border transition-all duration-300 group
                                {{ $checklist['export'] 
@@ -270,11 +245,11 @@
                                         @if($checklist['export'])
                                             <i data-lucide="check" class="w-4 h-4"></i>
                                         @else
-                                            10
+                                            9
                                         @endif
                                     </div>
                                     <div class="min-w-0">
-                                        <h4 class="text-sm font-bold truncate">10. Unduh Excel Data</h4>
+                                        <h4 class="text-sm font-bold truncate">9. Unduh Excel Data</h4>
                                         <p class="text-xs text-gray-400 truncate">Ekspor data booking ke Excel</p>
                                     </div>
                                 </div>

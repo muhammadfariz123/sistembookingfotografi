@@ -75,7 +75,6 @@ class DashboardController extends Controller
             'categories' => $hasCategory,
             'services' => $hasService,
             'bookings' => $hasBooking,
-            'confirmed_bookings' => $hasConfirmedBooking,
             'calendar' => $hasCalendar,
             'workboard' => $hasWorkboard,
             'transactions' => $hasTransaction,
@@ -84,7 +83,7 @@ class DashboardController extends Controller
         ];
 
         // Jika semua checklist sudah true, maka $showOnboarding = false
-        $showOnboarding = !($hasSettings && $hasCategory && $hasService && $hasBooking && $hasConfirmedBooking && $hasCalendar && $hasWorkboard && $hasTransaction && $hasFinancial && $hasExported);
+        $showOnboarding = !($hasSettings && $hasCategory && $hasService && $hasBooking && $hasCalendar && $hasWorkboard && $hasTransaction && $hasFinancial && $hasExported);
 
         return view('dashboard', [
             'services' => $services,
