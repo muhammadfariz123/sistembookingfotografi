@@ -3,7 +3,7 @@
     <div class="px-4 sm:px-6 lg:px-8 py-8 bg-[#f5f7fb] min-h-screen overflow-x-hidden">
         
         @if($showOnboarding)
-            <div id="onboarding-guide-card" class="bg-white border border-gray-200 rounded-[20px] p-6 shadow-sm mb-7 scroll-mt-6 transition-all duration-300">
+            <div class="bg-white border border-gray-200 rounded-[20px] p-6 shadow-sm mb-7">
                 <div class="flex items-start gap-4">
                     <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
                         <i data-lucide="compass" class="w-6 h-6"></i>
@@ -23,7 +23,7 @@
                         <div class="mb-6 bg-gray-50 border border-gray-100 p-4 rounded-xl">
                             <div class="flex items-center justify-between text-xs font-semibold text-gray-600 mb-2">
                                 <span>Progress Setup Sistem</span>
-                                <span class="text-blue-600">{{ $completedCount }} dari 9 Langkah Selesai ({{ round($percent) }}%)</span>
+                                <span class="text-blue-600 font-bold">{{ $completedCount }} dari 9 Langkah Selesai ({{ round($percent) }}%)</span>
                             </div>
                             <div class="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
                                 <div class="bg-blue-600 h-2 rounded-full transition-all duration-500" style="width: {{ $percent }}%"></div>
@@ -31,11 +31,11 @@
                         </div>
 
                         <!-- Grid Steps -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
                             
                             <!-- Langkah 1 -->
                             <a href="{{ route('company-setting.edit') }}" 
-                               class="flex items-center justify-between p-4 rounded-xl border transition-all duration-300 group
+                               class="flex items-center justify-between p-4 rounded-xl border transition-all duration-300 group h-full
                                {{ $checklist['settings'] 
                                    ? 'bg-emerald-50/30 border-emerald-100 text-emerald-800 font-medium' 
                                    : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-sm text-gray-800 font-medium' }}">
@@ -60,7 +60,7 @@
 
                             <!-- Langkah 2 -->
                             <a href="{{ route('service-categories.index') }}" 
-                               class="flex items-center justify-between p-4 rounded-xl border transition-all duration-300 group
+                               class="flex items-center justify-between p-4 rounded-xl border transition-all duration-300 group h-full
                                {{ $checklist['categories'] 
                                    ? 'bg-emerald-50/30 border-emerald-100 text-emerald-800 font-medium' 
                                    : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-sm text-gray-800' }}">
@@ -85,7 +85,7 @@
 
                             <!-- Langkah 3 -->
                             <a href="{{ route('service-types.index') }}" 
-                               class="flex items-center justify-between p-4 rounded-xl border transition-all duration-300 group
+                               class="flex items-center justify-between p-4 rounded-xl border transition-all duration-300 group h-full
                                {{ $checklist['services'] 
                                    ? 'bg-emerald-50/30 border-emerald-100 text-emerald-800 font-medium' 
                                    : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-sm text-gray-800' }}">
@@ -110,14 +110,12 @@
 
                             <!-- Langkah 4 -->
                             <a href="{{ route('bookings.listPage') }}" 
-                             <!-- Langkah 4 -->
-                             <a href="{{ route('bookings.listPage') }}" 
-                                class="flex items-center justify-between p-4 rounded-xl border transition-all duration-300 group
-                                {{ $checklist['bookings'] 
-                                    ? 'bg-emerald-50/30 border-emerald-100 text-emerald-800 font-medium' 
-                                    : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-sm text-gray-800' }}">
-                                 <div class="flex items-center gap-3 min-w-0">
-                                     <div class="w-8 h-8 rounded-full shrink-0 flex items-center justify-center font-bold text-sm
+                               class="flex items-center justify-between p-4 rounded-xl border transition-all duration-300 group h-full
+                               {{ $checklist['bookings'] 
+                                   ? 'bg-emerald-50/30 border-emerald-100 text-emerald-800 font-medium' 
+                                   : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-sm text-gray-800' }}">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <div class="w-8 h-8 rounded-full shrink-0 flex items-center justify-center font-bold text-sm
                                          {{ $checklist['bookings'] ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-400 group-hover:bg-blue-50 group-hover:text-blue-600' }}">
                                          @if($checklist['bookings'])
                                              <i data-lucide="check" class="w-4 h-4"></i>
@@ -137,7 +135,7 @@
 
                              <!-- Langkah 5 (Pantau Daftar Transaksi) -->
                              <a href="{{ route('transactions.index') }}" 
-                                class="flex items-center justify-between p-4 rounded-xl border transition-all duration-300 group
+                                class="flex items-center justify-between p-4 rounded-xl border transition-all duration-300 group h-full
                                 {{ $checklist['transactions'] 
                                     ? 'bg-emerald-50/30 border-emerald-100 text-emerald-800 font-medium' 
                                     : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-sm text-gray-800' }}">
@@ -162,7 +160,7 @@
 
                              <!-- Langkah 6 (Kalender Jadwal) -->
                              <a href="{{ route('bookings.calendar') }}" 
-                                class="flex items-center justify-between p-4 rounded-xl border transition-all duration-300 group
+                                class="flex items-center justify-between p-4 rounded-xl border transition-all duration-300 group h-full
                                 {{ $checklist['calendar'] 
                                     ? 'bg-emerald-50/30 border-emerald-100 text-emerald-800 font-medium' 
                                     : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-sm text-gray-800' }}">
@@ -187,7 +185,7 @@
 
                              <!-- Langkah 7 (Papan Kerja / Workboard) -->
                              <a href="{{ route('workboard.index') }}" 
-                                class="flex items-center justify-between p-4 rounded-xl border transition-all duration-300 group
+                                class="flex items-center justify-between p-4 rounded-xl border transition-all duration-300 group h-full
                                 {{ $checklist['workboard'] 
                                     ? 'bg-emerald-50/30 border-emerald-100 text-emerald-800 font-medium' 
                                     : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-sm text-gray-800 font-medium' }}">
@@ -212,7 +210,7 @@
 
                              <!-- Langkah 8 -->
                              <a href="{{ route('financial.index') }}" 
-                                class="flex items-center justify-between p-4 rounded-xl border transition-all duration-300 group
+                                class="flex items-center justify-between p-4 rounded-xl border transition-all duration-300 group h-full
                                 {{ $checklist['financial'] 
                                     ? 'bg-emerald-50/30 border-emerald-100 text-emerald-800 font-medium' 
                                     : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-sm text-gray-800' }}">
@@ -237,7 +235,7 @@
 
                              <!-- Langkah 9 -->
                              <a href="{{ route('bookings.export') }}" 
-                                class="flex items-center justify-between p-4 rounded-xl border transition-all duration-300 group
+                                class="flex items-center justify-between p-4 rounded-xl border transition-all duration-300 group h-full
                                 {{ $checklist['export'] 
                                     ? 'bg-emerald-50/30 border-emerald-100 text-emerald-800 font-medium' 
                                     : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-sm text-gray-800' }}">
@@ -276,20 +274,6 @@
     <script>
         document.addEventListener('turbo:load', () => {
             if (window.lucide) lucide.createIcons();
-
-            // Scroll ke panduan jika parameter show_help ada di URL
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.has('show_help')) {
-                const card = document.getElementById('onboarding-guide-card');
-                if (card) {
-                    card.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    // Efek ring highlight biru berkedip agar admin langsung tahu area panduan
-                    card.classList.add('ring-4', 'ring-blue-500/50', 'ring-offset-2');
-                    setTimeout(() => {
-                        card.classList.remove('ring-4', 'ring-blue-500/50', 'ring-offset-2');
-                    }, 2500);
-                }
-            }
         });
     </script>
 </x-app-layout>

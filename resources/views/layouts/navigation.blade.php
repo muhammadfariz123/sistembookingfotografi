@@ -68,17 +68,17 @@
                     {{ request()->routeIs('dashboard') && !request()->has('show_help') ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
                     :class="($store.sidebar.collapsed && isDesktop) ? 'justify-center w-11 h-11 px-0' : 'gap-3'">
                     <i data-lucide="home"
-                        class="w-5 h-5 shrink-0 {{ request()->routeIs('dashboard') && !request()->has('show_help') ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-600' }}"></i>
+                        class="w-5 h-5 shrink-0 {{ request()->routeIs('dashboard') ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-600' }}"></i>
                     <span x-show="!($store.sidebar.collapsed && isDesktop)" class="whitespace-nowrap">Dashboard</span>
                 </a>
 
                 {{-- Bantuan / Panduan --}}
-                <a href="{{ route('dashboard') }}?show_help=true" title="Bantuan & Panduan"
+                <a href="{{ route('bantuan') }}" title="Bantuan & Panduan"
                     class="flex items-center px-3 py-2.5 rounded-xl font-medium text-[13px] transition w-full group relative
-                    {{ request()->has('show_help') ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                    {{ request()->routeIs('bantuan') ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
                     :class="($store.sidebar.collapsed && isDesktop) ? 'justify-center w-11 h-11 px-0' : 'gap-3'">
                     <i data-lucide="help-circle"
-                        class="w-5 h-5 shrink-0 {{ request()->has('show_help') ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-600' }}"></i>
+                        class="w-5 h-5 shrink-0 {{ request()->routeIs('bantuan') ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-600' }}"></i>
                     <span x-show="!($store.sidebar.collapsed && isDesktop)" class="whitespace-nowrap">Bantuan</span>
                 </a>
             </div>

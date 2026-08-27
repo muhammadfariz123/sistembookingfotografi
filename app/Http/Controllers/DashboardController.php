@@ -82,14 +82,65 @@ class DashboardController extends Controller
             'export' => $hasExported,
         ];
 
-        // Jika semua checklist sudah true, maka $showOnboarding = false. Bisa dipaksa tampil jika parameter ?show_help=true dikirim.
-        $showOnboarding = !($hasSettings && $hasCategory && $hasService && $hasBooking && $hasCalendar && $hasWorkboard && $hasTransaction && $hasFinancial && $hasExported) || request()->has('show_help');
+        // Jika semua checklist sudah true, maka $showOnboarding = false
+        $showOnboarding = !($hasSettings && $hasCategory && $hasService && $hasBooking && $hasCalendar && $hasWorkboard && $hasTransaction && $hasFinancial && $hasExported);
 
         return view('dashboard', [
             'services' => $services,
             'initialSummary' => $initialData['summary'],
             'checklist' => $checklist,
             'showOnboarding' => $showOnboarding,
+        ]);
+    }
+
+    /**
+     * Menampilkan Halaman Pusat Bantuan & Panduan Sistem secara Standalone.
+     */
+    public function help()
+    {
+        $userId = Auth::id();
+        $services = ServiceType::where('user_id', $userId)
+            ->orderBy('name')
+            ->get();
+
+        // Pengecekan real-time status 9 langkah
+        $hasSettings = CompanySetting::where('user_id', $userId)
+            ->whereNotNull('company_name')
+            ->exists();
+
+        $hasCategory = ServiceCategory::where('user_id', $userId)->exists();
+        $hasService = count($services) > 0;
+        $hasBooking = Booking::where('user_id', $userId)->exists();
+
+        $hasCalendar = Booking::where('user_id', $userId)
+            ->where('status', 'Dijadwalkan')
+            ->exists();
+
+        $hasWorkboard = Booking::where('user_id', $userId)
+            ->where(function($q) {
+                $q->whereNotNull('link_hasil')
+                  ->orWhereNotNull('link_folder_kerja')
+                  ->orWhereNotNull('link_original');
+            })->exists();
+
+        $hasTransaction = PaymentTransaction::where('user_id', $userId)->exists();
+        $hasFinancial = AdditionalIncome::where('user_id', $userId)->exists() || Expense::where('user_id', $userId)->exists();
+        $hasExported = session('onboarding_excel_downloaded', false);
+
+        $checklist = [
+            'settings' => $hasSettings,
+            'categories' => $hasCategory,
+            'services' => $hasService,
+            'bookings' => $hasBooking,
+            'calendar' => $hasCalendar,
+            'workboard' => $hasWorkboard,
+            'transactions' => $hasTransaction,
+            'financial' => $hasFinancial,
+            'export' => $hasExported,
+        ];
+
+        return view('bantuan', [
+            'checklist' => $checklist,
         ]);
     }
 }
