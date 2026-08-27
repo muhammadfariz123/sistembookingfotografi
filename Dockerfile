@@ -37,5 +37,5 @@ RUN echo "post_max_size = 64M" > /usr/local/etc/php/conf.d/uploads.ini \
     && echo "upload_max_filesize = 64M" >> /usr/local/etc/php/conf.d/uploads.ini \
     && echo "memory_limit = 256M" >> /usr/local/etc/php/conf.d/uploads.ini
 
-# Perintah otomatis saat server menyala (Trik || true agar anti-crash saat tabrakan Render)
-CMD bash -c "(php artisan migrate:fresh --force && php artisan db:seed --class=AdminSeeder --force || true) && php -S 0.0.0.0:$PORT -t public"
+# Perintah otomatis saat server menyala (Menunggu koneksi DB siap sebelum migrasi & seed, trik || true agar anti-crash)
+CMD bash -c "for i in {1..30}; do php artisan migrate:status > /dev/null 2>&1 && break || sleep 1; done && (php artisan migrate:fresh --force ; php artisan db:seed --class=AdminSeeder --force || true) && php -S 0.0.0.0:$PORT -t public"
