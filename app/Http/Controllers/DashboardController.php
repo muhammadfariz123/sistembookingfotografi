@@ -82,8 +82,8 @@ class DashboardController extends Controller
             'export' => $hasExported,
         ];
 
-        // Jika semua checklist sudah true, maka $showOnboarding = false
-        $showOnboarding = !($hasSettings && $hasCategory && $hasService && $hasBooking && $hasCalendar && $hasWorkboard && $hasTransaction && $hasFinancial && $hasExported);
+        // Jika semua checklist sudah true, maka $showOnboarding = false. Bisa dipaksa tampil jika parameter ?show_help=true dikirim.
+        $showOnboarding = !($hasSettings && $hasCategory && $hasService && $hasBooking && $hasCalendar && $hasWorkboard && $hasTransaction && $hasFinancial && $hasExported) || request()->has('show_help');
 
         return view('dashboard', [
             'services' => $services,
