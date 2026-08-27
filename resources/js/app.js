@@ -22,17 +22,11 @@ function injectLoaderHTML() {
     
     const overlay = document.createElement('div');
     overlay.id = 'global-loading-overlay';
-    overlay.className = 'fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-slate-900/60 backdrop-blur-sm transition-all duration-300 opacity-0 pointer-events-none';
+    overlay.className = 'fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-slate-900/40 backdrop-blur-[2px] transition-all duration-300 opacity-0 pointer-events-none';
     overlay.innerHTML = `
-        <div class="bg-white/95 border border-slate-100 rounded-3xl p-8 shadow-2xl flex flex-col items-center max-w-[280px] w-full mx-4 scale-95 transition-all duration-300" id="global-loading-card">
-            <div class="relative w-16 h-16 flex items-center justify-center mb-5">
-                <div class="absolute inset-0 rounded-full border-4 border-slate-100 border-t-blue-600 animate-spin"></div>
-                <div class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="animate-pulse"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
-                </div>
-            </div>
-            <h3 class="text-slate-900 font-extrabold text-[15px] mb-1.5 text-center">Memproses Data</h3>
-            <p class="text-slate-500 text-xs text-center leading-relaxed">Harap tunggu sebentar, sedang mengunggah perubahan ke cloud...</p>
+        <div class="relative w-14 h-14 flex items-center justify-center scale-95 transition-all duration-300" id="global-loading-card">
+            <!-- Spinner Ring Minimalis -->
+            <div class="absolute inset-0 rounded-full border-4 border-slate-200/30 border-t-blue-600 animate-spin"></div>
         </div>
     `;
     document.body.appendChild(overlay);
