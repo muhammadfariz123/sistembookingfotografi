@@ -8,6 +8,8 @@ use App\Models\CompanySetting;
 use App\Models\ServiceCategory;
 use App\Models\Booking;
 use App\Models\PaymentTransaction;
+use App\Models\AdditionalIncome;
+use App\Models\Expense;
 use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
@@ -46,8 +48,27 @@ class DashboardController extends Controller
             ->whereIn('status', ['Dijadwalkan', 'Selesai'])
             ->exists();
 
-        // 6. Memantau Data Transaksi
+        // 6. Kelola Jadwal di Kalender
+        $hasCalendar = Booking::where('user_id', $userId)
+            ->where('status', 'Dijadwalkan')
+            ->exists();
+
+        // 7. Kelola Sesi di Papan Kerja (Workboard)
+        $hasWorkboard = Booking::where('user_id', $userId)
+            ->where(function($q) {
+                $q->whereNotNull('link_hasil')
+                  ->orWhereNotNull('link_folder_kerja')
+                  ->orWhereNotNull('link_original');
+            })->exists();
+
+        // 8. Catat Transaksi Klien
         $hasTransaction = PaymentTransaction::where('user_id', $userId)->exists();
+
+        // 9. Laporan Keuangan
+        $hasFinancial = AdditionalIncome::where('user_id', $userId)->exists() || Expense::where('user_id', $userId)->exists();
+
+        // 10. Unduh Excel Data
+        $hasExported = session('onboarding_excel_downloaded', false);
 
         $checklist = [
             'settings' => $hasSettings,
@@ -55,11 +76,15 @@ class DashboardController extends Controller
             'services' => $hasService,
             'bookings' => $hasBooking,
             'confirmed_bookings' => $hasConfirmedBooking,
+            'calendar' => $hasCalendar,
+            'workboard' => $hasWorkboard,
             'transactions' => $hasTransaction,
+            'financial' => $hasFinancial,
+            'export' => $hasExported,
         ];
 
         // Jika semua checklist sudah true, maka $showOnboarding = false
-        $showOnboarding = !($hasSettings && $hasCategory && $hasService && $hasBooking && $hasConfirmedBooking && $hasTransaction);
+        $showOnboarding = !($hasSettings && $hasCategory && $hasService && $hasBooking && $hasConfirmedBooking && $hasCalendar && $hasWorkboard && $hasTransaction && $hasFinancial && $hasExported);
 
         return view('dashboard', [
             'services' => $services,

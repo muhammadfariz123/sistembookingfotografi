@@ -425,6 +425,7 @@ class BookingController extends Controller
 
     public function export(Request $request)
     {
+        session(['onboarding_excel_downloaded' => true]);
         return Excel::download(new BookingExport($request->all()), 'Data_Booking.xlsx');
     }
 }
