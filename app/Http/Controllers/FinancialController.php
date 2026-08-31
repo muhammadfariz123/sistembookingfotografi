@@ -68,11 +68,11 @@ class FinancialController extends Controller
         // Rumus 3.7 — Sudah Diterima = Σ Db_i
         $sudahDiterima = $bookings->sum('paid_amount');
 
-        // Rumus 3.8 — Belum Dibayar = Σ Total_i (Hanya yang berstatus 'Belum Bayar')
-        $belumDibayar = $bookings->where('payment_status', 'Belum Bayar')->sum('total');
+        // Rumus 3.8 — Belum Dibayar = Σ Total_i (Hanya yang berstatus 'Pending')
+        $belumDibayar = $bookings->where('payment_status', 'Pending')->sum('total');
 
-        // Rumus 3.9 — Sisa Tagihan = Σ Sisa_i (Belum Bayar + DP)
-        $sisaTagihan = $bookings->whereIn('payment_status', ['Belum Bayar', 'Down Payment'])->sum('remaining');
+        // Rumus 3.9 — Sisa Tagihan = Σ Sisa_i (Pending + DP)
+        $sisaTagihan = $bookings->whereIn('payment_status', ['Pending', 'Down Payment'])->sum('remaining');
 
         // Rumus 3.10 — Laba Bersih = Sudah Diterima + Tambahan - Pengeluaran
         $totalPemasukan   = $additionalIncomes->sum('amount');
@@ -85,7 +85,7 @@ class FinancialController extends Controller
         $statusCount = [
             'lunas'       => $bookings->where('payment_status', 'Lunas')->count(),
             'dp'          => $bookings->where('payment_status', 'Down Payment')->count(),
-            'belum_bayar' => $bookings->where('payment_status', 'Belum Bayar')->count(),
+            'belum_bayar' => $bookings->where('payment_status', 'Pending')->count(),
         ];
 
         // Tren revenue per bulan (Selalu mengambil SEMUA data agar grafik tidak kosong saat difilter 1 bulan)
