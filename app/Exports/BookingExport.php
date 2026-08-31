@@ -105,24 +105,23 @@ class BookingExport implements
     {
         $tanggal = '-';
         if ($booking->booking_date) {
-            $tanggal = Carbon::parse($booking->booking_date)
-                ->locale('id')->isoFormat('dddd, D MMMM YYYY');
+            $tanggal = Carbon::parse($booking->booking_date)->format('d-m-Y');
         } elseif ($booking->start_date) {
-            $start   = Carbon::parse($booking->start_date)->locale('id')->isoFormat('D MMMM YYYY');
+            $start   = Carbon::parse($booking->start_date)->format('d-m-Y');
             $end     = $booking->end_date
-                ? Carbon::parse($booking->end_date)->locale('id')->isoFormat('D MMMM YYYY')
+                ? Carbon::parse($booking->end_date)->format('d-m-Y')
                 : '';
-            $tanggal = $end ? "{$start} – {$end}" : $start;
+            $tanggal = $end ? "{$start} s/d {$end}" : $start;
         }
 
         $waktu    = $booking->booking_time ? substr($booking->booking_time, 0, 5) : '-';
 
         $estimasiSelesai = $booking->estimate_date 
-            ? Carbon::parse($booking->estimate_date)->locale('id')->isoFormat('D MMMM YYYY')
+            ? Carbon::parse($booking->estimate_date)->format('d-m-Y')
             : '-';
             
         $deadlinePilih = $booking->deadline_pilih 
-            ? Carbon::parse($booking->deadline_pilih)->locale('id')->isoFormat('D MMMM YYYY, HH.mm')
+            ? Carbon::parse($booking->deadline_pilih)->format('d-m-Y H:i')
             : '-';
 
         return [
@@ -149,7 +148,7 @@ class BookingExport implements
             $estimasiSelesai,
             $booking->notes               ?? '-',
             $booking->admin_notes         ?? '-',
-            Carbon::parse($booking->created_at)->locale('id')->isoFormat('D MMMM YYYY, HH.mm'),
+            Carbon::parse($booking->created_at)->format('d-m-Y H:i'),
         ];
     }
 
