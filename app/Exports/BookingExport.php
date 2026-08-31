@@ -76,18 +76,28 @@ class BookingExport implements
         return [
             'Nama Klien',
             'Kontak Klien',
+            'Email Klien',
+            'Instagram Klien',
             'Alamat Klien',
-            'Nama Layanan',
+            'Jenis Layanan',
             'Tanggal Booking',
             'Waktu Booking',
-            'Status',
+            'Status Progres',
             'Status Pembayaran',
+            'Tipe Pembayaran',
             'Total Tagihan',
             'Sudah Dibayar',
             'Sisa Pembayaran',
-            'Catatan',
+            'No. Antrean',
+            'Tautan Google Maps',
+            'Tautan Folder Kerja',
+            'Tautan Folder Seleksi',
+            'Batas Seleksi Foto',
+            'Tautan Hasil Foto',
+            'Estimasi Selesai',
+            'Catatan Pelanggan',
+            'Catatan Admin',
             'Dibuat Pada',
-            'Diupdate Pada',
         ];
     }
 
@@ -107,21 +117,39 @@ class BookingExport implements
 
         $waktu    = $booking->booking_time ? substr($booking->booking_time, 0, 5) : '-';
 
+        $estimasiSelesai = $booking->estimate_date 
+            ? Carbon::parse($booking->estimate_date)->locale('id')->isoFormat('D MMMM YYYY')
+            : '-';
+            
+        $deadlinePilih = $booking->deadline_pilih 
+            ? Carbon::parse($booking->deadline_pilih)->locale('id')->isoFormat('D MMMM YYYY, HH.mm')
+            : '-';
+
         return [
             $booking->client_name         ?? '-',
             $booking->client_contact      ?? '-',
+            $booking->client_email        ?? '-',
+            $booking->client_instagram    ?? '-',
             $booking->client_address      ?? '-',
             $booking->serviceType?->name  ?? '-',
             $tanggal,
             $waktu,
             $booking->status              ?? '-',
             $booking->payment_status      ?? '-',
+            $booking->payment_type        ?? '-',
             'Rp ' . number_format($booking->total        ?? 0, 0, ',', '.'),
             'Rp ' . number_format($booking->paid_amount  ?? 0, 0, ',', '.'),
             'Rp ' . number_format($booking->remaining    ?? 0, 0, ',', '.'),
+            $booking->queue_number        ?? '-',
+            $booking->link_gmaps          ?? '-',
+            $booking->link_folder_kerja   ?? '-',
+            $booking->link_original       ?? '-',
+            $deadlinePilih,
+            $booking->link_hasil          ?? '-',
+            $estimasiSelesai,
             $booking->notes               ?? '-',
+            $booking->admin_notes         ?? '-',
             Carbon::parse($booking->created_at)->locale('id')->isoFormat('D MMMM YYYY, HH.mm'),
-            Carbon::parse($booking->updated_at)->locale('id')->isoFormat('D MMMM YYYY, HH.mm'),
         ];
     }
 
@@ -130,18 +158,28 @@ class BookingExport implements
         return [
             'A' => 22,  // Nama Klien
             'B' => 20,  // Kontak Klien
-            'C' => 25,  // Alamat Klien
-            'D' => 20,  // Jenis Layanan
-            'E' => 30,  // Tanggal Booking
-            'F' => 12,  // Waktu Booking
-            'G' => 14,  // Status
-            'H' => 18,  // Status Pembayaran
-            'I' => 20,  // Total Tagihan
-            'J' => 18,  // Sudah Dibayar
-            'K' => 18,  // Sisa Pembayaran
-            'L' => 30,  // Catatan
-            'M' => 22,  // Dibuat Pada
-            'N' => 22,  // Diupdate Pada
+            'C' => 22,  // Email Klien
+            'D' => 20,  // Instagram Klien
+            'E' => 25,  // Alamat Klien
+            'F' => 20,  // Jenis Layanan
+            'G' => 30,  // Tanggal Booking
+            'H' => 12,  // Waktu Booking
+            'I' => 14,  // Status Progres
+            'J' => 18,  // Status Pembayaran
+            'K' => 18,  // Tipe Pembayaran
+            'L' => 20,  // Total Tagihan
+            'M' => 18,  // Sudah Dibayar
+            'N' => 18,  // Sisa Pembayaran
+            'O' => 14,  // No. Antrean
+            'P' => 25,  // Tautan Google Maps
+            'Q' => 25,  // Tautan Folder Kerja
+            'R' => 25,  // Tautan Folder Seleksi
+            'S' => 22,  // Batas Seleksi Foto
+            'T' => 25,  // Tautan Hasil Foto
+            'U' => 20,  // Estimasi Selesai
+            'V' => 30,  // Catatan Pelanggan
+            'W' => 30,  // Catatan Admin
+            'X' => 22,  // Dibuat Pada
         ];
     }
 }
