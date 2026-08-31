@@ -76,10 +76,7 @@ class BookingExport implements
         return [
             'Nama Klien',
             'Kontak Klien',
-            'Email Klien',
-            'Instagram Klien',
             'Alamat Klien',
-            'Link Google Maps',
             'Nama Layanan',
             'Harga Paket',
             'Subtotal',
@@ -87,14 +84,9 @@ class BookingExport implements
             'Waktu Booking',
             'Status',
             'Status Pembayaran',
-            'Tipe Pembayaran',
             'Total Keseluruhan',
             'Sudah Dibayar',
             'Sisa Pembayaran',
-            'Estimasi Selesai',
-            'Tautan Hasil Foto',
-            'Tautan Folder Seleksi',
-            'Batas Seleksi Foto',
             'Catatan',
             'Dibuat Pada',
             'Diupdate Pada',
@@ -120,21 +112,10 @@ class BookingExport implements
         // Subtotal sekarang murni mengambil dari unit_price, tanpa perkalian quantity
         $subtotal = $booking->unit_price ?? 0;
 
-        $estimasiSelesai = $booking->estimate_date 
-            ? Carbon::parse($booking->estimate_date)->locale('id')->isoFormat('D MMMM YYYY')
-            : '-';
-            
-        $deadlinePilih = $booking->deadline_pilih 
-            ? Carbon::parse($booking->deadline_pilih)->locale('id')->isoFormat('D MMMM YYYY, HH.mm')
-            : '-';
-
         return [
             $booking->client_name         ?? '-',
             $booking->client_contact      ?? '-',
-            $booking->client_email        ?? '-',
-            $booking->client_instagram    ?? '-',
             $booking->client_address      ?? '-',
-            $booking->link_gmaps          ?? '-',
             $booking->serviceType?->name  ?? '-',
             'Rp ' . number_format($booking->unit_price  ?? 0, 0, ',', '.'),
             'Rp ' . number_format($subtotal,               0, ',', '.'),
@@ -142,14 +123,9 @@ class BookingExport implements
             $waktu,
             $booking->status              ?? '-',
             $booking->payment_status      ?? '-',
-            $booking->payment_type        ?? '-',
             'Rp ' . number_format($booking->total        ?? 0, 0, ',', '.'),
             'Rp ' . number_format($booking->paid_amount  ?? 0, 0, ',', '.'),
             'Rp ' . number_format($booking->remaining    ?? 0, 0, ',', '.'),
-            $estimasiSelesai,
-            $booking->link_hasil          ?? '-',
-            $booking->link_original       ?? '-',
-            $deadlinePilih,
             $booking->notes               ?? '-',
             Carbon::parse($booking->created_at)->locale('id')->isoFormat('D MMMM YYYY, HH.mm'),
             Carbon::parse($booking->updated_at)->locale('id')->isoFormat('D MMMM YYYY, HH.mm'),
@@ -161,28 +137,20 @@ class BookingExport implements
         return [
             'A' => 22,  // Nama Klien
             'B' => 20,  // Kontak Klien
-            'C' => 22,  // Email Klien
-            'D' => 20,  // Instagram Klien
-            'E' => 25,  // Alamat Klien
-            'F' => 25,  // Link Google Maps
-            'G' => 20,  // Nama Layanan
-            'H' => 18,  // Harga Paket
-            'I' => 18,  // Subtotal
-            'J' => 30,  // Tanggal Booking
-            'K' => 12,  // Waktu Booking
-            'L' => 14,  // Status
-            'M' => 18,  // Status Pembayaran
-            'N' => 18,  // Tipe Pembayaran
-            'O' => 20,  // Total Keseluruhan
-            'P' => 18,  // Sudah Dibayar
-            'Q' => 18,  // Sisa Pembayaran
-            'R' => 20,  // Estimasi Selesai
-            'S' => 30,  // Tautan Hasil Foto
-            'T' => 30,  // Tautan Folder Seleksi
-            'U' => 22,  // Batas Seleksi Foto
-            'V' => 30,  // Catatan
-            'W' => 22,  // Dibuat Pada
-            'X' => 22,  // Diupdate Pada
+            'C' => 25,  // Alamat Klien
+            'D' => 20,  // Jenis Layanan
+            'E' => 18,  // Harga Paket
+            'F' => 18,  // Subtotal
+            'G' => 30,  // Tanggal Booking
+            'H' => 12,  // Waktu Booking
+            'I' => 14,  // Status
+            'J' => 18,  // Status Pembayaran
+            'K' => 20,  // Total Keseluruhan
+            'L' => 18,  // Sudah Dibayar
+            'M' => 18,  // Sisa Pembayaran
+            'N' => 30,  // Catatan
+            'O' => 22,  // Dibuat Pada
+            'P' => 22,  // Diupdate Pada
         ];
     }
 }

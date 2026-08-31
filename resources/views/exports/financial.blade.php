@@ -1,9 +1,9 @@
 <table>
     <tr>
-        <th colspan="6" style="font-size: 16px; font-weight: bold; text-align: center;">LAPORAN KEUANGAN</th>
+        <th colspan="8" style="font-size: 16px; font-weight: bold; text-align: center;">LAPORAN KEUANGAN</th>
     </tr>
     <tr>
-        <th colspan="6" style="text-align: center;">Periode: {{ $periode }}</th>
+        <th colspan="8" style="text-align: center;">Periode: {{ $periode }}</th>
     </tr>
     <tr></tr>
 
@@ -39,7 +39,7 @@
 
     {{-- TABEL PENGHASILAN DARI BOOKING --}}
     <tr>
-        <th colspan="6" style="font-weight: bold; background-color: #dbeafe;">A. RINCIAN PENDAPATAN BOOKING</th>
+        <th colspan="8" style="font-weight: bold; background-color: #dbeafe;">A. RINCIAN PENDAPATAN BOOKING</th>
     </tr>
     <tr>
         <th style="font-weight: bold; border: 1px solid #000;">Tanggal</th>
@@ -47,7 +47,9 @@
         <th style="font-weight: bold; border: 1px solid #000;">Layanan</th>
         <th style="font-weight: bold; border: 1px solid #000;">Status Booking</th>
         <th style="font-weight: bold; border: 1px solid #000;">Status Pembayaran</th>
+        <th style="font-weight: bold; border: 1px solid #000;">Total Tagihan (Rp)</th>
         <th style="font-weight: bold; border: 1px solid #000;">Sudah Dibayar (Rp)</th>
+        <th style="font-weight: bold; border: 1px solid #000;">Sisa Tagihan (Rp)</th>
     </tr>
     @foreach($bookings as $booking)
         <tr>
@@ -58,11 +60,13 @@
             <td style="border: 1px solid #000;">{{ $booking->serviceType->name ?? '-' }}</td>
             <td style="border: 1px solid #000;">{{ $booking->status }}</td>
             <td style="border: 1px solid #000;">{{ $booking->payment_status }}</td>
+            <td style="border: 1px solid #000;">{{ $booking->total }}</td>
             <td style="border: 1px solid #000;">{{ $booking->paid_amount }}</td>
+            <td style="border: 1px solid #000;">{{ $booking->remaining }}</td>
         </tr>
     @endforeach
     @if($bookings->isEmpty())
-        <tr><td colspan="6" style="border: 1px solid #000; text-align: center;">Tidak ada data booking di periode ini</td></tr>
+        <tr><td colspan="8" style="border: 1px solid #000; text-align: center;">Tidak ada data booking di periode ini</td></tr>
     @endif
     <tr></tr>
 
