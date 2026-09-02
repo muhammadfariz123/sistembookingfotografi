@@ -192,6 +192,7 @@ class BookingController extends Controller
 
     public function calendarPage()
     {
+        session()->put('onboarding_calendar_viewed', true);
         $initialData = $this->getBookingData();
         return view('bookings.calendar', ['initialBookings' => $initialData['data']]);
     }

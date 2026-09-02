@@ -49,9 +49,7 @@ class DashboardController extends Controller
             ->exists();
 
         // 6. Kelola Jadwal di Kalender
-        $hasCalendar = Booking::where('user_id', $userId)
-            ->where('status', 'Dijadwalkan')
-            ->exists();
+        $hasCalendar = session('onboarding_calendar_viewed', false);
 
         // 7. Kelola Sesi di Papan Kerja (Workboard)
         $hasWorkboard = Booking::where('user_id', $userId)
@@ -65,7 +63,7 @@ class DashboardController extends Controller
         $hasTransaction = PaymentTransaction::where('user_id', $userId)->exists();
 
         // 9. Laporan Keuangan
-        $hasFinancial = AdditionalIncome::where('user_id', $userId)->exists() || Expense::where('user_id', $userId)->exists();
+        $hasFinancial = session('onboarding_financial_viewed', false);
 
         // 10. Unduh Excel Data
         $hasExported = session('onboarding_excel_downloaded', false);
@@ -112,9 +110,7 @@ class DashboardController extends Controller
         $hasService = count($services) > 0;
         $hasBooking = Booking::where('user_id', $userId)->exists();
 
-        $hasCalendar = Booking::where('user_id', $userId)
-            ->where('status', 'Dijadwalkan')
-            ->exists();
+        $hasCalendar = session('onboarding_calendar_viewed', false);
 
         $hasWorkboard = Booking::where('user_id', $userId)
             ->where(function($q) {
@@ -124,7 +120,7 @@ class DashboardController extends Controller
             })->exists();
 
         $hasTransaction = PaymentTransaction::where('user_id', $userId)->exists();
-        $hasFinancial = AdditionalIncome::where('user_id', $userId)->exists() || Expense::where('user_id', $userId)->exists();
+        $hasFinancial = session('onboarding_financial_viewed', false);
         $hasExported = session('onboarding_excel_downloaded', false);
 
         $checklist = [

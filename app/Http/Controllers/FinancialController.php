@@ -19,12 +19,14 @@ class FinancialController extends Controller
     public function index(Request $request)
     {
         $userId = Auth::id();
+        session()->put('onboarding_financial_viewed', true);
 
         // ── 1. Handle Export Excel ───────────────────────────────
         if ($request->has('export')) {
             $month = $request->month;
             $year  = $request->get('year', now()->year);
 
+            session()->put('onboarding_excel_downloaded', true);
             $filename = 'Laporan-Keuangan-' . ($month ? $month . '-' . $year : 'Semua-Waktu') . '.xlsx';
             return Excel::download(new FinancialExport($month, $year), $filename);
         }
