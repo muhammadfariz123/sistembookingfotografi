@@ -186,6 +186,7 @@ class BookingController extends Controller
 
     public function listPage()
     {
+        session()->put('onboarding_bookings_viewed', true);
         $initialData = $this->getBookingData();
         return view('bookings.list', ['initialBookings' => $initialData['data']]);
     }

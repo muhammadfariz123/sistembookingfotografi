@@ -11,6 +11,7 @@ class TransactionController extends Controller
 {
     public function index()
     {
+        session()->put('onboarding_transactions_viewed', true);
         $services = ServiceType::where('user_id', Auth::id())->orderBy('name')->get();
         $initialData = app(BookingController::class)->getBookingData();
         return view('transactions.index', compact('services'))->with('initialBookings', $initialData['data']);

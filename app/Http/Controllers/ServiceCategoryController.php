@@ -13,6 +13,7 @@ class ServiceCategoryController extends Controller
 {
     public function index()
     {
+        session()->put('onboarding_categories_viewed', true);
         $categories = ServiceCategory::with('galleries')->where('user_id', Auth::id())->latest()->get();
         return view('service-categories.index', compact('categories'));
     }

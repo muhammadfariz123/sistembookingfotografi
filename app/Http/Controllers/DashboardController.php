@@ -30,23 +30,21 @@ class DashboardController extends Controller
         $initialData = $bookingController->getBookingData();
 
         // 1. Lengkapi Pengaturan Toko
-        $hasSettings = CompanySetting::where('user_id', $userId)
+        $hasSettings = session('onboarding_settings_viewed', false) || CompanySetting::where('user_id', $userId)
             ->whereNotNull('company_name')
             ->exists();
 
         // 2. Tambah Kategori & Portofolio
-        $hasCategory = ServiceCategory::where('user_id', $userId)->exists();
+        $hasCategory = session('onboarding_categories_viewed', false) || ServiceCategory::where('user_id', $userId)->exists();
 
         // 3. Tambah Layanan / Paket
-        $hasService = count($services) > 0;
+        $hasService = session('onboarding_services_viewed', false) || count($services) > 0;
 
-        // 4. Buat Data Booking
-        $hasBooking = Booking::where('user_id', $userId)->exists();
+        // 4. Buat Data Booking (Pantau Daftar Booking)
+        $hasBooking = session('onboarding_bookings_viewed', false) || Booking::where('user_id', $userId)->exists();
 
-        // 5. Memantau Daftar Booking (Ada booking dengan status 'Dijadwalkan' atau 'Selesai')
-        $hasConfirmedBooking = Booking::where('user_id', $userId)
-            ->whereIn('status', ['Dijadwalkan', 'Selesai'])
-            ->exists();
+        // 5. Pantau Daftar Transaksi
+        $hasTransaction = session('onboarding_transactions_viewed', false) || PaymentTransaction::where('user_id', $userId)->exists();
 
         // 6. Kelola Jadwal di Kalender
         $hasCalendar = session('onboarding_calendar_viewed', false);
@@ -54,13 +52,10 @@ class DashboardController extends Controller
         // 7. Kelola Sesi di Papan Kerja (Workboard)
         $hasWorkboard = session('onboarding_workboard_viewed', false);
 
-        // 8. Catat Transaksi Klien
-        $hasTransaction = PaymentTransaction::where('user_id', $userId)->exists();
-
-        // 9. Laporan Keuangan
+        // 8. Laporan Keuangan
         $hasFinancial = session('onboarding_financial_viewed', false);
 
-        // 10. Unduh Excel Data
+        // 9. Unduh Excel Data
         $hasExported = session('onboarding_excel_downloaded', false);
 
         $checklist = [
@@ -97,19 +92,17 @@ class DashboardController extends Controller
             ->get();
 
         // Pengecekan real-time status 9 langkah
-        $hasSettings = CompanySetting::where('user_id', $userId)
+        $hasSettings = session('onboarding_settings_viewed', false) || CompanySetting::where('user_id', $userId)
             ->whereNotNull('company_name')
             ->exists();
 
-        $hasCategory = ServiceCategory::where('user_id', $userId)->exists();
-        $hasService = count($services) > 0;
-        $hasBooking = Booking::where('user_id', $userId)->exists();
+        $hasCategory = session('onboarding_categories_viewed', false) || ServiceCategory::where('user_id', $userId)->exists();
+        $hasService = session('onboarding_services_viewed', false) || count($services) > 0;
+        $hasBooking = session('onboarding_bookings_viewed', false) || Booking::where('user_id', $userId)->exists();
+        $hasTransaction = session('onboarding_transactions_viewed', false) || PaymentTransaction::where('user_id', $userId)->exists();
 
         $hasCalendar = session('onboarding_calendar_viewed', false);
-
         $hasWorkboard = session('onboarding_workboard_viewed', false);
-
-        $hasTransaction = PaymentTransaction::where('user_id', $userId)->exists();
         $hasFinancial = session('onboarding_financial_viewed', false);
         $hasExported = session('onboarding_excel_downloaded', false);
 

@@ -12,6 +12,7 @@ class CompanySettingController extends Controller
     // ── GET: Tampilkan Halaman Form Pengaturan ──────────────
     public function edit()
     {
+        session()->put('onboarding_settings_viewed', true);
         $setting = CompanySetting::where('user_id', Auth::id())->first();
 
         // Jika belum ada data, buat instance kosong agar form tidak error
