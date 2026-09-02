@@ -11,7 +11,6 @@ class ServiceTypeController extends Controller
 {
     public function index()
     {
-        session()->put('onboarding_services_viewed', true);
         $services = ServiceType::with('category')->where('user_id', Auth::id())->latest()->get();
         return view('service-types.index', compact('services'));
     }
