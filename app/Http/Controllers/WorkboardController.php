@@ -15,6 +15,7 @@ class WorkboardController extends Controller
     public function index(Request $request)
     {
         $tab = $request->query('tab', 'semua');
+        session()->put('onboarding_workboard_viewed', true);
 
         // =================================================================
         // BASE QUERY (SANGAT KETAT)

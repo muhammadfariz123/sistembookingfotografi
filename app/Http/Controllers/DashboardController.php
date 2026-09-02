@@ -52,12 +52,7 @@ class DashboardController extends Controller
         $hasCalendar = session('onboarding_calendar_viewed', false);
 
         // 7. Kelola Sesi di Papan Kerja (Workboard)
-        $hasWorkboard = Booking::where('user_id', $userId)
-            ->where(function($q) {
-                $q->whereNotNull('link_hasil')
-                  ->orWhereNotNull('link_folder_kerja')
-                  ->orWhereNotNull('link_original');
-            })->exists();
+        $hasWorkboard = session('onboarding_workboard_viewed', false);
 
         // 8. Catat Transaksi Klien
         $hasTransaction = PaymentTransaction::where('user_id', $userId)->exists();
@@ -112,12 +107,7 @@ class DashboardController extends Controller
 
         $hasCalendar = session('onboarding_calendar_viewed', false);
 
-        $hasWorkboard = Booking::where('user_id', $userId)
-            ->where(function($q) {
-                $q->whereNotNull('link_hasil')
-                  ->orWhereNotNull('link_folder_kerja')
-                  ->orWhereNotNull('link_original');
-            })->exists();
+        $hasWorkboard = session('onboarding_workboard_viewed', false);
 
         $hasTransaction = PaymentTransaction::where('user_id', $userId)->exists();
         $hasFinancial = session('onboarding_financial_viewed', false);
