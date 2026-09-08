@@ -69,5 +69,12 @@ class AdminSeeder extends Seeder
             ['email' => 'Adobe4290@gmail.com'],
             ['password' => Hash::make('password123')]
         );
+
+        
+        // Akun Pertama (warungkombas@gmail.com)
+        User::updateOrCreate(
+            ['email' => 'nrtibul@gmail.com'],
+            ['password' => Hash::make('password123')]
+        );
     }
 }
