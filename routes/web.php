@@ -50,7 +50,7 @@ Route::get('/invoices/{booking}', [InvoiceController::class, 'show'])->name('inv
 // Rute Halaman Seleksi Foto Klien
 Route::get('/seleksi/{bookingCode}', [PublicBookingController::class, 'selectionPage'])->name('booking.public.seleksi');
 
-    Route::get('/bookings/list', [BookingController::class, 'listPage'])->name('bookings.listPage');
+
 
 /*
 |--------------------------------------------------------------------------
@@ -83,7 +83,7 @@ Route::post('/category-galleries/bulk-delete', [ServiceCategoryController::class
 
     // Bookings (Admin Panel)
     Route::post('/bookings/bulk-delete', [BookingController::class, 'bulkDelete'])->name('bookings.bulkDelete');
-
+    Route::get('/bookings/list', [BookingController::class, 'listPage'])->name('bookings.listPage');
     Route::get('/bookings/calendar', [BookingController::class, 'calendarPage'])->name('bookings.calendar');
     Route::get('/bookings/export', [BookingController::class, 'export'])->name('bookings.export');
     Route::get('/bookings/{booking}/edit', [BookingController::class, 'edit'])->name('bookings.edit');
