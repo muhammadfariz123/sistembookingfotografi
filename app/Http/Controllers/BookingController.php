@@ -200,7 +200,8 @@ class BookingController extends Controller
     public function create()
     {
         $serviceTypes = ServiceType::where('user_id', Auth::id())->get();
-        return view('bookings.form', compact('serviceTypes'));
+        $booking = null;
+        return view('bookings.form', compact('serviceTypes', 'booking'));
     }
 
     public function edit(Booking $booking)
