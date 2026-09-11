@@ -451,11 +451,7 @@
                     x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-100"
                     x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
                     <div class="pl-9 pr-2 py-1 flex flex-col gap-1 mt-1">
-                        <a href="{{ route('bookings.export') }}"
-                            class="flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] transition {{ request()->routeIs('bookings.export') ? 'text-blue-600 font-semibold bg-blue-50/50' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50' }}">
-                            <div class="w-1.5 h-1.5 rounded-full shrink-0 {{ request()->routeIs('bookings.export') ? 'bg-blue-600' : 'bg-gray-300' }}"></div>
-                            Unduh Excel Data
-                        </a>
+
                         <a href="{{ route('company-setting.edit') }}"
                             class="flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] transition
                            {{ request()->routeIs('company-setting.edit') ? 'text-blue-600 font-semibold bg-blue-50/50' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50' }}">
@@ -475,11 +471,7 @@
                     x-transition:leave-end="opacity-0" :style="flyoutStyle"
                     class="fixed w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-[100]" x-cloak>
                     <div class="px-4 py-2 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Sistem</div>
-                    <a href="{{ route('bookings.export') }}" @click="open = false"
-                        class="flex items-center gap-3 px-4 py-2.5 text-[13px] transition {{ request()->routeIs('bookings.export') ? 'text-blue-600 font-semibold bg-blue-50/50' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-                        <div class="w-1.5 h-1.5 rounded-full shrink-0 {{ request()->routeIs('bookings.export') ? 'bg-blue-600' : 'bg-gray-300' }}"></div>
-                        Unduh Excel Data
-                    </a>
+
                     <a href="{{ route('company-setting.edit') }}" @click="open = false"
                         class="flex items-center gap-3 px-4 py-2.5 text-[13px] transition
                         {{ request()->routeIs('company-setting.edit') ? 'text-blue-600 font-semibold bg-blue-50/50' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">

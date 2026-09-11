@@ -21,6 +21,11 @@
                         <input type="text" x-model="searchQuery" placeholder="Cari klien, kode, atau paket..."
                             class="w-full h-[42px] pl-10 pr-4 rounded-xl border border-gray-200 bg-white text-[13px] focus:ring-2 focus:ring-blue-500 outline-none transition-all">
                     </div>
+                    {{-- Tombol Export Excel --}}
+                    <a href="{{ route('bookings.export') }}"
+                        class="h-[42px] px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-[13px] rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all whitespace-nowrap w-full sm:w-auto">
+                        <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Unduh Excel
+                    </a>
                     {{-- Tombol Buat Booking Baru --}}
                     <a href="{{ route('booking.public.form', ['ownerId' => Auth::id()]) }}" target="_blank"
                         class="h-[42px] px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[13px] rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all whitespace-nowrap w-full sm:w-auto">
