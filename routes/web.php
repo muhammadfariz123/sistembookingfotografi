@@ -86,7 +86,6 @@ Route::post('/category-galleries/bulk-delete', [ServiceCategoryController::class
     Route::get('/bookings/list', [BookingController::class, 'listPage'])->name('bookings.listPage');
     Route::get('/bookings/calendar', [BookingController::class, 'calendarPage'])->name('bookings.calendar');
     Route::get('/bookings/export', [BookingController::class, 'export'])->name('bookings.export');
-    Route::get('/bookings/create', [BookingController::class, 'create'])->name('bookings.create');
     Route::get('/bookings/{booking}/edit', [BookingController::class, 'edit'])->name('bookings.edit');
     Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');
     Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');

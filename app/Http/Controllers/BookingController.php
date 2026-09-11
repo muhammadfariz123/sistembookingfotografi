@@ -197,13 +197,6 @@ class BookingController extends Controller
         return view('bookings.calendar', ['initialBookings' => $initialData['data']]);
     }
 
-    public function create()
-    {
-        $serviceTypes = ServiceType::where('user_id', Auth::id())->get();
-        $booking = null;
-        return view('bookings.form', compact('serviceTypes', 'booking'));
-    }
-
     public function edit(Booking $booking)
     {
         if ($booking->user_id !== Auth::id())
