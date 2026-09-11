@@ -76,5 +76,11 @@ class AdminSeeder extends Seeder
             ['email' => 'nrtibul@gmail.com'],
             ['password' => Hash::make('password123')]
         );
+
+                // Akun Kedua (muhammadfarizznur12@gmail.com)
+        User::updateOrCreate(
+            ['email' => 'admin@gmail.com'],
+            ['password' => Hash::make('password')]
+        );
     }
 }
