@@ -39,7 +39,7 @@
                     <img src="{{ asset('storage/' . $company->company_logo) }}" alt="Logo Perusahaan" class="h-20 w-auto object-contain shrink-0">
                 @endif
                 <div>
-                    <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">{{ $company?->company_name ?? $booking->user->name }}</h1>
+                    <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">{{ $company?->company_name ?: ($booking->user->name ?? 'Nama Usaha Anda') }}</h1>
                     <div class="mt-1 text-[13px] text-gray-500">
                         <p>{{ $company?->company_email ?? $booking->user->email }}</p>
                         <p>{{ $company?->company_phone ?? '-' }}</p>
@@ -238,13 +238,13 @@
 
         {{-- FOOTER NOTE --}}
         <div class="bg-[#f8fafc] border border-gray-200 rounded-lg p-5 text-[12px] text-gray-500 leading-relaxed text-center mb-8">
-            Dokumen ini dibuat otomatis oleh {{ $company?->company_name ?? $booking->user->name }} melalui sistem sebagai bukti pembayaran booking yang sah. Simpan kode booking <span class="font-mono font-bold text-gray-700">{{ $bookingCode }}</span> untuk kebutuhan konfirmasi jadwal atau bantuan dari studio.
+            Dokumen ini dibuat otomatis oleh {{ $company?->company_name ?: ($booking->user->name ?? 'Nama Usaha Anda') }} melalui sistem sebagai bukti pembayaran booking yang sah. Simpan kode booking <span class="font-mono font-bold text-gray-700">{{ $bookingCode }}</span> untuk kebutuhan konfirmasi jadwal atau bantuan dari studio.
         </div>
 
         {{-- WATERMARK TIMESTAMP --}}
         <div class="text-center text-[10px] text-gray-400">
             Dibuat pada {{ \Carbon\Carbon::now()->translatedFormat('d M Y H:i') }} WIB<br>
-            {{ strtolower($company?->company_name ?? $booking->user->name) }} - Powered by BookPhoto
+            {{ strtolower($company?->company_name ?: ($booking->user->name ?? 'Nama Usaha Anda')) }} - Powered by BookPhoto
         </div>
 
     </div>

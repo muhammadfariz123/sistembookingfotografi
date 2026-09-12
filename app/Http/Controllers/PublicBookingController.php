@@ -145,12 +145,19 @@ class PublicBookingController extends Controller
 
     public function checkPage()
     {
-        $owner = User::first();
-        $companySetting = CompanySetting::where('user_id', $owner->id)->first();
+        $companySetting = CompanySetting::first();
+        $owner = $companySetting ? User::find($companySetting->user_id) : User::first();
+        
+        $businessName = 'Nama Usaha Anda';
+        if ($companySetting && !empty($companySetting->company_name)) {
+            $businessName = $companySetting->company_name;
+        } elseif ($owner && !empty($owner->name)) {
+            $businessName = $owner->name;
+        }
 
         return view('booking.check-booking', [
-            'ownerId' => $owner->id,
-            'businessName' => $companySetting->company_name ?? $owner->name,
+            'ownerId' => $owner ? $owner->id : 1,
+            'businessName' => $businessName,
         ]);
     }
 

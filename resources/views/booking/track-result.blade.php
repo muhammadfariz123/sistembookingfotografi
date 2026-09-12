@@ -152,7 +152,7 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
             Beranda
         </a>
-        <h1 class="text-[15px] font-extrabold text-gray-900">{{ $companySetting?->company_name ?? $owner->name }}</h1>
+        <h1 class="text-[15px] font-extrabold text-gray-900">{{ $companySetting?->company_name ?: ($owner->name ?? 'Nama Usaha Anda') }}</h1>
     </div>
 
     <div class="max-w-xl mx-auto px-4 pt-8" x-data="{ copied: false, copyKode() { navigator.clipboard.writeText('{{ $bookingCode }}'); this.copied = true; setTimeout(() => this.copied = false, 1500); } }">

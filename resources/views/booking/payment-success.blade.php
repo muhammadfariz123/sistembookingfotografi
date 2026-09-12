@@ -61,7 +61,7 @@
             </svg>
             Kembali ke Beranda
         </a>
-        <h1 class="text-[14px] font-extrabold text-gray-900">{{ $companySetting?->company_name ?? $owner->name }}</h1>
+        <h1 class="text-[14px] font-extrabold text-gray-900">{{ $companySetting?->company_name ?: ($owner->name ?? 'Nama Usaha Anda') }}</h1>
     </div>
 
     <div class="max-w-[500px] mx-auto px-4 pt-8"
@@ -80,7 +80,7 @@
                 <p class="text-[11px] font-bold text-brand uppercase tracking-wider mb-2">Menunggu Verifikasi Admin</p>
                 <h2 class="text-[22px] font-extrabold text-gray-900 mb-3">Bukti Transfer Dikirim!</h2>
                 <p class="text-[14px] text-gray-500 leading-relaxed px-2 mb-6">
-                    Bukti transfer kamu sudah kami terima. Admin <strong>{{ $companySetting?->company_name ?? $owner->name }}</strong> akan memverifikasi pembayaran dalam 1×24 jam. Kamu akan mendapat notifikasi email setelah dikonfirmasi.
+                    Bukti transfer kamu sudah kami terima. Admin <strong>{{ $companySetting?->company_name ?: ($owner->name ?? 'Nama Usaha Anda') }}</strong> akan memverifikasi pembayaran dalam 1×24 jam. Kamu akan mendapat notifikasi email setelah dikonfirmasi.
                 </p>
 
             @elseif($booking->payment_status === 'Lunas')
