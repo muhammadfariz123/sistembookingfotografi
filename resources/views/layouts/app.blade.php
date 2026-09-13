@@ -51,7 +51,7 @@
             </header>
 
             @isset($header)
-                <header class="bg-white shadow-sm border-b border-gray-100 hidden lg:block">
+                <header class="bg-white shadow-sm border-b border-gray-100 hidden lg:block sticky top-0 z-40">
                     <div class="max-w-7xl mx-auto py-5 px-4 sm:px-6 lg:px-8">
                         {{ $header }}
                     </div>
