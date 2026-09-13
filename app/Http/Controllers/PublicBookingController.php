@@ -66,10 +66,10 @@ class PublicBookingController extends Controller
         $validated = $request->validate([
             'client_name' => 'required|string|max:255',
             'client_contact' => 'required|string|max:255',
-            'client_email' => 'nullable|email|max:255',
-            'client_instagram' => 'nullable|string|max:255',
+            'client_email' => 'required|email|max:255',
+            'client_instagram' => 'required|string|max:255',
             'client_address' => 'required|string',
-            'link_gmaps' => 'nullable|url|max:1000',
+            'link_gmaps' => 'required|url|max:1000',
             'service_type_id' => 'required|exists:service_types,id',
             'booking_date' => 'nullable|date',
             'start_date' => 'nullable|date',

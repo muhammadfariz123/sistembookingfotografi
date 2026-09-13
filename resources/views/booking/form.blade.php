@@ -285,12 +285,12 @@
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Email Aktif</label>
-                            <input type="email" name="client_email" x-model="clientEmail" placeholder="email@contoh.com" class="w-full h-11 rounded-lg border border-gray-300 px-4 text-sm focus:border-brand focus:ring-brand shadow-sm">
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Email Aktif <span class="text-red-500">*</span></label>
+                            <input type="email" name="client_email" x-model="clientEmail" required placeholder="email@contoh.com" class="w-full h-11 rounded-lg border border-gray-300 px-4 text-sm focus:border-brand focus:ring-brand shadow-sm">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Akun Instagram</label>
-                            <input type="text" name="client_instagram" x-model="clientInstagram" placeholder="@username" class="w-full h-11 rounded-lg border border-gray-300 px-4 text-sm focus:border-brand focus:ring-brand shadow-sm">
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Akun Instagram <span class="text-red-500">*</span></label>
+                            <input type="text" name="client_instagram" x-model="clientInstagram" required placeholder="@username" class="w-full h-11 rounded-lg border border-gray-300 px-4 text-sm focus:border-brand focus:ring-brand shadow-sm">
                         </div>
                     </div>
                 </div>
@@ -303,8 +303,8 @@
                         <input type="text" name="client_address" x-model="clientAddress" required placeholder="Ketik nama gedung atau alamat lengkap..." class="w-full h-11 rounded-lg border border-gray-300 px-4 text-sm focus:border-brand focus:ring-brand shadow-sm">
                     </div>
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Link Google Maps <span class="text-gray-400 font-normal">(Opsional)</span></label>
-                        <input type="url" name="link_gmaps" x-model="linkGmaps" placeholder="https://maps.app.goo.gl/..." class="w-full h-11 rounded-lg border border-gray-300 px-4 text-sm focus:border-brand focus:ring-brand shadow-sm text-blue-600">
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Link Google Maps <span class="text-red-500">*</span></label>
+                        <input type="url" name="link_gmaps" x-model="linkGmaps" required placeholder="https://maps.app.goo.gl/..." class="w-full h-11 rounded-lg border border-gray-300 px-4 text-sm focus:border-brand focus:ring-brand shadow-sm text-blue-600">
                         <p class="text-[11px] text-gray-400 mt-1.5">Membantu tim kami tiba di lokasi lebih akurat.</p>
                     </div>
                     <div class="mb-5">
@@ -596,7 +596,10 @@
                         }
                     }
                     
-                    if (this.step === 3 && (!this.clientName || !this.clientContact || !this.clientAddress)) { this.showError('Isi kontak yang wajib (*).'); return; }
+                    if (this.step === 3 && (!this.clientName || !this.clientContact || !this.clientAddress || !this.clientEmail || !this.clientInstagram || !this.linkGmaps)) { 
+                        this.showError('Isi semua data kontak dan lokasi yang wajib (*).'); 
+                        return; 
+                    }
                     
                     this.errorMsg = ''; this.step++; window.scrollTo({ top: 0, behavior: 'smooth' });
                 },
