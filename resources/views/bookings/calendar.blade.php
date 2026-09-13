@@ -60,18 +60,18 @@
                     <template x-for="(item, index) in calendarDates" :key="index">
                         <div>
                             {{-- Kotak kosong untuk tanggal di luar bulan aktif --}}
-                            <div x-show="!item" class="h-[105px] rounded-xl bg-transparent"></div>
+                            <div x-show="!item" class="h-16 sm:h-[105px] rounded-lg sm:rounded-xl bg-transparent"></div>
                             
-                            {{-- Kotak Tanggal Aktif (Tinggi dipangkas ke 105px agar lebih kompak) --}}
-                            <div x-show="item" :class="isToday(item) ? 'border-blue-400 bg-blue-50/30 ring-1 ring-blue-400' : 'border-gray-200 bg-white'" class="h-[105px] rounded-xl border p-1.5 relative overflow-hidden flex flex-col">
-                                <div class="flex justify-end mb-1">
-                                    <span :class="isToday(item) ? 'bg-blue-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold' : 'text-[12px] font-semibold text-gray-500'" x-text="item"></span>
+                            {{-- Kotak Tanggal Aktif --}}
+                            <div x-show="item" :class="isToday(item) ? 'border-blue-400 bg-blue-50/30 ring-1 ring-blue-400' : 'border-gray-200 bg-white'" class="h-16 sm:h-[105px] rounded-lg sm:rounded-xl border p-1 sm:p-1.5 relative overflow-hidden flex flex-col hover:border-blue-300 transition cursor-pointer sm:cursor-default" @click="if(window.innerWidth < 640 && getBookingsForDay(item).length > 0) openDayDetail(item)">
+                                <div class="flex justify-center sm:justify-end mb-1">
+                                    <span :class="isToday(item) ? 'bg-blue-600 text-white w-5 h-5 sm:w-5 sm:h-5 rounded-full flex items-center justify-center text-[11px] font-bold' : 'text-[12px] font-semibold text-gray-500'" x-text="item"></span>
                                 </div>
-                                <div class="flex-1 overflow-y-auto no-scrollbar space-y-1">
+                                <div class="flex-1 overflow-y-auto no-scrollbar flex flex-row sm:flex-col flex-wrap justify-center sm:justify-start items-start gap-1 sm:gap-0 sm:space-y-1 pt-1 sm:pt-0">
                                     <template x-for="booking in getBookingsForDay(item)" :key="booking.id">
-                                        <div :class="bookingDotClass(booking.status)" @click="openDayDetail(item)" class="text-white text-[10px] font-medium px-1.5 py-0.5 rounded-md cursor-pointer leading-tight shadow-sm flex items-center gap-1 overflow-hidden" :title="booking.client_name + ' - ' + (booking.service_type?.name ?? '')">
-                                            <span x-show="booking.booking_time" class="font-bold opacity-80 shrink-0" x-text="formatTimeRangeShort(booking.booking_time, booking.service_type?.duration)"></span>
-                                            <span class="truncate" x-text="booking.client_name"></span>
+                                        <div :class="bookingDotClass(booking.status)" @click.stop="openDayDetail(item)" class="w-2 h-2 sm:w-auto sm:h-auto rounded-full sm:rounded-md cursor-pointer sm:px-1.5 sm:py-0.5 sm:shadow-sm flex items-center sm:gap-1 overflow-hidden" :title="booking.client_name + ' - ' + (booking.service_type?.name ?? '')">
+                                            <span x-show="booking.booking_time" class="hidden sm:block text-white text-[10px] font-bold opacity-80 shrink-0" x-text="formatTimeRangeShort(booking.booking_time, booking.service_type?.duration)"></span>
+                                            <span class="hidden sm:block text-white text-[10px] font-medium truncate" x-text="booking.client_name"></span>
                                         </div>
                                     </template>
                                 </div>
