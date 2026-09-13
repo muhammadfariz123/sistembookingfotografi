@@ -46,7 +46,7 @@
                     <button @click="$store.sidebar.mobileOpen = true" class="p-2 -ml-2 rounded-xl text-gray-600 hover:bg-gray-100 transition focus:outline-none">
                         <i data-lucide="menu" class="w-6 h-6"></i>
                     </button>
-                    <span class="font-extrabold text-[18px] text-blue-600">Rozi Photo</span>
+                    <span class="font-extrabold text-[18px] text-blue-600">{{ $companyName }}</span>
                 </div>
             </header>
 

@@ -23,7 +23,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        View::composer('layouts.navigation', SidebarComposer::class);
+        View::composer(['layouts.navigation', 'layouts.app'], SidebarComposer::class);
 
         // PAKSA SEMUA LINK ASSET & URL MENGGUNAKAN HTTPS JIKA DI SERVER
         if (config('app.env') === 'production') {

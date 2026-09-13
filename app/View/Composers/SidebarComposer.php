@@ -23,9 +23,12 @@ class SidebarComposer
                 ->count();
         }
 
+        $companyName = \App\Models\CompanySetting::first()->company_name ?? 'Studio Fotografi';
+
         $view->with([
             'sidebarPendingBookingCount' => $pendingBookingCount,
             'sidebarPendingPaymentCount' => $pendingPaymentCount,
+            'companyName' => $companyName,
         ]);
     }
 }

@@ -46,7 +46,7 @@
             {{-- Nama Aplikasi --}}
             <a href="{{ route('dashboard') }}" x-show="!($store.sidebar.collapsed && isDesktop)"
                 class="text-[18px] font-extrabold text-blue-600 whitespace-nowrap truncate">
-                Rozi Photo
+                {{ $companyName }}
             </a>
         </div>
         {{-- Tombol Tutup Mobile --}}
