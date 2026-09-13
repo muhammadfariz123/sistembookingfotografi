@@ -69,12 +69,10 @@
                             <div>
                                 <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Durasi Sesi <span class="text-red-500">*</span></label>
                                 <div class="relative">
-                                    <input type="number" name="duration" required min="0" value="{{ old('duration', $service->duration ?? '') }}" placeholder="Contoh: 8" class="w-full h-[44px] rounded-xl border border-gray-300 pr-16 pl-4 text-[14px] font-medium text-gray-900 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                                    <input type="number" name="duration" required min="1" value="{{ old('duration', $service->duration ?? '') }}" placeholder="Contoh: 8" class="w-full h-[44px] rounded-xl border border-gray-300 pr-16 pl-4 text-[14px] font-medium text-gray-900 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
                                     <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
                                         <span class="text-gray-500 text-[13px] font-medium">Jam</span>
                                     </div>
-                                </div>
-                                <p class="text-[11px] text-gray-400 mt-1.5 leading-snug">Isi 0 jika paket ini tidak memiliki batasan waktu.</p>
                             </div>
 
                             <div>

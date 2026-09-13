@@ -28,7 +28,7 @@ class ServiceTypeController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
-            'duration' => 'required|integer|min:0', // Durasi dalam satuan Jam
+            'duration' => 'required|integer|min:1', // Durasi dalam satuan Jam
             'photo_limit' => 'required|integer|min:0',
         ]);
         
@@ -59,7 +59,7 @@ class ServiceTypeController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
-            'duration' => 'required|integer|min:0', // Durasi dalam satuan Jam
+            'duration' => 'required|integer|min:1', // Durasi dalam satuan Jam
             'photo_limit' => 'required|integer|min:0',
         ]);
         
