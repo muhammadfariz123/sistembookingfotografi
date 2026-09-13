@@ -1,9 +1,8 @@
 <x-app-layout>
     <div x-data="{ categories: @js($categories) }" 
-         class="px-3 sm:px-6 lg:px-8 py-4 sm:py-6 bg-[#f5f7fb] w-full flex flex-col overflow-hidden"
-         style="height: calc(100vh - 65px);"> 
+         class="px-3 sm:px-6 lg:px-8 py-4 sm:py-6 bg-[#f5f7fb] w-full max-w-9xl mx-auto"> 
          
-         <div class="bg-white border border-gray-200 rounded-[20px] sm:rounded-[30px] shadow-sm p-4 sm:p-6 lg:p-8 flex flex-col flex-1 min-h-0 overflow-hidden">
+         <div class="bg-white border border-gray-200 rounded-[20px] sm:rounded-[30px] shadow-sm p-4 sm:p-6 lg:p-8">
             
             <div class="shrink-0 mb-6">
                 <a href="{{ route('dashboard') }}" class="inline-flex items-center gap-2 text-gray-600 hover:text-blue-600 text-[13px] sm:text-[14px] font-medium transition">
@@ -26,8 +25,8 @@
                 </div>
             </div>
 
-            <div class="border border-gray-200 rounded-[22px] flex-1 min-h-0 flex flex-col overflow-hidden relative">
-                <div class="overflow-y-auto overflow-x-auto flex-1 custom-scrollbar">
+            <div class="border border-gray-200 rounded-[22px] overflow-hidden">
+                <div class="overflow-x-auto custom-scrollbar">
                     <table class="w-full min-w-[500px]">
                         <thead class="bg-[#f8fafc] sticky top-0 z-10 shadow-[0_1px_0_0_#e5e7eb]">
                             <tr class="text-left">
@@ -132,6 +131,6 @@
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
-        body { overflow: hidden !important; }
+
     </style>
 </x-app-layout>
