@@ -73,6 +73,7 @@
                                     <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
                                         <span class="text-gray-500 text-[13px] font-medium">Jam</span>
                                     </div>
+                                </div>
                             </div>
 
                             <div>
