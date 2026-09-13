@@ -13,6 +13,8 @@ class SidebarComposer
         $pendingBookingCount = 0;
         $pendingPaymentCount = 0;
 
+        $companyName = 'Sistem Fotografi';
+
         if (Auth::check()) {
             $pendingBookingCount = Booking::where('user_id', Auth::id())
                 ->where('status', 'Pending Bayar')
@@ -21,9 +23,10 @@ class SidebarComposer
             $pendingPaymentCount = Booking::where('user_id', Auth::id())
                 ->where('payment_status', 'Tunggu Konfirmasi')
                 ->count();
+                
+            $setting = \App\Models\CompanySetting::where('user_id', Auth::id())->first();
+            $companyName = !empty($setting?->company_name) ? $setting->company_name : 'Sistem Fotografi';
         }
-
-        $companyName = \App\Models\CompanySetting::first()->company_name ?? 'Studio Fotografi';
 
         $view->with([
             'sidebarPendingBookingCount' => $pendingBookingCount,
