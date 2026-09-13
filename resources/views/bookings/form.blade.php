@@ -58,20 +58,25 @@
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                             <div>
-                                <label class="block text-[14px] font-medium text-gray-700 mb-2">Email Klien <span class="text-gray-400 font-normal">(Opsional)</span></label>
-                                <input type="email" x-model="clientEmail" placeholder="email@contoh.com"
+                                <label class="block text-[14px] font-medium text-gray-700 mb-2">Email Klien <span class="text-red-500">*</span></label>
+                                <input type="email" x-model="clientEmail" required placeholder="email@contoh.com"
                                     class="w-full h-[48px] rounded-xl border border-gray-300 px-4 text-[14px] focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none shadow-sm">
                             </div>
                             <div>
-                                <label class="block text-[14px] font-medium text-gray-700 mb-2">Instagram <span class="text-gray-400 font-normal">(Opsional)</span></label>
-                                <input type="text" x-model="clientInstagram" placeholder="@username"
+                                <label class="block text-[14px] font-medium text-gray-700 mb-2">Instagram <span class="text-red-500">*</span></label>
+                                <input type="text" x-model="clientInstagram" required placeholder="@username"
                                     class="w-full h-[48px] rounded-xl border border-gray-300 px-4 text-[14px] focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none shadow-sm">
                             </div>
                         </div>
-                        <div>
-                            <label class="block text-[14px] font-medium text-gray-700 mb-2">Alamat Klien <span class="text-red-500">*</span></label>
+                        <div class="mb-4">
+                            <label class="block text-[14px] font-medium text-gray-700 mb-2">Alamat Klien / Lokasi Sesi <span class="text-red-500">*</span></label>
                             <input type="text" x-model="clientAddress" required placeholder="Alamat klien atau lokasi sesi"
                                 class="w-full h-[48px] rounded-xl border border-gray-300 px-4 text-[14px] focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none shadow-sm">
+                        </div>
+                        <div>
+                            <label class="block text-[14px] font-medium text-gray-700 mb-2">Link Google Maps <span class="text-red-500">*</span></label>
+                            <input type="url" x-model="linkGmaps" required placeholder="https://maps.app.goo.gl/..."
+                                class="w-full h-[48px] rounded-xl border border-gray-300 px-4 text-[14px] focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none shadow-sm text-blue-600">
                         </div>
                     </div>
 
@@ -340,7 +345,7 @@
     function bookingForm(initialBooking, rawServices) {
         return {
             _editMode: false, editingBookingId: null, showSummary: false,
-            clientName: '', clientContact: '', clientAddress: '',
+            clientName: '', clientContact: '', clientAddress: '', linkGmaps: '',
             clientEmail: '', clientInstagram: '', 
             bookingDate: '', startDate: '', endDate: '', bookingTime: '',
             multiDay: false, status: 'Dijadwalkan', notes: '',
@@ -463,6 +468,7 @@
                     clientEmail: booking.client_email ?? '',
                     clientInstagram: booking.client_instagram ?? '',
                     clientAddress: booking.client_address ?? '', 
+                    linkGmaps: booking.link_gmaps ?? '',
                     bookingTime: booking.booking_time ? String(booking.booking_time).substring(0, 5) : '',
                     status: booking.status ?? 'Dijadwalkan', 
                     unitPrice: parseInt(booking.unit_price) || 0, 
@@ -530,6 +536,7 @@
                             client_email: this.clientEmail,
                             client_instagram: this.clientInstagram,
                             client_address: this.clientAddress,
+                            link_gmaps: this.linkGmaps,
                             service_type_id: this.selectedServiceId,
                             booking_date: !this.multiDay ? (this.bookingDate || null) : null,
                             start_date:    this.multiDay  ? (this.startDate   || null) : null,

@@ -16,9 +16,11 @@ class BookingRequest extends FormRequest
     {
         return [
             'client_name' => 'required|string|max:255',
-            'client_contact' => 'nullable|string|max:255',
-            'client_address' => 'nullable|string|max:500',
-            'link_gmaps' => 'nullable|url|max:1000',
+            'client_contact' => 'required|string|max:255',
+            'client_email' => 'required|email|max:255',
+            'client_instagram' => 'required|string|max:255',
+            'client_address' => 'required|string|max:500',
+            'link_gmaps' => 'required|url|max:1000',
             'service_type_id' => 'required|exists:service_types,id',
             'booking_date' => 'nullable|date',
             'start_date' => 'nullable|date',
@@ -36,13 +38,17 @@ class BookingRequest extends FormRequest
     {
         return [
             'client_name.required' => 'Nama klien wajib diisi.',
+            'client_contact.required' => 'Kontak/WhatsApp wajib diisi.',
+            'client_email.required' => 'Email klien wajib diisi.',
+            'client_email.email' => 'Format email tidak valid.',
+            'client_instagram.required' => 'Instagram wajib diisi.',
+            'client_address.required' => 'Alamat klien wajib diisi.',
+            'link_gmaps.required' => 'Link Google Maps wajib diisi.',
             'service_type_id.required' => 'Jenis layanan wajib dipilih.',
             'service_type_id.exists' => 'Jenis layanan tidak valid.',
             'booking_date.date' => 'Format tanggal tidak valid.',
             'end_date.after_or_equal' => 'Tanggal selesai harus setelah tanggal mulai.',
             'unit_price.min' => 'Harga tidak boleh negatif.',
             'link_gmaps.url' => 'Format URL Google Maps tidak valid.',
-            
-        ];
     }
 }
