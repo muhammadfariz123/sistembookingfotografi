@@ -4,31 +4,30 @@
         
         @if($showOnboarding)
         <div class="bg-white border border-gray-200 rounded-[20px] p-4 md:p-6 shadow-sm mb-7">
-            <div class="flex items-start gap-3 md:gap-4 mb-5 md:mb-6">
-                <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 mt-1 md:mt-0">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
                     <i data-lucide="compass" class="w-5 h-5 md:w-6 md:h-6"></i>
                 </div>
-                <div class="flex-grow min-w-0">
-                    <h2 class="text-base md:text-lg font-bold text-gray-900 mb-1 leading-tight">Panduan Memulai Pengoperasian Sistem</h2>
-                    <p class="text-xs md:text-sm text-gray-500 mb-4 leading-relaxed">
-                        Selesaikan langkah-langkah di bawah ini untuk mengonfigurasi dan memahami alur kerja sistem booking fotografi Anda secara maksimal.
-                    </p>
+                <h2 class="text-[18px] md:text-xl font-bold text-gray-900 leading-tight">Panduan Pengoperasian</h2>
+            </div>
+            
+            <p class="text-[13px] md:text-sm text-gray-500 mb-6 leading-relaxed">
+                Pengecekan otomatis di bawah ini didasarkan pada data nyata di database. Klik pada setiap langkah untuk menuju ke halaman terkait.
+            </p>
 
-                    @php
-                        $completedCount = collect($checklist)->filter()->count();
-                        $percent = ($completedCount / 9) * 100;
-                    @endphp
+            @php
+                $completedCount = collect($checklist)->filter()->count();
+                $percent = ($completedCount / 9) * 100;
+            @endphp
 
-                    <!-- Progress Bar -->
-                    <div class="bg-gray-50 border border-gray-100 p-3 md:p-4 rounded-xl">
-                        <div class="flex items-center justify-between text-[11px] md:text-xs font-semibold text-gray-600 mb-2">
-                            <span>Progress Setup</span>
-                            <span class="text-blue-600 font-bold">{{ $completedCount }} dari 9 Selesai ({{ round($percent) }}%)</span>
-                        </div>
-                        <div class="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
-                            <div class="bg-blue-600 h-2 rounded-full transition-all duration-500" style="width: {{ $percent }}%"></div>
-                        </div>
-                    </div>
+            <!-- Progress Bar -->
+            <div class="bg-gray-50 border border-gray-100 p-4 rounded-2xl mb-6">
+                <div class="flex flex-col gap-1 mb-3">
+                    <span class="text-[12px] font-semibold text-gray-600">Status Setup Sistem</span>
+                    <span class="text-blue-600 text-[14px] font-bold">{{ $completedCount }} dari 9 Langkah Selesai ({{ round($percent) }}%)</span>
+                </div>
+                <div class="w-full bg-gray-200 h-2.5 rounded-full overflow-hidden">
+                    <div class="bg-blue-600 h-2.5 rounded-full transition-all duration-500" style="width: {{ $percent }}%"></div>
                 </div>
             </div>
 
