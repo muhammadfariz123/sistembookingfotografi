@@ -39,9 +39,9 @@
         @include('layouts.navigation')
 
         {{-- Area Konten Utama (Kanan) --}}
-        <div class="relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
+        <div class="relative flex flex-col flex-1 overflow-hidden">
 
-            <header class="lg:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-0 z-40 shadow-sm">
+            <header class="lg:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between z-40 shadow-sm shrink-0">
                 <div class="flex items-center gap-3">
                     <button @click="$store.sidebar.mobileOpen = true" class="p-2 -ml-2 rounded-xl text-gray-600 hover:bg-gray-100 transition focus:outline-none">
                         <i data-lucide="menu" class="w-6 h-6"></i>
@@ -51,14 +51,14 @@
             </header>
 
             @isset($header)
-                <header class="bg-white shadow-sm border-b border-gray-100 hidden lg:block sticky top-0 z-40">
+                <header class="bg-white shadow-sm border-b border-gray-100 hidden lg:block z-40 shrink-0">
                     <div class="max-w-7xl mx-auto py-5 px-4 sm:px-6 lg:px-8">
                         {{ $header }}
                     </div>
                 </header>
             @endisset
 
-            <main class="w-full">
+            <main class="w-full flex-1 overflow-y-auto overflow-x-hidden">
                 {{ $slot }}
             </main>
 
