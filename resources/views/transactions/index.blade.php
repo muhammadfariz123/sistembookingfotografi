@@ -28,8 +28,8 @@
                 <div x-show="!loading" x-cloak>
                     
                     {{-- FILTER TAB STATUS PEMBAYARAN --}}
-                    <div class="flex justify-center py-4 border-b border-gray-100">
-                        <div class="inline-flex items-center gap-1 bg-gray-50 rounded-xl p-1 border border-gray-100 flex-wrap">
+                    <div class="flex justify-center py-4 border-b border-gray-100 px-2 sm:px-4">
+                        <div class="inline-flex items-center justify-center gap-1 bg-gray-50 rounded-xl p-1 border border-gray-100 flex-wrap">
                             <template x-for="tab in statusTabs" :key="tab.key">
                                 <button type="button"
                                     @click="activePayment = tab.key"
