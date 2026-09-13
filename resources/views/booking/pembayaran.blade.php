@@ -274,14 +274,18 @@
                             </div>
                             <div class="mb-6">
                                 <label class="block border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-brand hover:bg-orange-50/10 transition">
-                                    <div class="flex flex-col items-center justify-center gap-2">
+                                    <div class="flex flex-col items-center justify-center gap-2" x-show="!previewUrl">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M4 6h16a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V7a1 1 0 011-1z" />
                                             <circle cx="9" cy="9" r="1.5" fill="currentColor" stroke="none" />
                                         </svg>
-                                        <span class="text-[14px] font-semibold text-gray-700" x-text="fileName ? fileName : 'Klik atau drag & drop foto bukti transfer'"></span>
+                                        <span class="text-[14px] font-semibold text-gray-700">Klik atau drag & drop foto bukti transfer</span>
                                     </div>
-                                    <input type="file" name="payment_proof" required accept="image/*" @change="fileName = $event.target.files[0].name" class="hidden">
+                                    <div class="flex flex-col items-center justify-center gap-3" x-show="previewUrl" x-cloak>
+                                        <img :src="previewUrl" alt="Preview" class="w-auto h-32 object-contain rounded-lg shadow-sm border border-gray-200">
+                                        <span class="text-sm text-brand font-bold hover:underline">Ganti gambar</span>
+                                    </div>
+                                    <input type="file" name="payment_proof" required accept="image/*" @change="handleFileChange($event)" class="hidden">
                                 </label>
                             </div>
                             <button type="submit" class="w-full h-12 rounded-xl bg-brand hover-bg-brand text-white font-bold text-[14px] flex items-center justify-center gap-2 transition-colors shadow-sm">
@@ -336,6 +340,18 @@
                 showPelunasanSummary: {{ $booking->payment_status === 'Down Payment' ? 'true' : 'false' }},
                 copied: false,
                 fileName: '',
+                previewUrl: null,
+
+                handleFileChange(event) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        this.fileName = file.name;
+                        this.previewUrl = URL.createObjectURL(file);
+                    } else {
+                        this.fileName = '';
+                        this.previewUrl = null;
+                    }
+                },
                 
                 // Variabel Timer
                 isExpired: {{ $isExpired ? 'true' : 'false' }},
