@@ -10,35 +10,38 @@
             </p>
         </div>
 
-        <div class="bg-white border border-gray-200 rounded-[20px] p-6 shadow-sm">
-            <div class="flex items-start gap-4">
-                <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                    <i data-lucide="compass" class="w-6 h-6"></i>
+        <div class="bg-white border border-gray-200 rounded-[20px] p-4 sm:p-6 shadow-sm">
+            
+            <div class="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-2">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                    <i data-lucide="compass" class="w-5 h-5 sm:w-6 sm:h-6"></i>
                 </div>
-                <div class="flex-grow min-w-0">
-                    <h2 class="text-lg font-bold text-gray-900 mb-1">Panduan Pengoperasian</h2>
-                    <p class="text-sm text-gray-500 mb-4">
-                        Pengecekan otomatis di bawah ini didasarkan pada data nyata di database. Klik pada setiap langkah untuk menuju ke halaman terkait.
-                    </p>
+                <h2 class="text-lg sm:text-xl font-bold text-gray-900">Panduan Pengoperasian</h2>
+            </div>
+            
+            <div class="sm:pl-16 w-full min-w-0">
+                <p class="text-[13px] sm:text-sm text-gray-500 mb-5">
+                    Pengecekan otomatis di bawah ini didasarkan pada data nyata di database. Klik pada setiap langkah untuk menuju ke halaman terkait.
+                </p>
 
-                    @php
-                        $completedCount = collect($checklist)->filter()->count();
-                        $percent = ($completedCount / 9) * 100;
-                    @endphp
+                @php
+                    $completedCount = collect($checklist)->filter()->count();
+                    $percent = ($completedCount / 9) * 100;
+                @endphp
 
-                    <!-- Progress Bar -->
-                    <div class="mb-6 bg-gray-50 border border-gray-100 p-4 rounded-xl">
-                        <div class="flex items-center justify-between text-xs font-semibold text-gray-600 mb-2">
-                            <span>Status Setup Sistem</span>
-                            <span class="text-blue-600 font-bold">{{ $completedCount }} dari 9 Langkah Selesai ({{ round($percent) }}%)</span>
-                        </div>
-                        <div class="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
-                            <div class="bg-blue-600 h-2 rounded-full transition-all duration-500" style="width: {{ $percent }}%"></div>
-                        </div>
+                <!-- Progress Bar -->
+                <div class="mb-6 bg-gray-50 border border-gray-100 p-4 rounded-xl">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between text-xs font-semibold text-gray-600 mb-2 gap-1.5 sm:gap-0">
+                        <span>Status Setup Sistem</span>
+                        <span class="text-blue-600 font-bold">{{ $completedCount }} dari 9 Langkah Selesai ({{ round($percent) }}%)</span>
                     </div>
+                    <div class="w-full bg-gray-200 h-2 sm:h-2.5 rounded-full overflow-hidden">
+                        <div class="bg-blue-600 h-full rounded-full transition-all duration-500" style="width: {{ $percent }}%"></div>
+                    </div>
+                </div>
 
-                    <!-- Grid Steps -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
+                <!-- Grid Steps -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 items-stretch">
                         
                         <!-- Langkah 1 -->
                         <a href="{{ route('company-setting.edit') }}" 
