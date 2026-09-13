@@ -53,6 +53,8 @@ function hideGlobalLoader() {
         card.classList.add('scale-95');
     }
 }
+window.hideGlobalLoader = hideGlobalLoader;
+window.showGlobalLoader = showGlobalLoader;
 
 // Intercept form submissions (HTML and AJAX)
 document.addEventListener('submit', (event) => {

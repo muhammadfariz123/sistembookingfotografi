@@ -238,7 +238,7 @@
                  </a>
 
                  <!-- Langkah 9 -->
-                 <a href="{{ route('bookings.export') }}" data-turbo="false" 
+                 <a href="{{ route('bookings.export') }}" data-turbo="false" onclick="setTimeout(() => { if(window.hideGlobalLoader) window.hideGlobalLoader() }, 500)" 
                     class="flex items-center justify-between p-3 md:p-4 rounded-xl border transition-all duration-300 group h-full
                     {{ $checklist['export'] 
                         ? 'bg-emerald-50/30 border-emerald-100 text-emerald-800 font-medium' 
