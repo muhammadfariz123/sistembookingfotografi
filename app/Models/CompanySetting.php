@@ -29,4 +29,16 @@ class CompanySetting extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function getWhatsappNumberAttribute()
+    {
+        $phone = preg_replace('/[^0-9]/', '', $this->company_phone ?? '');
+        
+        // Ubah awalan 0 menjadi 62
+        if (substr($phone, 0, 1) === '0') {
+            $phone = '62' . substr($phone, 1);
+        }
+        
+        return $phone;
+    }
 }

@@ -68,7 +68,8 @@
                                         Nomor Telepon <span class="text-red-500">*</span>
                                     </label>
                                     <input type="text" name="company_phone" required value="{{ old('company_phone', $setting->company_phone) }}"
-                                        placeholder="+62 812 3456 7890"
+                                        placeholder="081234567890"
+                                        oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                                         class="w-full h-[48px] rounded-xl border {{ $errors->has('company_phone') ? 'border-red-400 ring-1 ring-red-400' : 'border-gray-300' }} px-4 text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-500/20 shadow-sm">
                                     @error('company_phone')<p class="text-[12px] text-red-500 mt-1">{{ $message }}</p>@enderror
                                 </div>

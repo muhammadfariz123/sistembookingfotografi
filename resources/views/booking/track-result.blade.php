@@ -816,7 +816,7 @@
         {{-- TOMBOL NAVIGASI BAWAH --}}
         <div class="space-y-3 mb-10">
             @if($companySetting?->company_phone)
-                <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $companySetting->company_phone) }}" target="_blank" class="w-full flex items-center justify-center gap-2 border border-gray-200 text-gray-700 font-bold text-[13px] py-3 rounded-xl hover:bg-gray-50 transition shadow-sm">
+                <a href="https://wa.me/{{ $companySetting->whatsapp_number }}" target="_blank" class="w-full flex items-center justify-center gap-2 border border-gray-200 text-gray-700 font-bold text-[13px] py-3 rounded-xl hover:bg-gray-50 transition shadow-sm">
                     Hubungi Admin via WhatsApp
                 </a>
             @endif

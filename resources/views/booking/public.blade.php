@@ -28,7 +28,7 @@
             <p class="text-lg md:text-xl mb-10 opacity-95">Studio foto profesional untuk semua kebutuhan fotografimu</p>
             <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <a href="#paket" class="bg-white text-brand px-8 py-3.5 rounded-lg font-semibold w-full sm:w-auto hover:bg-gray-50 transition shadow-md">Booking Sekarang</a>
-                <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $companySetting?->company_phone ?? '') }}" target="_blank" class="border border-white text-white px-8 py-3.5 rounded-lg font-semibold w-full sm:w-auto hover:bg-white/10 transition">Hubungi Kami</a>
+                <a href="https://wa.me/{{ $companySetting?->whatsapp_number ?? '6281234567890' }}" target="_blank" class="border border-white text-white px-8 py-3.5 rounded-lg font-semibold w-full sm:w-auto hover:bg-white/10 transition">Hubungi Kami</a>
             </div>
         </div>
     </div>

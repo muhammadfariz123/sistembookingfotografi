@@ -121,7 +121,7 @@
                         <a href="{{ route('booking.public.form', ['ownerId' => $ownerId, 'serviceId' => $service->id]) }}" class="w-full py-3 text-center rounded-xl bg-brand text-white font-semibold text-sm hover:opacity-90 transition shadow-sm">
                             Booking Sekarang
                         </a>
-                        <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $companySetting?->company_phone ?? '') }}?text=Halo, saya ingin bertanya tentang paket {{ $service->name }}"
+                        <a href="https://wa.me/{{ $companySetting?->whatsapp_number ?? '6281234567890' }}?text=Halo, saya ingin bertanya tentang paket {{ $service->name }}"
                             target="_blank"
                             class="flex items-center justify-center gap-2 w-full border-2 border-green-500 text-green-600 py-3.5 rounded-xl font-bold hover:bg-green-50 transition">
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
