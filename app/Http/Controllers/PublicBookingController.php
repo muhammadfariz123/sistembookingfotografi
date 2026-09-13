@@ -68,7 +68,7 @@ class PublicBookingController extends Controller
             'client_contact' => 'required|string|max:255',
             'client_email' => 'nullable|email|max:255',
             'client_instagram' => 'nullable|string|max:255',
-            'client_address' => 'nullable|string',
+            'client_address' => 'required|string',
             'link_gmaps' => 'nullable|url|max:1000',
             'service_type_id' => 'required|exists:service_types,id',
             'booking_date' => 'nullable|date',

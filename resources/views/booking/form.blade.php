@@ -299,8 +299,8 @@
                 <div class="mb-6">
                     <h3 class="text-[13px] font-bold text-gray-400 uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">Tempat & Pelaksanaan</h3>
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Alamat Acara / Nama Gedung</label>
-                        <input type="text" name="client_address" x-model="clientAddress" placeholder="Ketik nama gedung atau alamat lengkap..." class="w-full h-11 rounded-lg border border-gray-300 px-4 text-sm focus:border-brand focus:ring-brand shadow-sm">
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Alamat Acara / Nama Gedung <span class="text-red-500">*</span></label>
+                        <input type="text" name="client_address" x-model="clientAddress" required placeholder="Ketik nama gedung atau alamat lengkap..." class="w-full h-11 rounded-lg border border-gray-300 px-4 text-sm focus:border-brand focus:ring-brand shadow-sm">
                     </div>
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">Link Google Maps <span class="text-gray-400 font-normal">(Opsional)</span></label>
