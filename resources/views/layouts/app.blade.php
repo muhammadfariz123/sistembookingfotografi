@@ -33,7 +33,7 @@
 <body class="antialiased bg-[#f5f7fb]">
 
     {{-- Wrapper Utama --}}
-    <div x-data class="flex h-screen overflow-hidden">
+    <div x-data class="fixed inset-0 flex h-[100dvh] lg:h-screen overflow-hidden">
 
         {{-- Sidebar Kiri --}}
         @include('layouts.navigation')
