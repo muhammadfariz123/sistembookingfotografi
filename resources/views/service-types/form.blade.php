@@ -67,25 +67,25 @@
                         {{-- Durasi dan Batas Edit Foto Bersebelahan --}}
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div>
-                                <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Durasi Sesi</label>
+                                <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Durasi Sesi <span class="text-red-500">*</span></label>
                                 <div class="relative">
-                                    <input type="number" name="duration" min="0" value="{{ old('duration', $service->duration ?? '') }}" placeholder="Contoh: 8" class="w-full h-[44px] rounded-xl border border-gray-300 pr-16 pl-4 text-[14px] font-medium text-gray-900 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                                    <input type="number" name="duration" required min="0" value="{{ old('duration', $service->duration ?? '') }}" placeholder="Contoh: 8" class="w-full h-[44px] rounded-xl border border-gray-300 pr-16 pl-4 text-[14px] font-medium text-gray-900 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
                                     <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
                                         <span class="text-gray-500 text-[13px] font-medium">Jam</span>
                                     </div>
                                 </div>
-                                <p class="text-[11px] text-gray-400 mt-1.5 leading-snug">Kosongkan jika paket ini tidak memiliki batasan waktu.</p>
+                                <p class="text-[11px] text-gray-400 mt-1.5 leading-snug">Isi 0 jika paket ini tidak memiliki batasan waktu.</p>
                             </div>
 
                             <div>
-                                <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Batas Klien Memilih Foto</label>
+                                <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Batas Klien Memilih Foto <span class="text-red-500">*</span></label>
                                 <div class="relative">
-                                    <input type="number" name="photo_limit" min="0" value="{{ old('photo_limit', $service->photo_limit ?? '') }}" placeholder="Contoh: 30" class="w-full h-[44px] rounded-xl border border-gray-300 pr-14 pl-4 text-[14px] font-medium text-gray-900 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                                    <input type="number" name="photo_limit" required min="0" value="{{ old('photo_limit', $service->photo_limit ?? '') }}" placeholder="Contoh: 30" class="w-full h-[44px] rounded-xl border border-gray-300 pr-14 pl-4 text-[14px] font-medium text-gray-900 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
                                     <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
                                         <span class="text-gray-500 text-[13px] font-medium">Foto</span>
                                     </div>
                                 </div>
-                                <p class="text-[11px] text-gray-400 mt-1.5 leading-snug">Kosongkan jika klien mendapat semua file tanpa seleksi editing.</p>
+                                <p class="text-[11px] text-gray-400 mt-1.5 leading-snug">Isi 0 jika klien mendapat semua file tanpa seleksi editing.</p>
                             </div>
                         </div>
 
