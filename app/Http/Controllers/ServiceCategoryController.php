@@ -67,7 +67,10 @@ class ServiceCategoryController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'galleries.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:10240',
+            'galleries' => 'required|array|min:1',
+            'galleries.*' => 'required|image|mimes:jpeg,png,jpg,webp|max:10240',
+        ], [
+            'galleries.required' => 'Wajib mengunggah minimal 1 foto portofolio.'
         ]);
 
         $category = ServiceCategory::create([

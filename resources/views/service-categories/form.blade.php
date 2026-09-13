@@ -20,7 +20,7 @@
 
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Nama Kategori / Jenis Acara <span class="text-red-500">*</span></label>
+                            <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Nama Kategori <span class="text-red-500">*</span></label>
                             <input type="text" name="name" required value="{{ old('name', $category->name ?? '') }}" placeholder="Contoh: Wedding, Wisuda, Prewedding..." class="w-full h-[44px] rounded-xl border border-gray-300 text-[14px] px-4 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
                         </div>
 
@@ -37,6 +37,7 @@
                                     <input type="file" name="galleries[]" multiple accept="image/*" class="hidden" x-ref="fileInput" @change="addFiles" />
                                 </label>
                             </div>
+                            @error('galleries')<p class="text-[12px] text-red-500 mt-1 mb-3">{{ $message }}</p>@enderror
 
                             <!-- Preview Foto Baru -->
                             <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4 mb-4" x-show="previewUrls.length > 0">

@@ -16,7 +16,7 @@
                             Kategori & Portofolio
                         </h1>
                         <p class="text-[13px] sm:text-[15px] text-gray-500 mt-1.5">
-                            Kelola jenis acara dan unggah contoh hasil foto (Portofolio) Anda di sini.
+                            Kelola kategori dan unggah contoh hasil foto (Portofolio) Anda di sini.
                         </p>
                     </div>
                     <a href="{{ route('service-categories.create') }}"
@@ -31,7 +31,7 @@
                     <table class="w-full min-w-[500px]">
                         <thead class="bg-[#f8fafc] sticky top-0 z-10 shadow-[0_1px_0_0_#e5e7eb]">
                             <tr class="text-left">
-                                <th class="w-1/2 px-4 lg:px-6 py-4 text-[12px] font-semibold tracking-wide text-gray-500 uppercase">Jenis Kategori</th>
+                                <th class="w-1/2 px-4 lg:px-6 py-4 text-[12px] font-semibold tracking-wide text-gray-500 uppercase">Kategori</th>
                                 <th class="w-1/4 px-4 lg:px-6 py-4 text-[12px] font-semibold tracking-wide text-gray-500 uppercase">Jumlah Foto</th>
                                 <th class="w-1/4 px-4 lg:px-6 py-4 text-[12px] font-semibold tracking-wide text-gray-500 uppercase text-right">Aksi</th>
                             </tr>
