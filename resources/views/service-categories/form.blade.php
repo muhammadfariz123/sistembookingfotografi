@@ -25,7 +25,10 @@
                         </div>
 
                         <div class="pt-4 mt-4 border-t border-gray-100">
-                            <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Upload Portofolio Foto Baru</label>
+                            <label class="block text-[13px] font-medium text-gray-700 mb-1.5">
+                                Upload Portofolio Foto Baru 
+                                @if(!isset($category))<span class="text-red-500">*</span>@endif
+                            </label>
                             
                             <div class="flex items-center justify-center w-full mb-4">
                                 <label class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:bg-gray-50 hover:border-blue-400 transition">
