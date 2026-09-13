@@ -27,21 +27,16 @@
             </div>
 
             <div class="border border-gray-200 rounded-[22px] flex-1 min-h-0 flex flex-col overflow-hidden relative">
-                <div class="bg-[#f8fafc] border-b border-gray-200 shrink-0 pr-[scrollbar-width]"> 
+                <div class="overflow-y-auto overflow-x-auto flex-1 custom-scrollbar">
                     <table class="w-full min-w-[500px]">
-                        <thead>
+                        <thead class="bg-[#f8fafc] sticky top-0 z-10 shadow-[0_1px_0_0_#e5e7eb]">
                             <tr class="text-left">
                                 <th class="w-1/2 px-4 lg:px-6 py-4 text-[12px] font-semibold tracking-wide text-gray-500 uppercase">Jenis Kategori</th>
                                 <th class="w-1/4 px-4 lg:px-6 py-4 text-[12px] font-semibold tracking-wide text-gray-500 uppercase">Jumlah Foto</th>
                                 <th class="w-1/4 px-4 lg:px-6 py-4 text-[12px] font-semibold tracking-wide text-gray-500 uppercase text-right">Aksi</th>
                             </tr>
                         </thead>
-                    </table>
-                </div>
-
-                <div class="overflow-y-auto overflow-x-auto flex-1 no-scrollbar">
-                    <table class="w-full min-w-[500px]">
-                        <tbody class="divide-y divide-gray-200" x-init="$watch('categories', () => $nextTick(() => lucide.createIcons()))">
+                        <tbody class="divide-y divide-gray-200 bg-white" x-init="$watch('categories', () => $nextTick(() => lucide.createIcons()))">
                             
                             <template x-if="categories.length > 0">
                                 <template x-for="item in categories" :key="item.id">
@@ -122,8 +117,21 @@
     </script>
     
     <style>
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 6px;
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
         body { overflow: hidden !important; }
     </style>
 </x-app-layout>

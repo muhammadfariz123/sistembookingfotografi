@@ -29,10 +29,10 @@
             {{-- ── TABEL SECTION ── --}}
             <div class="border border-gray-200 rounded-[22px] flex-1 min-h-0 flex flex-col overflow-hidden relative">
                 
-                {{-- HEADER TABEL --}}
-                <div class="bg-[#f8fafc] border-b border-gray-200 shrink-0 pr-[scrollbar-width]"> 
+                {{-- TABEL (HEADER & BODY) --}}
+                <div class="overflow-y-auto overflow-x-auto flex-1 custom-scrollbar">
                     <table class="w-full min-w-[700px]">
-                        <thead>
+                        <thead class="bg-[#f8fafc] sticky top-0 z-10 shadow-[0_1px_0_0_#e5e7eb]">
                             <tr class="text-left">
                                 <th class="w-1/4 px-4 lg:px-6 py-4 text-[12px] font-semibold tracking-wide text-gray-500 uppercase">Nama Paket</th>
                                 <th class="w-1/5 px-4 lg:px-6 py-4 text-[12px] font-semibold tracking-wide text-gray-500 uppercase">Kategori</th>
@@ -41,13 +41,7 @@
                                 <th class="w-1/6 px-4 lg:px-6 py-4 text-[12px] font-semibold tracking-wide text-gray-500 uppercase text-right">Aksi</th>
                             </tr>
                         </thead>
-                    </table>
-                </div>
-
-                {{-- BODY TABEL --}}
-                <div class="overflow-y-auto overflow-x-auto flex-1 no-scrollbar">
-                    <table class="w-full min-w-[700px]">
-                        <tbody class="divide-y divide-gray-200" x-init="$watch('services', () => $nextTick(() => lucide.createIcons()))">
+                        <tbody class="divide-y divide-gray-200 bg-white" x-init="$watch('services', () => $nextTick(() => lucide.createIcons()))">
                             
                             <template x-if="services.length > 0">
                                 <template x-for="item in services" :key="item.id">
@@ -88,12 +82,12 @@
                                         <td class="w-1/6 px-4 lg:px-6 py-4 sm:py-5 align-top">
                                             <div class="flex justify-end gap-3">
                                                 <a :href="`/service-types/${item.id}/edit`"
-                                                    class="w-9 h-9 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-600 flex items-center justify-center transition shrink-0">
+                                                    class="w-9 h-9 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-600 flex items-center justify-center transition shrink-0 border border-blue-100">
                                                     <i data-lucide="pencil" class="w-4 h-4"></i>
                                                 </a>
 
                                                 <button type="button" @click="deleteServiceType(item.id)"
-                                                    class="w-9 h-9 rounded-xl bg-red-50 hover:bg-red-100 text-red-500 flex items-center justify-center transition shrink-0">
+                                                    class="w-9 h-9 rounded-xl bg-red-50 hover:bg-red-100 text-red-500 flex items-center justify-center transition shrink-0 border border-red-100">
                                                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                                                 </button>
                                                 
@@ -156,8 +150,21 @@
     </script>
     
     <style>
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 6px;
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
         body { overflow: hidden !important; }
     </style>
 </x-app-layout>
