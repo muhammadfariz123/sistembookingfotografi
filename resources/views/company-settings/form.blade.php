@@ -42,7 +42,7 @@
                 </div>
 
                 <form action="{{ route('company-setting.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6" 
-                      x-data="{ paymentMethod: '{{ old('payment_method', $setting->payment_method ?? 'bank_transfer') }}', fileName: '', qrisFileName: '' }">
+                      x-data="companySettingsLogic()">
                     @csrf
 
                     <div>
@@ -104,14 +104,18 @@
                                 @endif
                                 
                                 <label class="block border-2 border-dashed border-gray-300 rounded-xl p-6 text-center text-gray-500 cursor-pointer hover:border-blue-400 hover:bg-blue-50/50 transition">
-                                    <div class="flex flex-col items-center justify-center gap-2">
+                                    <div class="flex flex-col items-center justify-center gap-2" x-show="!previewUrl">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
                                         </svg>
-                                        <span class="text-[14px] font-medium" x-text="fileName ? fileName : 'Pilih atau letakkan file logo di sini'"></span>
+                                        <span class="text-[14px] font-medium">Pilih atau letakkan file logo di sini</span>
                                         <span class="text-[12px] text-gray-400">Format: JPG, PNG. Maksimal 5MB.</span>
                                     </div>
-                                    <input type="file" name="company_logo" accept="image/*" @change="fileName = $event.target.files[0].name" class="hidden">
+                                    <div class="flex flex-col items-center justify-center gap-3" x-show="previewUrl" x-cloak>
+                                        <img :src="previewUrl" alt="Logo Preview" class="w-auto h-24 object-contain rounded-lg shadow-sm border border-gray-200">
+                                        <span class="text-sm text-blue-600 font-bold hover:underline">Ganti gambar</span>
+                                    </div>
+                                    <input type="file" name="company_logo" accept="image/*" @change="handleLogoChange($event)" class="hidden">
                                 </label>
                                 @error('company_logo')<p class="text-[12px] text-red-500 mt-1">{{ $message }}</p>@enderror
                             </div>
@@ -184,14 +188,18 @@
                                 @endif
                                 
                                 <label class="block border-2 border-dashed border-gray-300 rounded-xl p-6 text-center text-gray-500 cursor-pointer hover:border-blue-400 hover:bg-blue-50/50 transition">
-                                    <div class="flex flex-col items-center justify-center gap-2">
+                                    <div class="flex flex-col items-center justify-center gap-2" x-show="!qrisPreviewUrl">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                                         </svg>
-                                        <span class="text-[14px] font-medium" x-text="qrisFileName ? qrisFileName : 'Upload gambar QRIS untuk ditampilkan ke pelanggan.'"></span>
+                                        <span class="text-[14px] font-medium">Upload gambar QRIS untuk ditampilkan ke pelanggan.</span>
                                         <span class="text-[12px] text-gray-400">Format: JPG, PNG. Maksimal 5MB.</span>
                                     </div>
-                                    <input type="file" name="qris_image" accept="image/*" @change="qrisFileName = $event.target.files[0].name" class="hidden">
+                                    <div class="flex flex-col items-center justify-center gap-3" x-show="qrisPreviewUrl" x-cloak>
+                                        <img :src="qrisPreviewUrl" alt="QRIS Preview" class="w-auto h-32 object-contain rounded-lg shadow-sm border border-gray-200">
+                                        <span class="text-sm text-blue-600 font-bold hover:underline">Ganti gambar</span>
+                                    </div>
+                                    <input type="file" name="qris_image" accept="image/*" @change="handleQrisChange($event)" class="hidden">
                                 </label>
                                 @error('qris_image')<p class="text-[12px] text-red-500 mt-1">{{ $message }}</p>@enderror
                             </div>
@@ -220,4 +228,38 @@
         </div>
 
     </div>
+    
+    <script>
+        function companySettingsLogic() {
+            return {
+                paymentMethod: '{{ old('payment_method', $setting->payment_method ?? 'bank_transfer') }}',
+                fileName: '',
+                previewUrl: null,
+                qrisFileName: '',
+                qrisPreviewUrl: null,
+                
+                handleLogoChange(event) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        this.fileName = file.name;
+                        this.previewUrl = URL.createObjectURL(file);
+                    } else {
+                        this.fileName = '';
+                        this.previewUrl = null;
+                    }
+                },
+                
+                handleQrisChange(event) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        this.qrisFileName = file.name;
+                        this.qrisPreviewUrl = URL.createObjectURL(file);
+                    } else {
+                        this.qrisFileName = '';
+                        this.qrisPreviewUrl = null;
+                    }
+                }
+            }
+        }
+    </script>
 </x-app-layout>
