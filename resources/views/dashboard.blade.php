@@ -3,6 +3,9 @@
     <div class="px-4 sm:px-6 lg:px-8 py-8 bg-[#f5f7fb] min-h-screen overflow-x-hidden">
         
         @if($showOnboarding)
+        <p class="text-[14px] md:text-base text-gray-600 mb-5 leading-relaxed">
+            Selesaikan langkah-langkah di bawah ini untuk mengonfigurasi dan mengoperasikan sistem booking fotografi Anda secara terstruktur.
+        </p>
         <div class="bg-white border border-gray-200 rounded-[20px] p-4 md:p-6 shadow-sm mb-7">
             <div class="flex items-center gap-3 mb-4">
                 <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
