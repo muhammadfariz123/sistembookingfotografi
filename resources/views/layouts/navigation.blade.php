@@ -14,6 +14,18 @@
             },
         });
     });
+
+    document.addEventListener('turbo:before-cache', () => {
+        if (window.Alpine && window.Alpine.store('sidebar')) {
+            window.Alpine.store('sidebar').mobileOpen = false;
+        }
+    });
+    
+    document.addEventListener('turbo:visit', () => {
+        if (window.Alpine && window.Alpine.store('sidebar')) {
+            window.Alpine.store('sidebar').mobileOpen = false;
+        }
+    });
 </script>
 
 {{-- OVERLAY GELAP UNTUK MOBILE --}}
