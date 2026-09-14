@@ -142,10 +142,10 @@
                                 </div>
                                 <div>
                                     <div class="flex justify-between items-end mb-2">
-                                        <label class="block text-[14px] font-medium text-gray-700">Waktu Mulai <span class="text-gray-400 font-normal">(Opsional)</span></label>
+                                        <label class="block text-[14px] font-medium text-gray-700">Waktu Mulai <span class="text-red-500">*</span></label>
                                         <span x-show="selectedServiceDuration > 0 && bookingTime" x-cloak class="text-[11px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md" x-text="'Selesai: ' + sessionEndTime"></span>
                                     </div>
-                                    <input type="time" x-model="bookingTime" :disabled="multiDay" class="w-full h-[48px] rounded-xl border border-gray-300 px-4 text-[14px] outline-none shadow-sm focus:ring-2 focus:ring-blue-500/20">
+                                    <input type="time" x-model="bookingTime" :disabled="multiDay" :required="!multiDay" class="w-full h-[48px] rounded-xl border border-gray-300 px-4 text-[14px] outline-none shadow-sm focus:ring-2 focus:ring-blue-500/20">
                                 </div>
                             </div>
                             
@@ -160,10 +160,10 @@
                                 </div>
                                 <div>
                                     <div class="flex justify-between items-end mb-2">
-                                        <label class="block text-[14px] font-medium text-gray-700">Waktu Mulai <span class="text-gray-400 font-normal">(Opsional)</span></label>
+                                        <label class="block text-[14px] font-medium text-gray-700">Waktu Mulai <span class="text-red-500">*</span></label>
                                         <span x-show="selectedServiceDuration > 0 && bookingTime" x-cloak class="text-[11px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md" x-text="'Selesai: ' + sessionEndTime"></span>
                                     </div>
-                                    <input type="time" x-model="bookingTime" :disabled="!multiDay" class="w-full h-[48px] rounded-xl border border-gray-300 px-4 text-[14px] outline-none shadow-sm focus:ring-2 focus:ring-blue-500/20">
+                                    <input type="time" x-model="bookingTime" :disabled="!multiDay" :required="multiDay" class="w-full h-[48px] rounded-xl border border-gray-300 px-4 text-[14px] outline-none shadow-sm focus:ring-2 focus:ring-blue-500/20">
                                 </div>
                             </div>
 

@@ -25,7 +25,7 @@ class BookingRequest extends FormRequest
             'booking_date' => 'nullable|date',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
-            'booking_time' => 'nullable|date_format:H:i',
+            'booking_time' => 'required|date_format:H:i',
             // [DIPERBARUI]: Menambahkan seluruh status Workboard agar lolos validasi saat diedit
             'status' => 'required|in:Pending,Belum Bayar,Pembayaran Tertunda,Tunggu Konfirmasi,Dijadwalkan,File Original Disiapkan,Pilih Foto,Pilihan Diterima,Proses Edit,Selesai,Dibatalkan',
             'unit_price' => 'required|integer|min:0',
