@@ -120,7 +120,7 @@
                         <div class="min-w-0">
                             <p class="text-[12px] text-gray-500 font-semibold">Total Revenue</p>
                             <p class="text-[10px] text-gray-400 leading-tight mt-0.5">Total keseluruhan harga dari semua booking masuk</p>
-                            <p class="text-[16px] font-bold text-gray-900 mt-1 truncate">
+                            <p class="text-[16px] font-bold text-gray-900 mt-1 break-all">
                                 Rp {{ number_format($revenue, 0, ',', '.') }}
                             </p>
                         </div>
@@ -138,7 +138,7 @@
                         <div class="min-w-0">
                             <p class="text-[12px] text-gray-500 font-semibold">Sudah Diterima</p>
                             <p class="text-[10px] text-gray-400 leading-tight mt-0.5">Uang pembayaran dari klien yang sudah masuk</p>
-                            <p class="text-[16px] font-bold text-emerald-600 mt-1 truncate">
+                            <p class="text-[16px] font-bold text-emerald-600 mt-1 break-all">
                                 Rp {{ number_format($sudahDiterima, 0, ',', '.') }}
                             </p>
                         </div>
@@ -156,7 +156,7 @@
                         <div class="min-w-0">
                             <p class="text-[12px] text-gray-500 font-semibold">Total Piutang</p>
                             <p class="text-[10px] text-gray-400 leading-tight mt-0.5">Total sisa uang yang masih harus dilunasi klien</p>
-                            <p class="text-[16px] font-bold text-red-500 mt-1 truncate">
+                            <p class="text-[16px] font-bold text-red-500 mt-1 break-all">
                                 Rp {{ number_format($sisaTagihan, 0, ',', '.') }}
                             </p>
                         </div>
@@ -174,7 +174,7 @@
                         <div class="min-w-0">
                             <p class="text-[12px] text-gray-500 font-semibold">Tagihan Belum DP</p>
                             <p class="text-[10px] text-gray-400 leading-tight mt-0.5">Bagian dari piutang yang sama sekali belum DP</p>
-                            <p class="text-[16px] font-bold text-orange-500 mt-1 truncate">
+                            <p class="text-[16px] font-bold text-orange-500 mt-1 break-all">
                                 Rp {{ number_format($belumDibayar, 0, ',', '.') }}
                             </p>
                         </div>
@@ -192,7 +192,7 @@
                         <div class="min-w-0">
                             <p class="text-[12px] text-gray-500 font-semibold">Pemasukan Lain</p>
                             <p class="text-[10px] text-gray-400 leading-tight mt-0.5">Pemasukan uang di luar dari layanan booking</p>
-                            <p class="text-[16px] font-bold text-blue-600 mt-1 truncate">
+                            <p class="text-[16px] font-bold text-blue-600 mt-1 break-all">
                                 Rp {{ number_format($totalPemasukan, 0, ',', '.') }}
                             </p>
                         </div>
@@ -209,7 +209,7 @@
                         <div class="min-w-0">
                             <p class="text-[12px] text-gray-500 font-semibold">Pengeluaran</p>
                             <p class="text-[10px] text-gray-400 leading-tight mt-0.5">Segala biaya operasional & belanja usaha</p>
-                            <p class="text-[16px] font-bold text-red-600 mt-1 truncate">
+                            <p class="text-[16px] font-bold text-red-600 mt-1 break-all">
                                 Rp {{ number_format($totalPengeluaran, 0, ',', '.') }}
                             </p>
                         </div>
