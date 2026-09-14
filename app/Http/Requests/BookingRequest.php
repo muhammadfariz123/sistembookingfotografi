@@ -50,5 +50,6 @@ class BookingRequest extends FormRequest
             'end_date.after_or_equal' => 'Tanggal selesai harus setelah tanggal mulai.',
             'unit_price.min' => 'Harga tidak boleh negatif.',
             'link_gmaps.url' => 'Format URL Google Maps tidak valid.',
+        ];
     }
 }
