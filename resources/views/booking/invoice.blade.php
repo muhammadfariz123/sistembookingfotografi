@@ -244,7 +244,7 @@
         {{-- WATERMARK TIMESTAMP --}}
         <div class="text-center text-[10px] text-gray-400">
             Dibuat pada {{ \Carbon\Carbon::now()->translatedFormat('d M Y H:i') }} WIB<br>
-            {{ strtolower($company?->company_name ?: ($booking->user->name ?? 'Nama Usaha Anda')) }} - Powered by BookPhoto
+            {{ strtolower($company?->company_name ?: ($booking->user->name ?? 'Nama Usaha Anda')) }}
         </div>
 
     </div>

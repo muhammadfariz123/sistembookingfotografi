@@ -329,7 +329,7 @@
             </div>
 
             <p class="text-center text-[11px] text-gray-400 mt-8">
-                Pembayaran diverifikasi dalam 1x24 jam.<br>Powered by <b>BookPhoto</b>
+                Pembayaran diverifikasi dalam 1x24 jam.<br>Powered by <b>{{ $companySetting?->company_name ?: ($owner->name ?? 'Nama Usaha Anda') }}</b>
             </p>
         </div>
     </div>

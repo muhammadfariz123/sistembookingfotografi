@@ -316,7 +316,7 @@
             @if($companyPhone)
                 <p>Pertanyaan? Hubungi {{ $companyPhone }}</p>
             @endif
-            <p style="margin: 0; font-size: 12px; color: #9ca3af;">Powered by <b>BookPhoto</b></p>
+            <p style="margin: 0; font-size: 12px; color: #9ca3af;">Powered by <b>{{ $companyName }}</b></p>
         </div>
     </div>
 </body>

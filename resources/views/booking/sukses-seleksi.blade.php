@@ -84,7 +84,7 @@
     </div>
 
     <p class="text-center text-[11px] text-gray-400 mt-8">
-        Powered by <b>BookPhoto</b> · {{ $companyName }}
+        Powered by <b>{{ $companyName }}</b>
     </p>
 
 </body>

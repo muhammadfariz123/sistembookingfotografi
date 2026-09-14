@@ -119,7 +119,7 @@
             @if($companyPhone)
                 <p>Pertanyaan? Hubungi {{ $companyPhone }}</p>
             @endif
-            <p style="margin-top: 15px;">Powered by <b>BookPhoto</b></p>
+            <p style="margin-top: 15px;">Powered by <b>{{ $companyName }}</b></p>
         </div>
     </div>
 </body>

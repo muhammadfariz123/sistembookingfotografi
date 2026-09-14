@@ -831,7 +831,7 @@
         </div>
         
         <p class="text-center text-[11px] text-gray-400 mb-8">
-            Powered by <b>BookPhoto</b>
+            Powered by <b>{{ $companySetting?->company_name ?: ($owner->name ?? 'Nama Usaha Anda') }}</b>
         </p>
     </div>
 </body>

@@ -91,7 +91,7 @@
             @endif
             <p style="margin: 0 0 5px 0;">Email ini dikirim otomatis oleh sistem booking {{ $companyName }}.</p>
             <p style="margin: 0 0 15px 0;">Kalau kamu tidak merasa pernah booking, abaikan email ini.</p>
-            <p style="margin: 0; color: #9ca3af; font-size: 11px;">Powered by <b style="color:#f59e0b;">BookPhoto</b></p>
+            <p style="margin: 0; color: #9ca3af; font-size: 11px;">Powered by <b style="color:#f59e0b;">{{ $companyName }}</b></p>
         </div>
 
     </div>

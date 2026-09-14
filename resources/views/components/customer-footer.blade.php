@@ -35,7 +35,7 @@
     </div>
     <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center text-xs">
         <p>&copy; {{ date('Y') }} {{ $companySetting?->company_name ?? $owner->name }}. All rights reserved.</p>
-        <p class="mt-2 md:mt-0">Powered by <b class="text-brand">BookPhoto</b></p>
+        <p class="mt-2 md:mt-0">Powered by <b class="text-brand">{{ $companySetting?->company_name ?: ($owner->name ?? 'Nama Usaha Anda') }}</b></p>
     </div>
 </footer>
 

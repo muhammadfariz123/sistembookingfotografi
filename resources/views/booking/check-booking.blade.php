@@ -67,7 +67,7 @@
 
             <div class="mt-6 text-center">
                 <p class="text-xs text-gray-400">Kode booking dikirim ke email kamu setelah mengisi form.</p>
-                <p class="mt-6 text-[11px] text-gray-300">Powered by BookPhoto</p>
+                <p class="mt-6 text-[11px] text-gray-300">Powered by {{ $businessName }}</p>
             </div>
         </div>
     </main>
