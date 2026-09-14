@@ -329,7 +329,7 @@
                     </div>
 
                     <div class="pt-6 border-t border-gray-100 flex flex-col-reverse sm:flex-row justify-end gap-3">
-                        <a href="{{ route('dashboard') }}" class="h-[48px] px-6 rounded-xl border border-gray-300 text-gray-600 font-semibold text-[15px] flex items-center justify-center hover:bg-gray-50 transition-colors">
+                        <a href="{{ route('bookings.listPage') }}" class="h-[48px] px-6 rounded-xl border border-gray-300 text-gray-600 font-semibold text-[15px] flex items-center justify-center hover:bg-gray-50 transition-colors">
                             Batal
                         </a>
                         <button type="submit" :disabled="submitting" class="h-[48px] px-8 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[15px] shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 transition-all disabled:opacity-60">
@@ -571,7 +571,7 @@
                         customClass: { popup: 'rounded-[28px]' } 
                     });
 
-                    window.location.href = "{{ route('dashboard') }}"
+                    window.location.href = "{{ route('bookings.listPage') }}"
                 } catch {
                     Swal.fire({ icon:'error', title:'Gagal!', text:'Gagal terhubung ke server.', confirmButtonColor:'#2563eb' })
                 } finally { this.submitting = false }
