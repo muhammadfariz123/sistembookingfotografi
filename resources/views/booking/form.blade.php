@@ -232,11 +232,9 @@
                         <div class="relative flex flex-col">
                             <div class="relative flex items-center">
                                 {{-- DI SINI VALIDASI JAM OPERASIONAL FLATPIKR DIHILANGKAN, BEBAS 24 JAM --}}
-                                <input type="text" 
+                                <input type="time" 
                                     x-model="bookingTime" 
-                                    x-init="flatpickr($el, { enableTime: true, noCalendar: true, dateFormat: 'H:i', time_24hr: true, disableMobile: true, minuteIncrement: 30, onOpen: function(sd, ds, instance) { instance.input.blur(); }, onChange: function(sd, ds) { bookingTime = ds } })" 
                                     required 
-                                    placeholder="-- : --"
                                     class="w-full h-11 rounded-lg border-gray-300 focus:border-brand focus:ring-brand shadow-sm text-sm pl-4 pr-[75px] cursor-pointer bg-white">
                                 
                                 <div class="absolute right-3 flex items-center gap-1.5 text-gray-400 pointer-events-none">
