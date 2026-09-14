@@ -209,6 +209,13 @@
                     <i data-lucide="x-circle" class="w-7 h-7"></i>
                 </div>
                 <h3 class="text-white font-bold text-lg mb-2">Tolak Bukti Transfer?</h3>
+                
+                <div class="flex justify-center mb-4">
+                    <template x-if="selectedTx?.payment_proof">
+                        <img :src="getImageUrl(selectedTx?.payment_proof)" alt="Bukti Transfer" class="max-h-[250px] object-contain rounded-xl border border-gray-700 bg-black shadow-lg">
+                    </template>
+                </div>
+
                 <textarea x-model="rejectReason" class="w-full bg-[#27272a] border border-red-500/40 rounded-xl p-3 text-white text-sm mb-4 outline-none" rows="3" placeholder="Alasan penolakan..."></textarea>
                 <div class="flex gap-3 justify-center">
                     <button type="button" @click="rejectModalOpen = false" class="bg-[#27272a] hover:bg-[#3f3f46] border border-gray-700 text-white px-6 py-2.5 rounded-xl font-medium transition text-sm flex-1">
