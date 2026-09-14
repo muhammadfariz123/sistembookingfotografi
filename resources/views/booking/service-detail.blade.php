@@ -161,16 +161,18 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/glightbox/3.2.0/js/glightbox.min.js"></script>
     <script>
-        let activeLightbox = null;
+        window.activeLightbox = window.activeLightbox || null;
         function initLightbox() {
             if (typeof GLightbox === 'undefined') return;
-            if (activeLightbox) {
-                activeLightbox.destroy();
+            if (window.activeLightbox) {
+                window.activeLightbox.destroy();
             }
             if (document.querySelector('.glightbox')) {
-                activeLightbox = GLightbox({ 
+                window.activeLightbox = GLightbox({ 
                     selector: '.glightbox',
-                    loop: true
+                    loop: true,
+                    zoomable: true,
+                    touchNavigation: true
                 });
             }
         }
