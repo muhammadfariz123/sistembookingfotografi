@@ -76,14 +76,14 @@
                 <template x-if="summary.today_schedules && summary.today_schedules.length > 0">
                     <div class="space-y-3 overflow-y-auto max-h-[160px] pr-1">
                         <template x-for="jadwal in summary.today_schedules" :key="jadwal.id">
-                            <div class="flex items-center justify-between bg-gray-50/50 hover:bg-gray-50 border border-gray-100 p-3 rounded-xl transition">
+                            <a :href="`/bookings/${jadwal.id}/edit`" class="flex items-center justify-between bg-gray-50/50 hover:bg-white border border-gray-100 hover:border-blue-200 hover:shadow-sm p-3 rounded-xl transition cursor-pointer group">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex flex-col items-center justify-center font-bold">
+                                    <div class="w-10 h-10 rounded-lg bg-blue-50 group-hover:bg-blue-100 text-blue-600 flex flex-col items-center justify-center font-bold transition">
                                         <span class="text-[12px] leading-none" x-text="(jadwal.booking_time || '00:00').split(':')[0]"></span>
                                         <span class="text-[10px] leading-none opacity-80" x-text="(jadwal.booking_time || '00:00').split(':')[1]"></span>
                                     </div>
                                     <div>
-                                        <p class="text-[13px] font-bold text-gray-900 leading-tight" x-text="jadwal.client_name"></p>
+                                        <p class="text-[13px] font-bold text-gray-900 leading-tight group-hover:text-blue-600 transition" x-text="jadwal.client_name"></p>
                                         <p class="text-[11px] text-gray-500" x-text="jadwal.service_type?.name"></p>
                                     </div>
                                 </div>
@@ -91,7 +91,7 @@
                                     :class="jadwal.status === 'Dijadwalkan' ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'"
                                     x-text="jadwal.status">
                                 </span>
-                            </div>
+                            </a>
                         </template>
                     </div>
                 </template>
