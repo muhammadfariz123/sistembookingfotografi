@@ -561,6 +561,16 @@
                     if (res.status === 422) { this.submitErrors = result.errors ?? {}; return }
                     if (!res.ok) throw new Error(result.message)
                     
+                    await Swal.fire({ 
+                        icon: 'success', 
+                        title: 'Berhasil!', 
+                        text: result.message ?? 'Booking berhasil disimpan.', 
+                        confirmButtonColor: '#2563eb', 
+                        timer: 2000, 
+                        showConfirmButton: false, 
+                        customClass: { popup: 'rounded-[28px]' } 
+                    });
+
                     window.location.href = "{{ route('dashboard') }}"
                 } catch {
                     Swal.fire({ icon:'error', title:'Gagal!', text:'Gagal terhubung ke server.', confirmButtonColor:'#2563eb' })
