@@ -190,7 +190,7 @@
                     </div>
                 </div>
 
-                <div class="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-3 text-sm text-amber-800">
+                <div id="info-hari-ini-box" class="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-3 text-sm text-amber-800 transition-all duration-300">
                     <svg class="w-5 h-5 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                     <div>
                         <p class="font-bold mb-1">Penting untuk Pemesanan Hari Ini:</p>
@@ -561,7 +561,15 @@
                             }
                             
                             if (startMin < minAllowedMin) {
-                                this.showError(`Untuk pemesanan hari ini, jam paling awal yang bisa Anda pilih adalah pukul ${this.minTimeToday} WIB untuk waktu persiapan tim.`);
+                                this.errorMsg = '';
+                                this.$nextTick(() => {
+                                    const infoEl = document.getElementById('info-hari-ini-box');
+                                    if (infoEl) {
+                                        infoEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                        infoEl.classList.add('ring-4', 'ring-amber-300');
+                                        setTimeout(() => infoEl.classList.remove('ring-4', 'ring-amber-300'), 1500);
+                                    }
+                                });
                                 return;
                             }
                         }
@@ -592,7 +600,15 @@
 
                                     // Rumus Tabrakan: (Start Baru < End Lama) DAN (End Baru > Start Lama)
                                     if (startMin < existEndMin && newEndMin > existStartMin) {
-                                        this.showError(`Waktu bertabrakan! Tim kami sudah memiliki jadwal pukul ${slot.text} pada tanggal ${this.formatDateLocal(d)}. Mohon pilih jam atau tanggal lain.`);
+                                        this.errorMsg = '';
+                                        this.$nextTick(() => {
+                                            const infoEl = document.getElementById('info-ketersediaan-box');
+                                            if (infoEl) {
+                                                infoEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                                infoEl.classList.add('ring-4', 'ring-yellow-400');
+                                                setTimeout(() => infoEl.classList.remove('ring-4', 'ring-yellow-400'), 1500);
+                                            }
+                                        });
                                         return;
                                     }
                                 }
