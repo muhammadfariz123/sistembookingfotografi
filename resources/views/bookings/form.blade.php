@@ -475,7 +475,7 @@
                     paidAmount: parseInt(booking.paid_amount) || 0,
                     notes: booking.notes ?? '', 
                     showSummary: true,
-                    paymentProofUrl: booking.payment_proof ? '/file/' + booking.payment_proof : null,
+                    paymentProofUrl: booking.payment_proof ? '{{ asset("storage") }}/' + booking.payment_proof : null,
                     
                     // Assign Workboard Data Edit
                     linkFolder: booking.link_folder_kerja ?? '',

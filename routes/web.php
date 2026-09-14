@@ -44,13 +44,7 @@ Route::post('/seleksi/{bookingCode}/submit', [PublicBookingController::class, 's
 
 // Route untuk halaman sukses setelah kirim
 Route::get('/seleksi/{bookingCode}/selesai', [PublicBookingController::class, 'successPage'])->name('booking.public.success');
-// Rute Akses File Lokal (Bypass Storage Symlink untuk Shared Hosting)
-Route::get('/file/{path}', function ($path) {
-    if (!\Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
-        abort(404);
-    }
-    return \Illuminate\Support\Facades\Storage::disk('public')->response($path);
-})->where('path', '.*')->name('file.serve');
+
 
 // Rute Invoice untuk Klien
 Route::get('/invoices/{booking}', [InvoiceController::class, 'show'])->name('invoice.show');
