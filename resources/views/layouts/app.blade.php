@@ -7,6 +7,7 @@
     <title>{{ $companyName ?? config('app.name', 'Sistem Booking') }}</title>
 
     <!-- Optimasi Jaringan -->
+    <meta name="turbo-cache-control" content="no-cache">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://unpkg.com">
@@ -90,6 +91,13 @@
         } else {
             initApp();
         }
+
+        window.addEventListener('pageshow', function (event) {
+            // Memaksa halaman untuk reload dari server jika dimuat dari bfcache
+            if (event.persisted) {
+                window.location.reload();
+            }
+        });
 
         document.addEventListener('turbo:load', initApp);
         document.addEventListener('alpine:updated', () => {
