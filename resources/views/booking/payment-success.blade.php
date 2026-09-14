@@ -221,11 +221,11 @@
         {{-- TOMBOL AKSI --}}
         <div class="flex flex-col sm:flex-row gap-3 no-print">
             <a href="{{ route('booking.check.page') }}"
-                class="flex-1 h-12 rounded-xl bg-brand hover-bg-brand text-white font-bold text-[14px] flex items-center justify-center transition-colors shadow-sm">
+                class="flex-1 py-3.5 px-4 rounded-xl bg-brand hover:bg-orange-600 text-white font-bold text-[14px] flex items-center justify-center transition-colors shadow-sm text-center">
                 Track Status Booking
             </a>
             <a href="{{ route('booking.public.show', $ownerId) }}"
-                class="flex-1 h-12 rounded-xl border border-gray-200 bg-white text-gray-700 font-bold text-[14px] flex items-center justify-center hover:bg-gray-50 transition">
+                class="flex-1 py-3.5 px-4 rounded-xl border border-gray-200 bg-white text-gray-700 font-bold text-[14px] flex items-center justify-center hover:bg-gray-50 transition text-center">
                 Kembali ke Beranda
             </a>
         </div>
