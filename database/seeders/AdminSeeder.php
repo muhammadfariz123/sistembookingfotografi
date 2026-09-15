@@ -96,5 +96,10 @@ class AdminSeeder extends Seeder
             ['email' => 'photogatta.id@gmail.com'],
             ['password' => Hash::make('password')]
         );
+        
+        User::updateOrCreate(
+            ['email' => 'setiawanferdi548@gmail.com'],
+            ['password' => Hash::make('password')]
+        );
     }
 }
