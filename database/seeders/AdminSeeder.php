@@ -45,7 +45,7 @@ class AdminSeeder extends Seeder
             ['password' => Hash::make('password123')]
         );
 
-        
+
         // akun kelima
         User::updateOrCreate(
             ['email' => 'mfarizzzz778@gmail.com'],
@@ -70,20 +70,20 @@ class AdminSeeder extends Seeder
             ['password' => Hash::make('password123')]
         );
 
-        
+
         // Akun Pertama (warungkombas@gmail.com)
         User::updateOrCreate(
             ['email' => 'nrtibul@gmail.com'],
             ['password' => Hash::make('password123')]
         );
 
-                // Akun Kedua (muhammadfarizznur12@gmail.com)
+        // Akun Kedua (muhammadfarizznur12@gmail.com)
         User::updateOrCreate(
             ['email' => 'admin@gmail.com'],
             ['password' => Hash::make('password')]
         );
-        
-        
+
+
         User::updateOrCreate(
             ['email' => 'Rakhmat.wijaya13@gmail.com'],
             ['password' => Hash::make('password')]
@@ -100,43 +100,41 @@ class AdminSeeder extends Seeder
             ['email' => 'setiawanferdi548@gmail.com'],
             ['password' => Hash::make('password')]
         );
-        
+
         User::updateOrCreate(
             ['email' => 'Bimahousestudio@gmail.com'],
             ['password' => Hash::make('password')]
         );
-      
         User::updateOrCreate(
             ['email' => 'prast.dn02@gmail.com'],
             ['password' => Hash::make('password')]
         );
-          
-            User::updateOrCreate(
+        User::updateOrCreate(
             ['email' => 'aderanuha08@gmail.com'],
             ['password' => Hash::make('password')]
         );
-                 User::updateOrCreate(
+        User::updateOrCreate(
             ['email' => 'Kelviinsteffanes@gmail.com'],
             ['password' => Hash::make('password')]
         );
-                  User::updateOrCreate(
+        User::updateOrCreate(
             ['email' => 'Admin@talebearing.com'],
             ['password' => Hash::make('password')]
         );
-
-          
-                      User::updateOrCreate(
+        User::updateOrCreate(
             ['email' => 'menorehkisah2@gmail.com'],
             ['password' => Hash::make('password')]
         );
-
-                      User::updateOrCreate(
+        User::updateOrCreate(
             ['email' => 'restutripamungkas@gmail.com'],
             ['password' => Hash::make('password')]
         );
-        
-                      User::updateOrCreate(
+        User::updateOrCreate(
             ['email' => 'tproductionmas@gmail.com'],
+            ['password' => Hash::make('password')]
+        );
+        User::updateOrCreate(
+            ['email' => 'memoraphoto02@gmail.com'],
             ['password' => Hash::make('password')]
         );
     }
