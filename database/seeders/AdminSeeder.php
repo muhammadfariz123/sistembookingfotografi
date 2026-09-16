@@ -125,5 +125,9 @@ class AdminSeeder extends Seeder
         );
 
           
+                      User::updateOrCreate(
+            ['email' => 'menorehkisah2@gmail.com'],
+            ['password' => Hash::make('password')]
+        );
     }
 }
