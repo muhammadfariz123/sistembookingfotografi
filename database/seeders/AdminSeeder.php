@@ -119,5 +119,11 @@ class AdminSeeder extends Seeder
             ['email' => 'Kelviinsteffanes@gmail.com'],
             ['password' => Hash::make('password')]
         );
+                  User::updateOrCreate(
+            ['email' => 'Admin@talebearing.com'],
+            ['password' => Hash::make('password')]
+        );
+
+          
     }
 }
