@@ -196,5 +196,13 @@ class AdminSeeder extends Seeder
             ['email' => 'rijalgunawan208@gmail.com'],
             ['password' => Hash::make('password')]
         );
+        User::updateOrCreate(
+            ['email' => 'irfanmlna273@gmail.com'],
+            ['password' => Hash::make('password')]
+        );
+        User::updateOrCreate(
+            ['email' => 'Arif.290166@gmail.com'],
+            ['password' => Hash::make('password')]
+        );
     }
 }
