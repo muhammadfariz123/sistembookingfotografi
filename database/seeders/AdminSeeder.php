@@ -228,5 +228,9 @@ class AdminSeeder extends Seeder
             ['email' => 'Nhsstudio2021@gmail.com'],
             ['password' => Hash::make('password')]
         );
+        User::updateOrCreate(
+            ['email' => 'dryestudio2026@gmail.com'],
+            ['password' => Hash::make('password')]
+        );
     }
 }
