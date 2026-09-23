@@ -252,6 +252,10 @@ class AdminSeeder extends Seeder
             ['email' => 'bermuaramoment@gmail.com'],
             ['password' => Hash::make('password')]
         );
+        User::updateOrCreate(
+            ['email' => 'tastephoto@xholix.my.id'],
+            ['password' => Hash::make('password')]
+        );
 
     }
 }
