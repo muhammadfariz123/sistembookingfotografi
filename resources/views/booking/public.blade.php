@@ -68,7 +68,7 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-                @foreach($services->take(6) as $service)
+                @foreach($services as $service)
                     @php $catName = $service->category ? $service->category->name : 'Lain-lain'; @endphp
                     
                     <div x-show="activeCategory === 'Semua' || activeCategory === '{{ $catName }}'" x-transition.opacity 
@@ -99,14 +99,7 @@
                 @endforeach
             </div>
 
-            @if($services->count() > 6)
-                <div class="text-center mt-12">
-                    <a href="{{ route('booking.services.all', $ownerId) }}" class="inline-flex items-center justify-center gap-2 border border-gray-200 bg-white text-gray-600 px-6 py-3 rounded-full text-sm font-semibold hover:bg-gray-50 transition shadow-sm">
-                        Lihat Semua Paket
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                    </a>
-                </div>
-            @endif
+
         @endif
     </div>
 

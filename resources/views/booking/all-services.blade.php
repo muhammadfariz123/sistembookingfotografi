@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800&display=swap" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
         body { font-family: 'Inter', sans-serif; }
         .bg-brand { background-color: #f59e0b; }
@@ -17,7 +18,7 @@
 
     <x-customer-navbar :owner="$owner" :companySetting="$companySetting" :ownerId="$ownerId" showHome="true" />
 
-    <main class="flex-grow max-w-6xl mx-auto w-full py-16 px-4">
+    <main class="flex-grow max-w-6xl mx-auto w-full py-16 px-4" x-data="{ activeCategory: 'Semua' }">
         <div class="mb-10 text-center flex flex-col items-center">
             <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight mb-4">Semua Layanan Paket Foto</h1>
             <p class="text-gray-500 text-sm md:text-base max-w-2xl mx-auto">
@@ -35,10 +36,27 @@
                 $groupedServices = $services->groupBy(function($item) {
                     return $item->category ? trim($item->category->name) : 'Lain-lain';
                 });
+                
+                $categories = $groupedServices->keys();
             @endphp
 
+            <div class="flex flex-wrap justify-center gap-2 mb-10 max-w-4xl mx-auto">
+                <button @click="activeCategory = 'Semua'" 
+                        :class="activeCategory === 'Semua' ? 'bg-brand text-white border-brand' : 'bg-white text-gray-600 hover:bg-gray-100 border-gray-200'"
+                        class="px-5 py-2.5 rounded-full text-sm font-semibold transition-colors border shadow-sm">
+                    Semua Layanan
+                </button>
+                @foreach($categories as $category)
+                    <button @click="activeCategory = '{{ $category }}'" 
+                            :class="activeCategory === '{{ $category }}' ? 'bg-brand text-white border-brand' : 'bg-white text-gray-600 hover:bg-gray-100 border-gray-200'"
+                            class="px-5 py-2.5 rounded-full text-sm font-semibold transition-colors border shadow-sm">
+                        {{ $category }}
+                    </button>
+                @endforeach
+            </div>
+
             @foreach($groupedServices as $categoryName => $catServices)
-                <div class="mb-16">
+                <div class="mb-16" x-show="activeCategory === 'Semua' || activeCategory === '{{ $categoryName }}'" x-transition.opacity>
                     {{-- Judul Kategori --}}
                     <div class="flex items-center gap-4 mb-6">
                         <h2 class="text-xl md:text-2xl font-bold text-gray-900 uppercase tracking-wide">{{ $categoryName }}</h2>
