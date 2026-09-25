@@ -173,14 +173,6 @@ class PublicBookingController extends Controller
         return view('booking.service-detail', compact('service', 'owner', 'companySetting', 'ownerId'));
     }
 
-    public function allServices(string $ownerId)
-    {
-        $owner = User::findOrFail($ownerId);
-        $services = ServiceType::with('category')->where('user_id', $owner->id)->orderBy('name')->get();
-        $companySetting = CompanySetting::where('user_id', $owner->id)->first();
-
-        return view('booking.all-services', compact('owner', 'services', 'companySetting', 'ownerId'));
-    }
 
     public function serviceGallery(string $ownerId, string $serviceId)
     {

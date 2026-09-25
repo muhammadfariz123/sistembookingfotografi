@@ -38,7 +38,7 @@ Route::get('/cek-booking', [PublicBookingController::class, 'checkPage'])->name(
 Route::get('/cek-booking/result', [PublicBookingController::class, 'checkResult'])->name('booking.check.result');
 Route::get('/booking/{ownerId}/service/{serviceId}', [PublicBookingController::class, 'serviceDetail'])->name('booking.service.detail');
 Route::get('/booking/{ownerId}/service/{serviceId}/gallery', [PublicBookingController::class, 'serviceGallery'])->name('booking.service.gallery');
-Route::get('/booking/{ownerId}/services', [PublicBookingController::class, 'allServices'])->name('booking.services.all');
+
 // Route untuk submit pilihan foto
 Route::post('/seleksi/{bookingCode}/submit', [PublicBookingController::class, 'submitSelection'])->name('booking.public.submit');
 
