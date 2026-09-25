@@ -150,7 +150,7 @@
         </div>
 
         <div class="mt-12 text-center lg:text-left">
-            <a href="{{ route('booking.services.all', $ownerId) }}" class="inline-flex items-center justify-center gap-2 border-2 border-gray-300 text-gray-700 px-8 py-3 rounded-xl text-sm font-bold hover:bg-gray-50 transition">
+            <a href="{{ route('booking.public.show', $ownerId) }}#paket" class="inline-flex items-center justify-center gap-2 border-2 border-gray-300 text-gray-700 px-8 py-3 rounded-xl text-sm font-bold hover:bg-gray-50 transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                 Lihat Semua Paket
             </a>
