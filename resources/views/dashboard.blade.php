@@ -8,26 +8,36 @@
             $percent = ($completedCount / 8) * 100;
         @endphp
         
-        <div x-data="{ expanded: {{ $completedCount >= 6 ? 'false' : 'true' }} }" class="bg-white border border-gray-200 rounded-[20px] shadow-sm mb-7 overflow-hidden">
+        <div x-data="{ expanded: {{ $completedCount >= 6 ? 'false' : 'true' }}, dismissed: localStorage.getItem('onboarding_dismissed') === 'true' }" 
+             x-show="!dismissed"
+             class="bg-white border border-gray-200 rounded-[20px] shadow-sm mb-7 overflow-hidden transition-all duration-300">
             <!-- Header (Clickable) -->
-            <button @click="expanded = !expanded" class="w-full text-left p-4 md:p-6 flex items-center justify-between hover:bg-gray-50 transition">
+            <div class="w-full text-left p-4 md:p-6 flex flex-col sm:flex-row sm:items-center justify-between hover:bg-gray-50 transition cursor-pointer gap-4" @click="expanded = !expanded">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
                         <i data-lucide="compass" class="w-5 h-5 md:w-6 md:h-6"></i>
                     </div>
                     <div>
-                        <h2 class="text-[18px] md:text-xl font-bold text-gray-900 leading-tight mb-1">Panduan Pengoperasian</h2>
-                        <div class="flex items-center gap-2 text-[13px] md:text-sm text-gray-500 font-medium" x-show="!expanded">
-                            <span class="text-blue-600 font-bold">{{ $completedCount }} dari 8 Selesai ({{ round($percent) }}%)</span>
+                        <h2 class="text-[16px] md:text-xl font-bold text-gray-900 leading-tight mb-1">Panduan Pengoperasian</h2>
+                        <div class="flex items-center gap-2 text-[12px] md:text-sm text-gray-500 font-medium" x-show="!expanded">
+                            <span class="text-blue-600 font-bold">{{ $completedCount }} dari 8 Selesai</span>
                             <span>&bull;</span>
-                            <span>Lanjutkan Setup</span>
+                            <span>Klik untuk melanjutkan</span>
                         </div>
                     </div>
                 </div>
-                <div class="shrink-0 p-2 bg-gray-100 rounded-full text-gray-400">
-                    <i data-lucide="chevron-down" class="w-5 h-5 transition-transform duration-300" :class="expanded ? 'rotate-180' : ''"></i>
+                <div class="flex items-center gap-2 self-end sm:self-auto">
+                    <!-- Tombol Expand/Collapse -->
+                    <button class="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-full text-[13px] font-bold text-gray-600 transition-colors">
+                        <span x-text="expanded ? 'Tutup' : 'Lihat'"></span>
+                        <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-300" :class="expanded ? 'rotate-180' : ''"></i>
+                    </button>
+                    <!-- Tombol Dismiss -->
+                    <button @click.stop="dismissed = true; localStorage.setItem('onboarding_dismissed', 'true')" class="flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 rounded-full text-[13px] font-bold text-red-600 transition-colors" title="Sembunyikan Panduan secara permanen">
+                        <i data-lucide="x" class="w-4 h-4"></i> <span class="hidden sm:inline">Sembunyikan</span>
+                    </button>
                 </div>
-            </button>
+            </div>
             
             <!-- Isi Panduan -->
             <div x-show="expanded" class="px-4 md:px-6 pb-4 md:pb-6 border-t border-gray-100 pt-4 md:pt-6">
