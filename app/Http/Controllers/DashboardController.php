@@ -60,8 +60,7 @@ class DashboardController extends Controller
         // 9. Laporan Keuangan
         $hasFinancial = session('onboarding_financial_viewed', false);
 
-        // 10. Unduh Excel Data
-        $hasExported = session('onboarding_excel_downloaded', false);
+
 
         $checklist = [
             'settings' => $hasSettings,
@@ -72,11 +71,10 @@ class DashboardController extends Controller
             'workboard' => $hasWorkboard,
             'transactions' => $hasTransaction,
             'financial' => $hasFinancial,
-            'export' => $hasExported,
         ];
 
         // Jika semua checklist sudah true, maka $showOnboarding = false
-        $showOnboarding = !($hasSettings && $hasCategory && $hasService && $hasBooking && $hasCalendar && $hasWorkboard && $hasTransaction && $hasFinancial && $hasExported);
+        $showOnboarding = !($hasSettings && $hasCategory && $hasService && $hasBooking && $hasCalendar && $hasWorkboard && $hasTransaction && $hasFinancial);
 
         return view('dashboard', [
             'services' => $services,
@@ -111,7 +109,6 @@ class DashboardController extends Controller
 
         $hasTransaction = PaymentTransaction::where('user_id', $userId)->exists();
         $hasFinancial = session('onboarding_financial_viewed', false);
-        $hasExported = session('onboarding_excel_downloaded', false);
 
         $checklist = [
             'settings' => $hasSettings,
@@ -122,7 +119,6 @@ class DashboardController extends Controller
             'workboard' => $hasWorkboard,
             'transactions' => $hasTransaction,
             'financial' => $hasFinancial,
-            'export' => $hasExported,
         ];
 
         return view('bantuan', [

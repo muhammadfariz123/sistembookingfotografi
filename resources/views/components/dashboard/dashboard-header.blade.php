@@ -98,10 +98,12 @@
 
                 {{-- Jika Kosong --}}
                 <template x-if="!summary.today_schedules || summary.today_schedules.length === 0">
-                    <div class="flex flex-col items-center justify-center h-[120px] opacity-70">
-                        <span class="text-3xl mb-2">📅</span>
+                    <div class="flex flex-col items-center justify-center h-[130px]">
+                        <span class="text-3xl mb-2 opacity-70">📅</span>
                         <p class="text-[13px] font-semibold text-gray-600">Tidak ada sesi hari ini</p>
-                        <p class="text-[11px] text-gray-400">Waktunya istirahat! 🎉</p>
+                        <a href="{{ route('booking.public.form', ['ownerId' => Auth::id()]) }}" target="_blank" class="mt-2 text-[11px] font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-full transition-colors">
+                            + Tambah Sesi Baru
+                        </a>
                     </div>
                 </template>
             </div>
@@ -117,10 +119,7 @@
                     <i data-lucide="plus-circle" class="w-4 h-4"></i> Tambah Booking Baru
                 </a>
                 
-                {{-- [DIUBAH]: Mengarah ke route bookings.calendar --}}
-                <a href="{{ route('bookings.calendar') }}" class="h-[46px] w-full rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-blue-600 font-bold text-[13px] flex items-center justify-center gap-2 transition-all">
-                    <i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i> Kalender
-                </a>
+
 
                 <a href="{{ route('service-types.index') }}" class="h-[46px] w-full rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-blue-600 font-bold text-[13px] flex items-center justify-center gap-2 transition-all">
                     <i data-lucide="briefcase" class="w-4 h-4 text-gray-400"></i> Kelola Layanan / Paket
@@ -188,7 +187,7 @@ function dashboardHeader(initialSummary = null) {
         },
 
         formatShortCurrency(value) {
-            if (!value || value === 0) return 'Rp 0k';
+            if (!value || value === 0) return 'Rp 0';
             if (value >= 1000000000) return 'Rp ' + (value / 1000000000).toFixed(1).replace('.0', '') + 'M';
             if (value >= 1000000) return 'Rp ' + (value / 1000000).toFixed(1).replace('.0', '') + 'jt';
             if (value >= 1000) return 'Rp ' + (value / 1000).toFixed(0) + 'k';

@@ -3,39 +3,51 @@
     <div class="px-4 sm:px-6 lg:px-8 py-8 bg-[#f5f7fb] min-h-screen overflow-x-hidden">
         
         @if($showOnboarding)
-        <p class="text-[14px] md:text-base text-gray-600 mb-5 leading-relaxed">
-            Selesaikan langkah-langkah di bawah ini untuk mengonfigurasi dan mengoperasikan sistem booking fotografi Anda secara terstruktur.
-        </p>
-        <div class="bg-white border border-gray-200 rounded-[20px] p-4 md:p-6 shadow-sm mb-7">
-            <div class="flex items-center gap-3 mb-4">
-                <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                    <i data-lucide="compass" class="w-5 h-5 md:w-6 md:h-6"></i>
+        @php
+            $completedCount = collect($checklist)->filter()->count();
+            $percent = ($completedCount / 8) * 100;
+        @endphp
+        
+        <div x-data="{ expanded: {{ $completedCount >= 6 ? 'false' : 'true' }} }" class="bg-white border border-gray-200 rounded-[20px] shadow-sm mb-7 overflow-hidden">
+            <!-- Header (Clickable) -->
+            <button @click="expanded = !expanded" class="w-full text-left p-4 md:p-6 flex items-center justify-between hover:bg-gray-50 transition">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                        <i data-lucide="compass" class="w-5 h-5 md:w-6 md:h-6"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-[18px] md:text-xl font-bold text-gray-900 leading-tight mb-1">Panduan Pengoperasian</h2>
+                        <div class="flex items-center gap-2 text-[13px] md:text-sm text-gray-500 font-medium" x-show="!expanded">
+                            <span class="text-blue-600 font-bold">{{ $completedCount }} dari 8 Selesai ({{ round($percent) }}%)</span>
+                            <span>&bull;</span>
+                            <span>Lanjutkan Setup</span>
+                        </div>
+                    </div>
                 </div>
-                <h2 class="text-[18px] md:text-xl font-bold text-gray-900 leading-tight">Panduan Pengoperasian</h2>
-            </div>
+                <div class="shrink-0 p-2 bg-gray-100 rounded-full text-gray-400">
+                    <i data-lucide="chevron-down" class="w-5 h-5 transition-transform duration-300" :class="expanded ? 'rotate-180' : ''"></i>
+                </div>
+            </button>
             
-            <p class="text-[13px] md:text-sm text-gray-500 mb-6 leading-relaxed">
-                Pengecekan otomatis di bawah ini didasarkan pada data nyata di database. Klik pada setiap langkah untuk menuju ke halaman terkait.
-            </p>
+            <!-- Isi Panduan -->
+            <div x-show="expanded" class="px-4 md:px-6 pb-4 md:pb-6 border-t border-gray-100 pt-4 md:pt-6">
+                <p class="text-[13px] md:text-sm text-gray-500 mb-6 leading-relaxed">
+                    Selesaikan langkah-langkah di bawah ini untuk mengonfigurasi dan mengoperasikan sistem booking fotografi Anda secara terstruktur. Pengecekan otomatis didasarkan pada data nyata di database.
+                </p>
 
-            @php
-                $completedCount = collect($checklist)->filter()->count();
-                $percent = ($completedCount / 9) * 100;
-            @endphp
-
-            <!-- Progress Bar -->
-            <div class="bg-gray-50 border border-gray-100 p-4 rounded-2xl mb-6">
-                <div class="flex flex-col gap-1 mb-3">
-                    <span class="text-[12px] font-semibold text-gray-600">Status Setup Sistem</span>
-                    <span class="text-blue-600 text-[14px] font-bold">{{ $completedCount }} dari 9 Langkah Selesai ({{ round($percent) }}%)</span>
+                <!-- Progress Bar -->
+                <div class="bg-gray-50 border border-gray-100 p-4 rounded-2xl mb-6">
+                    <div class="flex flex-col gap-1 mb-3">
+                        <span class="text-[12px] font-semibold text-gray-600">Status Setup Sistem</span>
+                        <span class="text-blue-600 text-[14px] font-bold">{{ $completedCount }} dari 8 Langkah Selesai ({{ round($percent) }}%)</span>
+                    </div>
+                    <div class="w-full bg-gray-200 h-2.5 rounded-full overflow-hidden">
+                        <div class="bg-blue-600 h-2.5 rounded-full transition-all duration-500" style="width: {{ $percent }}%"></div>
+                    </div>
                 </div>
-                <div class="w-full bg-gray-200 h-2.5 rounded-full overflow-hidden">
-                    <div class="bg-blue-600 h-2.5 rounded-full transition-all duration-500" style="width: {{ $percent }}%"></div>
-                </div>
-            </div>
 
-            <!-- Grid Steps -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 items-stretch">
+                <!-- Grid Steps -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 items-stretch">
                 
                 <!-- Langkah 1 -->
                 <a href="{{ route('company-setting.edit') }}" 
@@ -237,31 +249,7 @@
                      @endif
                  </a>
 
-                 <!-- Langkah 9 -->
-                 <a href="{{ route('bookings.export') }}" data-turbo="false" onclick="setTimeout(() => { if(window.hideGlobalLoader) window.hideGlobalLoader(); if(window.Turbo) window.Turbo.visit(window.location.href, { action: 'replace' }) }, 1000)" 
-                    class="flex items-center justify-between p-3 md:p-4 rounded-xl border transition-all duration-300 group h-full
-                    {{ $checklist['export'] 
-                        ? 'bg-emerald-50/30 border-emerald-100 text-emerald-800 font-medium' 
-                        : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-sm text-gray-800' }}">
-                     <div class="flex items-center gap-3">
-                         <div class="w-8 h-8 rounded-full shrink-0 flex items-center justify-center font-bold text-sm
-                             {{ $checklist['export'] ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-400 group-hover:bg-blue-50 group-hover:text-blue-600' }}">
-                             @if($checklist['export'])
-                                 <i data-lucide="check" class="w-4 h-4"></i>
-                             @else
-                                 9
-                             @endif
-                         </div>
-                         <div>
-                             <h4 class="text-sm font-bold leading-tight mb-0.5">9. Unduh Excel Data</h4>
-                             <p class="text-[11px] text-gray-400 leading-snug">Ekspor data booking ke Excel</p>
-                         </div>
-                     </div>
-                     @if(!$checklist['export'])
-                         <i data-lucide="chevron-right" class="w-4 h-4 text-gray-300 group-hover:text-blue-500 group-hover:translate-x-0.5 transition shrink-0 ml-2"></i>
-                     @endif
-                 </a>
-
+            </div>
             </div>
         </div>
     @endif
