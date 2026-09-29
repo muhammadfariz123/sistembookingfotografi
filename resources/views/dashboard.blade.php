@@ -42,8 +42,11 @@
                 </div>
                 
                 <!-- Konten Tutorial (Bisa diklik) -->
-                <a :href="steps[currentIndex].route" class="flex-1 group block hover:bg-gray-50 p-2 -ml-2 rounded-xl transition-colors cursor-pointer" title="Klik untuk membuka halaman ini">
-                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Panduan Pengoperasian</p>
+                <a :href="steps[currentIndex].route" class="flex-1 group block border border-gray-200 hover:border-blue-300 hover:bg-blue-50/50 hover:shadow-sm p-3 sm:px-4 rounded-xl transition-all duration-300 cursor-pointer" title="Klik untuk membuka halaman ini">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Panduan Pengoperasian
+                    </p>
                     <div class="flex flex-wrap items-center gap-2 mb-0.5 md:mb-1">
                         <!-- Status Badge -->
                         <span x-show="steps[currentIndex].completed" class="text-[10px] md:text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full flex items-center gap-1" style="display: none;">
