@@ -18,43 +18,72 @@
             ];
 
             // Cari langkah pertama yang belum selesai
-            $nextStep = null;
-            foreach ($stepsData as $step) {
+            $firstUncompletedIndex = 0;
+            foreach ($stepsData as $index => $step) {
                 if (!$step['completed']) {
-                    $nextStep = $step;
+                    $firstUncompletedIndex = $index;
                     break;
                 }
             }
         @endphp
         
-        @if($nextStep)
-        <div x-data="{ dismissed: localStorage.getItem('onboarding_dismissed') === 'true' }" 
+        <div x-data="{ 
+                steps: {{ json_encode($stepsData) }},
+                currentIndex: {{ $firstUncompletedIndex }},
+                dismissed: localStorage.getItem('onboarding_dismissed') === 'true'
+             }" 
              x-show="!dismissed"
              class="bg-white border border-gray-200 rounded-[20px] shadow-sm mb-7 p-4 md:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all duration-300">
             
             <div class="flex items-center gap-3 md:gap-4 flex-1">
+                <!-- Ikon Kiri -->
                 <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
                     <i data-lucide="compass" class="w-5 h-5 md:w-6 md:h-6"></i>
                 </div>
-                <div class="flex-1">
+                
+                <!-- Konten Tutorial (Bisa diklik) -->
+                <a :href="steps[currentIndex].route" class="flex-1 group block hover:bg-gray-50 p-2 -ml-2 rounded-xl transition-colors cursor-pointer" title="Klik untuk membuka halaman ini">
                     <div class="flex flex-wrap items-center gap-2 mb-0.5 md:mb-1">
-                        <span class="text-[10px] md:text-[11px] font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full whitespace-nowrap">{{ $completedCount }}/8 Selesai</span>
-                        <h2 class="text-[14px] md:text-base font-bold text-gray-900 leading-tight">Selanjutnya: {{ $nextStep['title'] }}</h2>
+                        <!-- Status Badge -->
+                        <span x-show="steps[currentIndex].completed" class="text-[10px] md:text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full flex items-center gap-1" style="display: none;">
+                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg> Selesai
+                        </span>
+                        <span x-show="!steps[currentIndex].completed" class="text-[10px] md:text-[11px] font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded-full" style="display: none;">
+                            Belum
+                        </span>
+                        
+                        <h2 class="text-[14px] md:text-base font-bold text-gray-900 leading-tight group-hover:text-blue-600 transition-colors" x-text="steps[currentIndex].title"></h2>
                     </div>
-                    <p class="text-[12px] md:text-[13px] text-gray-500 font-medium">{{ $nextStep['desc'] }}</p>
-                </div>
+                    <div class="flex items-center gap-2 text-[12px] md:text-[13px] text-gray-500 font-medium">
+                        <span x-text="steps[currentIndex].desc"></span>
+                        <span class="text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                            &bull; Buka Halaman
+                        </span>
+                    </div>
+                </a>
             </div>
 
-            <div class="flex items-center gap-2 shrink-0 self-end md:self-auto">
-                <a href="{{ $nextStep['route'] }}" class="flex items-center gap-1.5 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-full text-[12px] md:text-[13px] font-bold transition-colors shadow-sm">
-                    Lanjutkan <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
-                </a>
-                <button @click.stop="dismissed = true; localStorage.setItem('onboarding_dismissed', 'true')" class="flex items-center gap-1.5 px-4 py-2.5 bg-red-50 hover:bg-red-100 rounded-full text-[12px] md:text-[13px] font-bold text-red-600 transition-colors" title="Sembunyikan Panduan">
-                    <i data-lucide="x" class="w-4 h-4"></i> <span class="hidden sm:inline">Sembunyikan</span>
+            <!-- Kontrol Navigasi Kanan -->
+            <div class="flex items-center gap-3 shrink-0 self-end md:self-auto">
+                
+                <!-- Prev & Next Control -->
+                <div class="flex items-center gap-1 bg-gray-50 rounded-full p-1 border border-gray-200 shadow-sm">
+                    <button @click="currentIndex = (currentIndex > 0) ? currentIndex - 1 : steps.length - 1" class="p-1.5 hover:bg-white hover:shadow-sm rounded-full text-gray-500 hover:text-blue-600 transition-all" title="Sebelumnya">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path></svg>
+                    </button>
+                    <span class="text-[11px] font-bold text-gray-500 w-8 text-center" x-text="(currentIndex + 1) + '/' + steps.length"></span>
+                    <button @click="currentIndex = (currentIndex < steps.length - 1) ? currentIndex + 1 : 0" class="p-1.5 hover:bg-white hover:shadow-sm rounded-full text-gray-500 hover:text-blue-600 transition-all" title="Selanjutnya">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                </div>
+                
+                <!-- Tombol Dismiss -->
+                <button @click.stop="dismissed = true; localStorage.setItem('onboarding_dismissed', 'true')" class="flex items-center gap-1.5 px-3 md:px-4 py-2 md:py-2.5 bg-red-50 hover:bg-red-100 rounded-full text-[12px] md:text-[13px] font-bold text-red-600 transition-colors shadow-sm" title="Sembunyikan Panduan">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg> 
+                    <span class="hidden sm:inline">Tutup</span>
                 </button>
             </div>
         </div>
-        @endif
         @endif
 
         {{-- HEADER SUMMARY & TINDAKAN CEPAT --}}
