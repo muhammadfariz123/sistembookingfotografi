@@ -381,11 +381,11 @@
                 formatDate(d) {
                     return d ? new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Jakarta' }).format(new Date(d)) : '-'
                 },
-                formatTimeRange(timeStr, durationHours) {
+                formatTimeRange(timeStr, durationMinutes) {
                     if (!timeStr) return '-';
                     let baseTime = timeStr.substring(0, 5); // Potong detik jika format H:i:s
                     
-                    let dur = parseFloat(durationHours);
+                    let dur = parseInt(durationMinutes, 10);
                     if (isNaN(dur) || dur <= 0) return baseTime + ' WIB';
 
                     let parts = baseTime.split(':');
@@ -394,8 +394,8 @@
                     let startH = parseInt(parts[0], 10);
                     let startM = parseInt(parts[1], 10);
 
-                    // Menghitung total menit dari jam mulai + durasi jam
-                    let totalMins = Math.round((startH * 60) + startM + (dur * 60));
+                    // Menghitung total menit dari jam mulai + durasi menit
+                    let totalMins = (startH * 60) + startM + dur;
                     
                     let endH = Math.floor(totalMins / 60) % 24; // Modulo 24 jika lewat tengah malam
                     let endM = totalMins % 60;

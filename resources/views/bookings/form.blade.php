@@ -118,7 +118,7 @@
                                                     <div class="flex justify-between items-center mt-2">
                                                         <p class="text-[13px] font-bold text-blue-600" x-text="formatCurrency(service.price)"></p>
                                                         <template x-if="service.duration && service.duration > 0">
-                                                            <span class="text-[10px] font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded-md" x-text="service.duration + ' Jam'"></span>
+                                                            <span class="text-[10px] font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded-md" x-text="(Math.floor(service.duration / 60) > 0 ? Math.floor(service.duration / 60) + ' Jam ' : '') + (service.duration % 60 > 0 ? (service.duration % 60) + ' Mnt' : '')"></span>
                                                         </template>
                                                     </div>
                                                 </div>
@@ -404,7 +404,7 @@
                 if (parts.length < 2) return '';
                 let date = new Date();
                 date.setHours(parseInt(parts[0], 10), parseInt(parts[1], 10), 0);
-                date.setHours(date.getHours() + parseInt(this.selectedServiceDuration, 10));
+                date.setMinutes(date.getMinutes() + parseInt(this.selectedServiceDuration, 10));
                 let endHours = String(date.getHours()).padStart(2, '0');
                 let endMins = String(date.getMinutes()).padStart(2, '0');
                 return `${endHours}:${endMins} WIB`;

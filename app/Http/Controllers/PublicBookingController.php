@@ -43,7 +43,7 @@ class PublicBookingController extends Controller
             if (!empty($dates) && !empty($b->booking_time)) {
                 $duration = $b->serviceType->duration ?? 0;
                 $startStr = Carbon::parse($b->booking_time);
-                $endStr = $startStr->copy()->addHours($duration);
+                $endStr = $startStr->copy()->addMinutes($duration);
 
                 foreach ($dates as $d) {
                     if (!isset($bookedTimeSlots->{$d})) {
@@ -275,7 +275,7 @@ class PublicBookingController extends Controller
             if (!empty($dates) && !empty($b->booking_time)) {
                 $duration = $b->serviceType->duration ?? 0;
                 $startStr = Carbon::parse($b->booking_time);
-                $endStr = $startStr->copy()->addHours($duration);
+                $endStr = $startStr->copy()->addMinutes($duration);
 
                 foreach ($dates as $d) {
                     if (!isset($bookedTimeSlots->{$d})) {

@@ -90,18 +90,18 @@
 
                         if (!empty($jamRaw)) {
                             $jamMulai = substr(preg_replace('/[^0-9:]/', '', $jamRaw), 0, 5);
-                            $durasiJam = floatval($b->serviceType->duration ?? 0);
+                            $durasiMenit = intval($b->serviceType->duration ?? 0);
                             
                             // Kalkulasi waktu selesai sesi untuk status warning "Sesi belum selesai"
                             $startSesi = \Carbon\Carbon::parse($onlyDate . ' ' . $jamMulai, 'Asia/Jakarta');
-                            $estimasiDurasi = $durasiJam > 0 ? $durasiJam : 2;
-                            $endSesiInfo = $startSesi->copy()->addMinutes((int)($estimasiDurasi * 60));
+                            $estimasiDurasiMenit = $durasiMenit > 0 ? $durasiMenit : 120;
+                            $endSesiInfo = $startSesi->copy()->addMinutes($estimasiDurasiMenit);
                             $sessionNotEnded = \Carbon\Carbon::now('Asia/Jakarta')->lessThan($endSesiInfo);
 
-                            if ($durasiJam > 0) {
+                            if ($durasiMenit > 0) {
                                 $parts = explode(':', $jamMulai);
                                 if (count($parts) >= 2) {
-                                    $totalMins = round(((int)$parts[0] * 60) + (int)$parts[1] + ($durasiJam * 60));
+                                    $totalMins = ((int)$parts[0] * 60) + (int)$parts[1] + $durasiMenit;
                                     $endH = floor($totalMins / 60) % 24;
                                     $endM = $totalMins % 60;
                                     $jamSelesai = str_pad($endH, 2, '0', STR_PAD_LEFT) . ':' . str_pad($endM, 2, '0', STR_PAD_LEFT);

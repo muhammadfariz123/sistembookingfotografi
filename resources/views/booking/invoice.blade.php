@@ -103,18 +103,26 @@
             <div class="border-t border-gray-200">
                 
                 @php
-                    $durasiJam = $booking->serviceType->duration ?? 0;
+                    $durasiMenit = intval($booking->serviceType->duration ?? 0);
                     $waktuMulaiStr = $booking->booking_time ? \Carbon\Carbon::parse($booking->booking_time)->format('H:i') : null;
-                    $waktuSelesaiStr = ($waktuMulaiStr && $durasiJam > 0) ? \Carbon\Carbon::parse($booking->booking_time)->addHours($durasiJam)->format('H:i') : null;
+                    $waktuSelesaiStr = ($waktuMulaiStr && $durasiMenit > 0) ? \Carbon\Carbon::parse($booking->booking_time)->addMinutes($durasiMenit)->format('H:i') : null;
                     $teksWaktuJadwal = $waktuSelesaiStr ? "{$waktuMulaiStr} - {$waktuSelesaiStr} WIB" : ($waktuMulaiStr ? "{$waktuMulaiStr} WIB" : '-');
+                    
+                    $durasiTeks = '';
+                    if ($durasiMenit > 0) {
+                        $jam = floor($durasiMenit / 60);
+                        $mnt = $durasiMenit % 60;
+                        if ($jam > 0) $durasiTeks .= $jam . ' Jam ';
+                        if ($mnt > 0) $durasiTeks .= $mnt . ' Mnt';
+                    }
                 @endphp
 
                 <div class="flex py-3 border-b border-gray-100 text-[13px]">
                     <div class="w-1/4 text-gray-500">Paket</div>
                     <div class="w-3/4">
                         <p class="font-bold text-gray-900">{{ $booking->serviceType->name ?? '-' }}</p>
-                        @if($durasiJam > 0)
-                            <p class="text-[12px] font-semibold text-gray-500 mt-0.5">Durasi {{ $durasiJam }} jam</p>
+                        @if($durasiMenit > 0)
+                            <p class="text-[12px] font-semibold text-gray-500 mt-0.5">Durasi {{ trim($durasiTeks) }}</p>
                         @endif
                     </div>
                 </div>

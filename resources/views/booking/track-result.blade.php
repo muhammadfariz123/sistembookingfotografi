@@ -102,16 +102,23 @@
         
         $startSesi = \Carbon\Carbon::parse($tglHanyaTanggal . ' ' . $jamFix, 'Asia/Jakarta');
         
-        // Ambil Durasi Paket (dalam jam) - dikonversi jadi int/float aman
-        $durasiJam = floatval($booking->serviceType->duration ?? 0);
+        // Ambil Durasi Paket (dalam menit) - dikonversi jadi int aman
+        $durasiMenit = intval($booking->serviceType->duration ?? 0);
+        $durasiTeks = '';
+        if ($durasiMenit > 0) {
+            $jam = floor($durasiMenit / 60);
+            $mnt = $durasiMenit % 60;
+            if ($jam > 0) $durasiTeks .= $jam . ' Jam ';
+            if ($mnt > 0) $durasiTeks .= $mnt . ' Mnt';
+        }
         
         // Menentukan Estimasi Selesai (Untuk Real-time Indicator)
-        $estimasiDurasi = $durasiJam > 0 ? $durasiJam : 2;
-        $endSesiInfo = $startSesi->copy()->addMinutes((int)($estimasiDurasi * 60)); 
+        $estimasiDurasi = $durasiMenit > 0 ? $durasiMenit : 120;
+        $endSesiInfo = $startSesi->copy()->addMinutes($estimasiDurasi); 
 
         // Menyiapkan Teks Jadwal Tampil (Contoh: "13:00 - 21:00 WIB")
         $waktuMulaiStr = $jamFix;
-        $waktuSelesaiStr = $durasiJam > 0 ? $endSesiInfo->format('H:i') : null;
+        $waktuSelesaiStr = $durasiMenit > 0 ? $endSesiInfo->format('H:i') : null;
         $teksWaktuJadwal = $waktuSelesaiStr ? "{$waktuMulaiStr} - {$waktuSelesaiStr} WIB" : "{$waktuMulaiStr} WIB";
 
         // Mengecek apakah saat ini masuk dalam waktu sesi foto
@@ -372,8 +379,8 @@
                     <div class="flex flex-col w-1/2 pl-2 text-right">
                         <span class="text-gray-500 text-[11px] uppercase tracking-wider font-bold mb-1">Paket</span>
                         <span class="font-bold text-gray-900 text-[14px] truncate">{{ $booking->serviceType->name ?? '-' }}</span>
-                        @if($durasiJam > 0)
-                            <span class="text-brand font-semibold text-[11px] mt-0.5">Durasi {{ $durasiJam }} Jam</span>
+                        @if($durasiMenit > 0)
+                            <span class="text-brand font-semibold text-[11px] mt-0.5">Durasi {{ trim($durasiTeks) }}</span>
                         @endif
                     </div>
                 </div>
@@ -411,8 +418,8 @@
                                 <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                 <span>{{ $teksWaktuJadwal }}</span>
                             </div>
-                            @if($durasiJam > 0)
-                                <span class="bg-white border border-gray-200 px-2 py-1 rounded-md text-[10px] text-gray-500 font-bold leading-none shadow-sm">{{ $durasiJam }} Jam</span>
+                            @if($durasiMenit > 0)
+                                <span class="bg-white border border-gray-200 px-2 py-1 rounded-md text-[10px] text-gray-500 font-bold leading-none shadow-sm">{{ trim($durasiTeks) }}</span>
                             @endif
                         </div>
                     @endif

@@ -66,12 +66,27 @@
 
                         {{-- Durasi dan Batas Edit Foto Bersebelahan --}}
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div>
+                            <div x-data="{
+                                durationHours: '{{ floor(old('duration', $service->duration ?? 0) / 60) ?: '' }}',
+                                durationMinutes: '{{ old('duration', $service->duration ?? 0) % 60 ?: '' }}',
+                                get totalMinutes() {
+                                    return (parseInt(this.durationHours) || 0) * 60 + (parseInt(this.durationMinutes) || 0);
+                                }
+                            }">
                                 <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Durasi Sesi <span class="text-red-500">*</span></label>
-                                <div class="relative">
-                                    <input type="number" name="duration" required min="1" value="{{ old('duration', $service->duration ?? '') }}" placeholder="Contoh: 8" class="w-full h-[44px] rounded-xl border border-gray-300 pr-16 pl-4 text-[14px] font-medium text-gray-900 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
-                                    <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                                        <span class="text-gray-500 text-[13px] font-medium">Jam</span>
+                                <input type="hidden" name="duration" :value="totalMinutes">
+                                <div class="flex items-center gap-2">
+                                    <div class="relative flex-1">
+                                        <input type="number" x-model="durationHours" min="0" placeholder="0" class="w-full h-[44px] rounded-xl border border-gray-300 pr-12 pl-4 text-[14px] font-medium text-gray-900 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                            <span class="text-gray-500 text-[13px] font-medium">Jam</span>
+                                        </div>
+                                    </div>
+                                    <div class="relative flex-1">
+                                        <input type="number" x-model="durationMinutes" min="0" max="59" placeholder="0" class="w-full h-[44px] rounded-xl border border-gray-300 pr-12 pl-4 text-[14px] font-medium text-gray-900 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                            <span class="text-gray-500 text-[12px] font-medium">Mnt</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

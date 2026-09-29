@@ -144,7 +144,7 @@
                                             <div class="flex justify-between items-end mt-auto pt-3 border-t border-dashed border-gray-200">
                                                 <p class="text-brand font-bold text-[17px] leading-none">Rp {{ number_format($service->price, 0, ',', '.') }}</p>
                                                 @if(($service->duration ?? 0) > 0)
-                                                    <span class="text-[10px] font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded-md">{{ $service->duration }} Jam</span>
+                                                    <span class="text-[10px] font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded-md">{{ floor($service->duration / 60) > 0 ? floor($service->duration / 60) . ' Jam ' : '' }}{{ ($service->duration % 60) > 0 ? ($service->duration % 60) . ' Mnt' : '' }}</span>
                                                 @endif
                                             </div>
                                         </div>
@@ -366,7 +366,7 @@
                         <div class="border-t border-gray-200 my-3"></div>
                         <div class="flex justify-between items-start gap-4"><span class="text-gray-500 font-medium shrink-0">Jadwal</span><span class="font-bold text-right" x-text="scheduleText"></span></div>
                         <div class="flex justify-between items-start gap-4"><span class="text-gray-500 font-medium shrink-0">Waktu Sesi</span><span class="font-bold text-right text-brand" x-text="sessionTimeText"></span></div>
-                        <div x-show="selectedServiceDuration > 0" class="flex justify-between items-start gap-4"><span class="text-gray-500 font-medium shrink-0">Durasi</span><span class="font-bold text-right" x-text="selectedServiceDuration + ' Jam'"></span></div>
+                        <div x-show="selectedServiceDuration > 0" class="flex justify-between items-start gap-4"><span class="text-gray-500 font-medium shrink-0">Durasi</span><span class="font-bold text-right" x-text="(Math.floor(selectedServiceDuration / 60) > 0 ? Math.floor(selectedServiceDuration / 60) + ' Jam ' : '') + (selectedServiceDuration % 60 > 0 ? (selectedServiceDuration % 60) + ' Mnt' : '')"></span></div>
                         <div class="flex justify-between items-start gap-4"><span class="text-gray-500 font-medium shrink-0">Paket</span><span class="font-bold text-right" x-text="selectedServiceName"></span></div>
                         <div class="flex justify-between items-start gap-4"><span class="text-gray-500 font-medium shrink-0">Harga Paket</span><span class="font-bold text-right" x-text="formatCurrency(unitPrice)"></span></div>
                         <div class="border-t border-gray-200 my-3"></div>
@@ -604,7 +604,7 @@
                             }
                         }
 
-                        let newEndMin = startMin + (this.selectedServiceDuration * 60);
+                        let newEndMin = startMin + this.selectedServiceDuration;
 
                         for (let d of datesToCheck) {
                             if (this.bookedTimeSlots[d]) {
@@ -682,7 +682,7 @@
                     let parts = this.bookingTime.split(':');
                     let date = new Date();
                     date.setHours(parseInt(parts[0]), parseInt(parts[1]), 0);
-                    date.setHours(date.getHours() + parseInt(this.selectedServiceDuration));
+                    date.setMinutes(date.getMinutes() + parseInt(this.selectedServiceDuration));
 
                     let endHours = String(date.getHours()).padStart(2, '0');
                     let endMins = String(date.getMinutes()).padStart(2, '0');

@@ -52,7 +52,7 @@
                                             <div class="flex items-center gap-3 mt-1.5">
                                                 <p class="text-[11px] text-gray-500 font-medium" x-show="item.duration">
                                                     <i data-lucide="clock" class="w-3 h-3 inline align-text-bottom mr-0.5"></i>
-                                                    <span x-text="item.duration + ' Jam'"></span>
+                                                    <span x-text="(Math.floor(item.duration / 60) > 0 ? Math.floor(item.duration / 60) + ' Jam ' : '') + (item.duration % 60 > 0 ? (item.duration % 60) + ' Mnt' : '')"></span>
                                                 </p>
                                                 <p class="text-[11px] text-gray-500 font-medium" x-show="item.photo_limit">
                                                     <i data-lucide="image" class="w-3 h-3 inline align-text-bottom mr-0.5"></i>
