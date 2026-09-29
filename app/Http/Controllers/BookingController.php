@@ -225,8 +225,11 @@ class BookingController extends Controller
             ->where('payment_status', 'Tunggu Konfirmasi')
             ->first();
 
+        $companySetting = \App\Models\CompanySetting::where('user_id', $booking->user_id)->first();
+        $dpPercentage = $companySetting->dp_percentage ?? 30;
+
         $type = strtoupper($booking->payment_type);
-        $dpAmount = (int) ceil($booking->total * 0.3);
+        $dpAmount = (int) ceil($booking->total * ($dpPercentage / 100));
 
         // Ambil nominal langsung dari tabel riwayat transaksi, jika gagal otomatis hitung matematis
         $currentPaymentAmount = $pendingTx ? $pendingTx->amount : ($type === 'DP' ? $dpAmount : max($booking->total - $booking->paid_amount, 0));
@@ -238,7 +241,7 @@ class BookingController extends Controller
         } else {
             $totalPaid = $dpAmount;
             $paymentStatus = 'Down Payment';
-            $message = 'Pembayaran DP 30% berhasil dikonfirmasi!';
+            $message = 'Pembayaran DP ' . $dpPercentage . '% berhasil dikonfirmasi!';
         }
 
         $booking->update([

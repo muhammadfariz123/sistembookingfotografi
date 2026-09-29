@@ -124,6 +124,19 @@
 
                     <div class="pt-8 border-t border-gray-100">
                         <h3 class="text-[16px] font-bold text-gray-800 mb-4 flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-gray-500"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                            Ketentuan DP
+                        </h3>
+                        <div>
+                            <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Minimal Down Payment (%)</label>
+                            <input type="number" name="dp_percentage" min="10" max="100" value="{{ old('dp_percentage', $setting->dp_percentage ?? 30) }}" class="w-full h-[44px] rounded-xl border border-gray-300 px-4 text-[14px] shadow-sm">
+                            <p class="text-[12px] text-gray-500 mt-1">Persentase minimal pembayaran DP. Default adalah 30%.</p>
+                            @error('dp_percentage')<p class="text-[12px] text-red-500 mt-1">{{ $message }}</p>@enderror
+                        </div>
+                    </div>
+
+                    <div class="pt-8 border-t border-gray-100">
+                        <h3 class="text-[16px] font-bold text-gray-800 mb-4 flex items-center gap-2">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
                             Metode Pembayaran
                         </h3>

@@ -112,8 +112,11 @@ class PublicBookingController extends Controller
             'remaining' => $tpsData['remaining'],
         ]);
 
+        $companySetting = CompanySetting::where('user_id', $owner->id)->first();
+        $dpPercentage = $companySetting->dp_percentage ?? 30;
+
         $bookingCodeFormatted = 'BKG-' . Carbon::parse($booking->created_at)->format('Ymd') . '-' . strtoupper(substr(md5($booking->id), 0, 4));
-        $amountExpected = ($validated['payment_type'] === 'LUNAS') ? $tpsData['total'] : (int) ceil($tpsData['total'] * 0.3);
+        $amountExpected = ($validated['payment_type'] === 'LUNAS') ? $tpsData['total'] : (int) ceil($tpsData['total'] * ($dpPercentage / 100));
 
         \App\Models\PaymentTransaction::create([
             'booking_id' => $booking->id,
@@ -126,7 +129,6 @@ class PublicBookingController extends Controller
 
         if (!empty($validated['client_email'])) {
             try {
-                $companySetting = CompanySetting::where('user_id', $owner->id)->first();
                 $companyName = $companySetting->company_name ?? $owner->name;
                 $companyPhone = $companySetting->company_phone ?? null;
                 $booking->load('serviceType');
@@ -140,7 +142,7 @@ class PublicBookingController extends Controller
         }
 
         return redirect()->route('booking.public.pembayaran', ['ownerId' => $ownerId, 'bookingId' => $booking->id])
-            ->with('success', 'Booking berhasil! Silakan selesaikan pembayaran dalam 10 Menit.');
+            ->with('success', 'Booking berhasil! Silakan selesaikan pembayaran dalam 1x24 Jam.');
     }
 
     public function checkPage(string $ownerId)
@@ -219,7 +221,8 @@ class PublicBookingController extends Controller
 
         $isLunas = strtoupper($booking->payment_type) === 'LUNAS' || strtoupper($booking->payment_type) === 'PELUNASAN';
         $amountToPay = 0;
-        $dpAmount = (int) ceil($booking->total * 0.3);
+        $dpPercentage = $companySetting->dp_percentage ?? 30;
+        $dpAmount = (int) ceil($booking->total * ($dpPercentage / 100));
 
         if (in_array($booking->payment_status, ['Pending', 'Belum Bayar', 'Tunggu Konfirmasi'])) {
             $amountToPay = $isLunas ? $booking->total : $dpAmount;
@@ -332,15 +335,15 @@ class PublicBookingController extends Controller
 
         // 1. LOGIKA VALIDASI EXPIRED SAAT UPLOAD DARI BACKEND
         if (in_array($booking->payment_status, ['Pending', 'Belum Bayar'])) {
-            $expiresAt = Carbon::parse($booking->created_at)->addMinutes(10);
+            $expiresAt = Carbon::parse($booking->created_at)->addHours(24);
             if (Carbon::now('Asia/Jakarta')->greaterThan($expiresAt)) {
                 // Auto batalkan jika tembus via Postman / tab lama
                 $booking->update([
                     'status' => 'Dibatalkan',
                     'payment_status' => 'Dibatalkan',
-                    'notes' => ltrim($booking->notes . "\n\n[SISTEM]: Dibatalkan otomatis karena melewati waktu pembayaran 10 menit.")
+                    'notes' => ltrim($booking->notes . "\n\n[SISTEM]: Dibatalkan otomatis karena melewati batas waktu pembayaran 1x24 jam.")
                 ]);
-                return back()->withErrors(['payment_proof' => 'Gagal Upload. Waktu pembayaran 10 menit telah habis. Booking dibatalkan otomatis.']);
+                return back()->withErrors(['payment_proof' => 'Gagal Upload. Waktu pembayaran 1x24 jam telah habis. Booking dibatalkan otomatis.']);
             }
         }
 
@@ -361,6 +364,9 @@ class PublicBookingController extends Controller
             'client_instagram' => $request->client_instagram,
         ];
 
+        $companySetting = CompanySetting::where('user_id', $ownerId)->first();
+        $dpPercentage = $companySetting->dp_percentage ?? 30;
+        
         $isPelunasanProcess = false;
         if ($booking->payment_status === 'Down Payment') {
             $updateData['payment_type'] = 'PELUNASAN';
@@ -372,7 +378,7 @@ class PublicBookingController extends Controller
                 'user_id' => $ownerId,
                 'transaction_id' => $bookingCodeFormatted . '-PELUNASAN-' . time(),
                 'payment_type' => 'PELUNASAN',
-                'amount' => $booking->remaining > 0 ? $booking->remaining : ($booking->total - ceil($booking->total * 0.3)),
+                'amount' => $booking->remaining > 0 ? $booking->remaining : ($booking->total - ceil($booking->total * ($dpPercentage / 100))),
                 'payment_status' => 'Tunggu Konfirmasi',
                 'payment_proof' => $path,
             ]);
@@ -391,7 +397,7 @@ class PublicBookingController extends Controller
         try {
             $owner = User::findOrFail($ownerId);
             $total = (int) $booking->total;
-            $dpAmount = (int) ceil($total * 0.3);
+            $dpAmount = (int) ceil($total * ($dpPercentage / 100));
 
             if ($isPelunasanProcess || strtoupper($booking->payment_type) === 'PELUNASAN') {
                 $amountToPay = $booking->remaining > 0 ? $booking->remaining : ($total - $dpAmount);
@@ -422,8 +428,8 @@ class PublicBookingController extends Controller
             ->firstOrFail();
         $companySetting = CompanySetting::where('user_id', $owner->id)->first();
 
-        // 2. LOGIKA MENGHITUNG EXPIRED 10 MENIT
-        $expiresAt = Carbon::parse($booking->created_at)->addMinutes(10);
+        // 2. LOGIKA MENGHITUNG EXPIRED 24 JAM
+        $expiresAt = Carbon::parse($booking->created_at)->addHours(24);
         $isExpired = $booking->status === 'Dibatalkan' || $booking->payment_status === 'Dibatalkan';
 
         // Hanya cek kadaluarsa jika status awal masih Pending
@@ -433,7 +439,7 @@ class PublicBookingController extends Controller
                 $booking->update([
                     'status' => 'Dibatalkan',
                     'payment_status' => 'Dibatalkan',
-                    'notes' => ltrim($booking->notes . "\n\n[SISTEM]: Dibatalkan otomatis karena melewati waktu pembayaran 10 menit.")
+                    'notes' => ltrim($booking->notes . "\n\n[SISTEM]: Dibatalkan otomatis karena melewati waktu pembayaran 1x24 Jam.")
                 ]);
                 $isExpired = true;
             }

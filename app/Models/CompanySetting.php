@@ -23,6 +23,7 @@ class CompanySetting extends Model
         'bank_name_2',
         'bank_account_2',
         'bank_holder_2',
+        'dp_percentage',
     ];
 
     public function user()

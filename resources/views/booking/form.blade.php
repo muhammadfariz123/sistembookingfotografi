@@ -349,11 +349,11 @@
                                         <div x-show="paymentOption === 'DP'" class="w-2.5 h-2.5 rounded-full bg-brand"></div>
                                     </div>
                                     <div>
-                                        <p class="font-bold text-gray-900 text-sm">DP 30%</p>
+                                        <p class="font-bold text-gray-900 text-sm">DP {{ $companySetting->dp_percentage ?? 30 }}%</p>
                                         <p class="text-xs text-gray-500">Bayar sebagian sekarang, sisanya sebelum terima hasil.</p>
                                     </div>
                                 </div>
-                                <p class="font-bold text-brand text-sm" x-text="formatCurrency(unitPrice * 0.3)"></p>
+                                <p class="font-bold text-brand text-sm" x-text="formatCurrency(unitPrice * ({{ $companySetting->dp_percentage ?? 30 }} / 100))"></p>
                             </div>
                         </label>
                     </div>
@@ -398,7 +398,7 @@
                         </svg>
                         
                         {{-- Teks Tombol Berubah Otomatis --}}
-                        <span x-show="!isSubmitting" x-text="paymentOption === 'LUNAS' ? `Booking & Bayar Lunas ${formatCurrency(unitPrice)}` : `Booking & Bayar DP ${formatCurrency(unitPrice * 0.3)}`"></span>
+                        <span x-show="!isSubmitting" x-text="paymentOption === 'LUNAS' ? `Booking & Bayar Lunas ${formatCurrency(unitPrice)}` : `Booking & Bayar DP ${formatCurrency(unitPrice * ({{ $companySetting->dp_percentage ?? 30 }} / 100))}`"></span>
                         <span x-show="isSubmitting" x-cloak>Memproses Booking...</span>
                     </button>
                 </div>
@@ -413,7 +413,7 @@
                 </button>
                 <h3 class="text-lg font-bold text-gray-900 leading-tight">Syarat dan Ketentuan</h3>
                 <div class="text-sm text-gray-600 mt-4 mb-6 leading-relaxed space-y-2">
-                    <p>1. Pemesanan (booking) dianggap sah hanya jika pembayaran DP/Lunas telah dikonfirmasi oleh Admin. <b>Jadwal Anda hanya akan kami amankan sementara maksimal 2 jam. Jika tidak ada konfirmasi pembayaran, sistem berhak membatalkan pesanan secara sepihak.</b></p>
+                    <p>1. Pemesanan (booking) dianggap sah hanya jika pembayaran DP/Lunas telah dikonfirmasi oleh Admin. <b>Jadwal Anda hanya akan kami amankan sementara maksimal 1x24 jam. Jika tidak ada konfirmasi pembayaran, sistem berhak membatalkan pesanan secara sepihak.</b></p>
                     <p>2. Diharapkan hadir tepat waktu sesuai waktu mulai yang dipilih. Keterlambatan dapat memotong durasi sesi foto Anda.</p>
                     <p>3. Reschedule hanya dapat dilakukan maksimal H-3 sebelum tanggal pemotretan.</p>
                     <p>4. Pembatalan sepihak oleh klien akan mengakibatkan uang muka (DP) hangus.</p>

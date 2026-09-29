@@ -194,10 +194,10 @@
         $tglLayanan = $booking->booking_date ?? $booking->start_date;
         $tglFormat = $tglLayanan ? \Carbon\Carbon::parse($tglLayanan)->locale('id')->isoFormat('D MMMM YYYY') : '-';
 
-        // Konversi waktu ke Asia/Jakarta agar akurat menjadi WIB, lalu tambah 10 menit
+        // Konversi waktu ke Asia/Jakarta agar akurat menjadi WIB, lalu tambah 24 Jam
         $batasWaktu = \Carbon\Carbon::parse($booking->created_at)
             ->timezone('Asia/Jakarta')
-            ->addMinutes(10)
+            ->addHours(24)
             ->locale('id')
             ->isoFormat('D MMM YYYY HH:mm');
     @endphp

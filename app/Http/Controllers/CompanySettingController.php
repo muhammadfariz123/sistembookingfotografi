@@ -40,6 +40,7 @@ class CompanySettingController extends Controller
             'bank_name_2' => 'nullable|string|max:100',
             'bank_account_2' => 'nullable|string|max:50',
             'bank_holder_2' => 'nullable|string|max:255',
+            'dp_percentage' => 'nullable|integer|min:10|max:100',
         ]);
 
         $setting = CompanySetting::firstOrNew(['user_id' => Auth::id()]);

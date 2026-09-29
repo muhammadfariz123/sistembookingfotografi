@@ -24,7 +24,7 @@
         if ($booking->payment_status === 'Down Payment') {
             $paymentLabelText = 'Total Harus Dibayar (PELUNASAN)';
         } else {
-            $paymentLabelText = $isLunas ? 'Total Harus Dibayar (LUNAS)' : 'Total Harus Dibayar (DP 30%)';
+            $paymentLabelText = $isLunas ? 'Total Harus Dibayar (LUNAS)' : 'Total Harus Dibayar (DP ' . ($companySetting->dp_percentage ?? 30) . '%)';
         }
         
         $showTimer = in_array($booking->payment_status, ['Pending', 'Belum Bayar']) && !$isExpired;
@@ -140,7 +140,7 @@
                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </div>
                     <h3 class="font-extrabold text-xl mb-2">Waktu Pembayaran Habis!</h3>
-                    <p class="text-sm leading-relaxed mb-6">Maaf, pemesanan Anda dibatalkan secara otomatis karena melewati batas waktu tunggu pembayaran (10 Menit). Silakan mengulangi proses pemesanan jika jadwal masih tersedia.</p>
+                    <p class="text-sm leading-relaxed mb-6">Maaf, pemesanan Anda dibatalkan secara otomatis karena melewati batas waktu tunggu pembayaran (1x24 Jam). Silakan mengulangi proses pemesanan jika jadwal masih tersedia.</p>
                     <a href="{{ route('booking.public.show', $ownerId) }}" class="inline-block bg-white text-gray-800 font-bold px-6 py-2.5 rounded-lg border border-gray-300 hover:bg-gray-50 transition text-sm">Kembali ke Beranda</a>
                 </div>
             </template>
@@ -164,7 +164,7 @@
                     <p class="text-gray-500 text-sm mt-1">Booking <span class="font-bold text-brand">{{ $bookingCode }}</span></p>
                 </div>
 
-                {{-- WIDGET TIMER MUNDUR 10 MENIT --}}
+                {{-- WIDGET TIMER MUNDUR 24 JAM --}}
                 <div x-show="isTimerRunning" x-cloak class="bg-red-50 text-red-700 border border-red-200 rounded-2xl p-4 sm:p-5 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
                     <div class="text-center sm:text-left">
                         <p class="font-bold text-[15px] mb-0.5 flex items-center justify-center sm:justify-start gap-2">
@@ -357,7 +357,7 @@
                 isExpired: {{ $isExpired ? 'true' : 'false' }},
                 isTimerRunning: {{ $showTimer ? 'true' : 'false' }},
                 expiresAtTime: {{ isset($expiresAt) ? $expiresAt->timestamp * 1000 : 0 }},
-                timerDisplay: '10:00',
+                timerDisplay: '24:00:00',
                 intervalId: null,
 
                 initTimer() {
@@ -373,16 +373,17 @@
 
                     if (distance <= 0) {
                         clearInterval(this.intervalId);
-                        this.timerDisplay = '00:00';
+                        this.timerDisplay = '00:00:00';
                         this.isExpired = true;
                         this.isTimerRunning = false;
                         
                         // Otomatis refresh halaman agar PHP mendeteksi Dibatalkan
                         setTimeout(() => window.location.reload(), 1500);
                     } else {
+                        const hours = Math.floor(distance / (1000 * 60 * 60));
                         const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
                         const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-                        this.timerDisplay = String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+                        this.timerDisplay = String(hours).padStart(2, '0') + ':' + String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
                     }
                 },
 
