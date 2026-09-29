@@ -300,7 +300,7 @@ class PublicBookingController extends Controller
         $companySetting = CompanySetting::where('user_id', $owner->id)->first();
 
         $total = (int) $booking->total;
-        $dpPercent = 30;
+        $dpPercent = $companySetting->dp_percentage ?? 30;
         $dpAmount = (int) ceil($total * $dpPercent / 100);
         $isLunas = strtoupper($booking->payment_type) === 'LUNAS' || strtoupper($booking->payment_type) === 'PELUNASAN';
 
@@ -461,7 +461,7 @@ class PublicBookingController extends Controller
             ]);
         }
 
-        $dpPercent = 30;
+        $dpPercent = $companySetting->dp_percentage ?? 30;
         $dpAmount = (int) ceil($total * $dpPercent / 100);
         $sisaAfterDp = $total - $dpAmount;
         $paymentType = strtoupper($booking->payment_type);

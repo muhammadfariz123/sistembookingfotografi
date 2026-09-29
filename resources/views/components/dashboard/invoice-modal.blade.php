@@ -427,8 +427,8 @@ function invoiceModal() {
                     this.company     = result.company
                     this.invoiceType = 'dp'
                     this.dpMethod    = 'percent'
-                    this.dpPercent   = 30
-                    this.dpNominal   = Math.round((result.booking.total ?? 0) * 0.3)
+                    this.dpPercent   = {{ \App\Models\CompanySetting::where('user_id', auth()->id())->value('dp_percentage') ?? 30 }}
+                    this.dpNominal   = Math.round((result.booking.total ?? 0) * (this.dpPercent / 100))
                     
                     // Logic Penentuan Tanggal & Nomor Invoice Otomatis
                     const today = new Date()
@@ -530,8 +530,8 @@ function invoiceModal() {
         resetSettings() {
             this.invoiceType      = 'dp'
             this.dpMethod         = 'percent'
-            this.dpPercent        = 30
-            this.dpNominal        = Math.round((this.booking?.total ?? 0) * 0.3)
+            this.dpPercent        = {{ \App\Models\CompanySetting::where('user_id', auth()->id())->value('dp_percentage') ?? 30 }}
+            this.dpNominal        = Math.round((this.booking?.total ?? 0) * (this.dpPercent / 100))
             this.dpNominalFocused = false
         },
 
