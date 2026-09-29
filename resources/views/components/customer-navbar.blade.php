@@ -25,7 +25,7 @@
             @endif
             
             <a href="{{ route('booking.public.show', $ownerId) }}#paket" class="hover:text-brand transition">Paket</a>
-            <a href="{{ route('booking.check.page') }}" class="hover:text-brand transition">Cek Booking</a>
+            <a href="{{ route('booking.check.page', $ownerId) }}" class="hover:text-brand transition">Cek Booking</a>
         </div>
     </div>
 
@@ -35,7 +35,7 @@
             <a href="{{ route('booking.public.show', $ownerId) }}" class="block py-2 hover:bg-gray-50 hover:text-brand rounded-lg transition">Beranda</a>
         @endif
         <a href="{{ route('booking.public.show', $ownerId) }}#paket" class="block py-2 hover:bg-gray-50 hover:text-brand rounded-lg transition">Paket</a>
-        <a href="{{ route('booking.check.page') }}" class="block py-2 hover:bg-gray-50 hover:text-brand rounded-lg transition">Cek Booking</a>
+        <a href="{{ route('booking.check.page', $ownerId) }}" class="block py-2 hover:bg-gray-50 hover:text-brand rounded-lg transition">Cek Booking</a>
     </div>
 </nav>
 

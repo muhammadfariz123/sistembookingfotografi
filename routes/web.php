@@ -34,8 +34,8 @@ Route::get('/booking/{ownerId}/pembayaran/{bookingId}/upload-proof', function ($
 });
 
 Route::get('/booking/{ownerId}/payment-success/{bookingId}', [PublicBookingController::class, 'paymentSuccess'])->name('booking.public.payment-success');
-Route::get('/cek-booking', [PublicBookingController::class, 'checkPage'])->name('booking.check.page');
-Route::get('/cek-booking/result', [PublicBookingController::class, 'checkResult'])->name('booking.check.result');
+Route::get('/booking/{ownerId}/cek', [PublicBookingController::class, 'checkPage'])->name('booking.check.page');
+Route::get('/booking/{ownerId}/cek/result', [PublicBookingController::class, 'checkResult'])->name('booking.check.result');
 Route::get('/booking/{ownerId}/service/{serviceId}', [PublicBookingController::class, 'serviceDetail'])->name('booking.service.detail');
 Route::get('/booking/{ownerId}/service/{serviceId}/gallery', [PublicBookingController::class, 'serviceGallery'])->name('booking.service.gallery');
 

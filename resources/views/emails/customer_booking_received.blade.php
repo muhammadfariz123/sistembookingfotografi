@@ -307,8 +307,8 @@
 
         <div class="track-box">
             Kamu bisa cek status booking & link file hasil foto (nantinya) di:
-            <a href="{{ route('booking.check.page') }}" class="track-link"
-                target="_blank">{{ route('booking.check.page') }}</a>
+            <a href="{{ route('booking.check.page', $booking->user_id) }}" class="track-link"
+                target="_blank">{{ route('booking.check.page', $booking->user_id) }}</a>
         </div>
 
         <div class="footer">

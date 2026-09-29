@@ -119,7 +119,7 @@
             </div>
 
             <div class="flex flex-col sm:flex-row gap-4 mb-10">
-                <a href="{{ route('booking.check.page') }}" class="flex-1 h-12 rounded-xl bg-white border border-gray-200 text-gray-700 font-bold text-[14px] flex items-center justify-center hover:bg-gray-50 transition shadow-sm">
+                <a href="{{ route('booking.check.page', $ownerId) }}" class="flex-1 h-12 rounded-xl bg-white border border-gray-200 text-gray-700 font-bold text-[14px] flex items-center justify-center hover:bg-gray-50 transition shadow-sm">
                     Track Status Booking
                 </a>
                 <a href="{{ route('booking.public.show', $ownerId) }}" class="flex-1 h-12 rounded-xl bg-white border border-gray-200 text-gray-700 font-bold text-[14px] flex items-center justify-center hover:bg-gray-50 transition shadow-sm">

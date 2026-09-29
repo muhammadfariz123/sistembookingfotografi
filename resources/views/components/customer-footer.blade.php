@@ -12,7 +12,7 @@
             <ul class="space-y-2 text-sm">
                 <li><a href="{{ route('booking.public.show', $owner->id) }}#paket" class="hover:text-white transition">Paket</a></li>
                 <li><a href="{{ route('booking.public.show', $owner->id) }}#form-booking" class="hover:text-white transition">Booking</a></li>
-                <li><a href="{{ route('booking.check.page') }}" class="hover:text-white transition">Cek Status Booking</a></li>
+                <li><a href="{{ route('booking.check.page', $owner->id) }}" class="hover:text-white transition">Cek Status Booking</a></li>
             </ul>
         </div>
         <div>

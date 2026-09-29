@@ -143,10 +143,10 @@ class PublicBookingController extends Controller
             ->with('success', 'Booking berhasil! Silakan selesaikan pembayaran dalam 10 Menit.');
     }
 
-    public function checkPage()
+    public function checkPage(string $ownerId)
     {
-        $companySetting = CompanySetting::first();
-        $owner = $companySetting ? User::find($companySetting->user_id) : User::first();
+        $owner = User::findOrFail($ownerId);
+        $companySetting = CompanySetting::where('user_id', $owner->id)->first();
         
         $businessName = 'Nama Usaha Anda';
         if ($companySetting && !empty($companySetting->company_name)) {
@@ -156,7 +156,7 @@ class PublicBookingController extends Controller
         }
 
         return view('booking.check-booking', [
-            'ownerId' => $owner ? $owner->id : 1,
+            'ownerId' => $ownerId,
             'businessName' => $businessName,
         ]);
     }
@@ -186,7 +186,7 @@ class PublicBookingController extends Controller
         return view('booking.service-gallery', compact('service', 'owner', 'companySetting', 'ownerId'));
     }
 
-    public function checkResult(Request $request)
+    public function checkResult(Request $request, string $ownerId)
     {
         $request->validate([
             'booking_code' => 'required|string',
@@ -196,7 +196,7 @@ class PublicBookingController extends Controller
         $inputCode = strtoupper(trim($request->booking_code));
         $inputEmail = strtolower(trim($request->email));
 
-        $bookings = Booking::where('client_email', $inputEmail)->with('serviceType')->get();
+        $bookings = Booking::where('client_email', $inputEmail)->where('user_id', $ownerId)->with('serviceType')->get();
         $matchedBooking = null;
 
         foreach ($bookings as $b) {

@@ -45,7 +45,7 @@
             @endif
 
             <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
-                <form action="{{ route('booking.check.result') }}" method="GET" class="space-y-4">
+                <form action="{{ route('booking.check.result', $ownerId) }}" method="GET" class="space-y-4">
                     <div>
                         <label class="block text-sm font-semibold text-gray-800 mb-1.5">Kode Booking</label>
                         <input type="text" name="booking_code" required placeholder="Contoh: BKG-20260718-C6DD" value="{{ old('booking_code') }}"

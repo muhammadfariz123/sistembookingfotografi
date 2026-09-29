@@ -220,7 +220,7 @@
 
         {{-- TOMBOL AKSI --}}
         <div class="flex flex-col sm:flex-row gap-3 no-print">
-            <a href="{{ route('booking.check.page') }}"
+            <a href="{{ route('booking.check.page', $ownerId) }}"
                 class="flex-1 py-3.5 px-4 rounded-xl bg-brand hover:bg-orange-600 text-white font-bold text-[14px] flex items-center justify-center transition-colors shadow-sm text-center">
                 Track Status Booking
             </a>

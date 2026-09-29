@@ -824,7 +824,7 @@
                 <a href="{{ route('booking.public.show', $ownerId) }}" class="flex items-center justify-center gap-2 border border-gray-200 bg-white text-gray-700 font-bold text-[13px] py-3.5 rounded-xl hover:bg-gray-50 transition shadow-sm">
                     &larr; Beranda
                 </a>
-                <a href="{{ route('booking.check.page') }}" class="flex items-center justify-center gap-2 bg-brand text-white font-bold text-[13px] py-3.5 rounded-xl hover:bg-orange-500 transition shadow-sm">
+                <a href="{{ route('booking.check.page', $ownerId) }}" class="flex items-center justify-center gap-2 bg-brand text-white font-bold text-[13px] py-3.5 rounded-xl hover:bg-orange-500 transition shadow-sm">
                     Cek Booking Lain
                 </a>
             </div>

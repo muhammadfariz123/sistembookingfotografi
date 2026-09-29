@@ -66,7 +66,7 @@
             </a>
 
             {{-- Form Tersembunyi untuk Masuk ke Halaman Tracking dengan Aman --}}
-            <form action="{{ route('booking.check.result') }}" method="GET">
+            <form action="{{ route('booking.check.result', $ownerId) }}" method="GET">
                 <input type="hidden" name="booking_code" value="{{ $bookingCode }}">
                 <input type="hidden" name="email" value="{{ $booking->client_email }}">
                 <button type="submit" class="w-full bg-[#2563EB] hover:bg-blue-700 text-white font-bold text-[13px] py-3.5 rounded-2xl flex items-center justify-center gap-2 transition shadow-sm cursor-pointer">
