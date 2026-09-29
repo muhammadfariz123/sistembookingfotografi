@@ -69,7 +69,8 @@
         $deadlineStr = $deadlineDb->locale('id')->isoFormat('DD MMM YYYY');
 
         // LOGIKA NOMINAL "SEDANG DIVERIFIKASI"
-        $dpAmount = (int) ceil($booking->total * 0.3);
+        $dpPercentage = $companySetting->dp_percentage ?? 30;
+        $dpAmount = (int) ceil($booking->total * ($dpPercentage / 100));
         $pendingAmount = 0;
         
         if ($statusPembayaran === 'Tunggu Konfirmasi') {
