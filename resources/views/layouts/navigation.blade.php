@@ -472,6 +472,15 @@
                             </div>
                             Pengaturan Perusahaan
                         </a>
+
+                        <a href="{{ route('bookings.export') }}" data-turbo="false"
+                            class="flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] transition
+                           {{ request()->routeIs('bookings.export') ? 'text-blue-600 font-semibold bg-blue-50/50' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50' }}">
+                            <div
+                                class="w-1.5 h-1.5 rounded-full shrink-0 {{ request()->routeIs('bookings.export') ? 'bg-blue-600' : 'bg-gray-300' }}">
+                            </div>
+                            Ekspor Data Booking
+                        </a>
                     </div>
                 </div>
                 {{-- Flyout Popup (Sidebar Collapsed, DESKTOP SAJA — hanya via klik langsung ikon ini) --}}
@@ -491,6 +500,15 @@
                             class="w-1.5 h-1.5 rounded-full shrink-0 {{ request()->routeIs('company-setting.edit') ? 'bg-blue-600' : 'bg-gray-300' }}">
                         </div>
                         Pengaturan Perusahaan
+                    </a>
+
+                    <a href="{{ route('bookings.export') }}" data-turbo="false" @click="open = false"
+                        class="flex items-center gap-3 px-4 py-2.5 text-[13px] transition
+                        {{ request()->routeIs('bookings.export') ? 'text-blue-600 font-semibold bg-blue-50/50' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <div
+                            class="w-1.5 h-1.5 rounded-full shrink-0 {{ request()->routeIs('bookings.export') ? 'bg-blue-600' : 'bg-gray-300' }}">
+                        </div>
+                        Ekspor Data Booking
                     </a>
                 </div>
             </div>
