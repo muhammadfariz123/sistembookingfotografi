@@ -43,6 +43,7 @@
                 
                 <!-- Konten Tutorial (Bisa diklik) -->
                 <a :href="steps[currentIndex].route" class="flex-1 group block hover:bg-gray-50 p-2 -ml-2 rounded-xl transition-colors cursor-pointer" title="Klik untuk membuka halaman ini">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Panduan Pengoperasian</p>
                     <div class="flex flex-wrap items-center gap-2 mb-0.5 md:mb-1">
                         <!-- Status Badge -->
                         <span x-show="steps[currentIndex].completed" class="text-[10px] md:text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full flex items-center gap-1" style="display: none;">
