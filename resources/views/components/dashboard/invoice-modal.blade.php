@@ -400,7 +400,7 @@ function invoiceModal() {
         // State Konfigurasi Invoice
         invoiceType: 'dp',
         dpMethod: 'percent',
-        dpPercent: 30,
+        dpPercent: {{ \App\Models\CompanySetting::where('user_id', auth()->id())->value('dp_percentage') ?? 30 }},
         dpNominal: 0,
         dpNominalFocused: false,
         
