@@ -64,7 +64,7 @@
         {{-- INFO BOX: DITERIMA DARI & DETAIL PEMBAYARAN --}}
         <div class="grid grid-cols-2 gap-6 mb-8">
             <div class="bg-[#f8fafc] border border-gray-200 rounded-lg p-5">
-                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Diterima Dari</p>
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Ditagihkan Kepada</p>
                 <p class="text-[15px] font-bold text-gray-900 mb-1">{{ $booking->client_name }}</p>
                 <p class="text-[13px] text-gray-600">{{ $booking->client_email ?? '-' }}</p>
                 <p class="text-[13px] text-gray-600">{{ $booking->client_contact ?? '-' }}</p>
