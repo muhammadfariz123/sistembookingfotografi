@@ -57,8 +57,38 @@ Route::get('/seleksi/{bookingCode}', [PublicBookingController::class, 'selection
 
 /*
 |--------------------------------------------------------------------------
+| Rute Sementara Untuk Usability Testing
+|--------------------------------------------------------------------------
+| Hapus rute ini jika proses pengujian sudah selesai agar sistem aman!
+*/
+Route::get('/buat-akun-tester', function () {
+    return view('testing-register');
+});
+
+Route::post('/buat-akun-tester', function (\Illuminate\Http\Request $request) {
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|string|email|max:255|unique:users',
+        'password' => 'required|string|min:8',
+    ]);
+
+    $user = \App\Models\User::create([
+        'name' => $request->name,
+        'email' => $request->email,
+        'password' => \Illuminate\Support\Facades\Hash::make($request->password),
+    ]);
+
+    // Opsional: Langsung login
+    \Illuminate\Support\Facades\Auth::login($user);
+
+    return redirect('/dashboard')->with('success', 'Akun tester berhasil dibuat dan langsung login!');
+});
+
+/*
+|--------------------------------------------------------------------------
 | Protected Routes (Hanya untuk Admin yang sudah Login)
 |--------------------------------------------------------------------------
+
 */
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
