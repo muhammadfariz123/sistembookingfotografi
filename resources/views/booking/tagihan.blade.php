@@ -194,7 +194,58 @@
             </div>
         </div>
 
+        {{-- METODE PEMBAYARAN --}}
+        @if($booking->payment_status !== 'Lunas' && $booking->payment_status !== 'Tunggu Konfirmasi')
+            <div class="mb-8">
+                <div class="flex items-center gap-2 mb-4">
+                    <div class="w-1.5 h-4 bg-emerald-500 rounded-full"></div>
+                    <h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Instruksi Pembayaran</h3>
+                </div>
+                
+                @if($company?->payment_method === 'qris' && $company?->qris_image)
+                    <div class="border border-gray-200 rounded-lg p-5 flex flex-col sm:flex-row items-center sm:items-start gap-5">
+                        <img src="{{ asset('storage/' . $company->qris_image) }}" alt="QRIS" class="w-32 h-32 object-contain border border-gray-100 rounded-lg shadow-sm p-1 bg-white">
+                        <div class="text-center sm:text-left">
+                            <p class="font-bold text-gray-900 mb-1">Bayar dengan QRIS</p>
+                            <p class="text-[13px] text-gray-600">Gunakan aplikasi M-Banking atau e-Wallet Anda untuk melakukan scan pada kode QR di samping.</p>
+                            @if($company?->payment_instruction)
+                                <p class="text-[12px] text-gray-500 mt-2">{{ $company->payment_instruction }}</p>
+                            @endif
+                        </div>
+                    </div>
+                @else
+                    <div class="border border-gray-200 rounded-lg p-5">
+                        <p class="font-bold text-gray-900 mb-4">Transfer Bank</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            @if($company?->bank_name && $company?->bank_account)
+                                <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                                    <p class="text-[11px] text-gray-500 uppercase tracking-wider mb-1">Bank <span class="font-bold text-gray-900">{{ $company->bank_name }}</span></p>
+                                    <p class="text-[15px] font-bold text-gray-900 tracking-widest mb-1">{{ $company->bank_account }}</p>
+                                    @if($company->bank_holder)
+                                        <p class="text-[12px] text-gray-600">a.n <span class="font-semibold text-gray-800">{{ $company->bank_holder }}</span></p>
+                                    @endif
+                                </div>
+                            @endif
+                            @if($company?->bank_name_2 && $company?->bank_account_2)
+                                <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                                    <p class="text-[11px] text-gray-500 uppercase tracking-wider mb-1">Bank <span class="font-bold text-gray-900">{{ $company->bank_name_2 }}</span></p>
+                                    <p class="text-[15px] font-bold text-gray-900 tracking-widest mb-1">{{ $company->bank_account_2 }}</p>
+                                    @if($company->bank_holder_2)
+                                        <p class="text-[12px] text-gray-600">a.n <span class="font-semibold text-gray-800">{{ $company->bank_holder_2 }}</span></p>
+                                    @endif
+                                </div>
+                            @endif
+                        </div>
+                        @if($company?->payment_instruction)
+                            <p class="text-[12px] text-gray-500 mt-4 leading-relaxed">{{ $company->payment_instruction }}</p>
+                        @endif
+                    </div>
+                @endif
+            </div>
+        @endif
+
         {{-- RIWAYAT PEMBAYARAN --}}
+        @if($booking->paid_amount > 0)
         <div class="mb-8">
             <div class="flex items-center gap-2 mb-4">
                 <div class="w-1.5 h-4 bg-emerald-500 rounded-full"></div>
@@ -255,6 +306,7 @@
                 </tbody>
             </table>
         </div>
+        @endif
 
         {{-- FOOTER NOTE --}}
         <div class="bg-[#f8fafc] border border-gray-200 rounded-lg p-5 text-[12px] text-gray-500 leading-relaxed text-center mb-8">
