@@ -78,6 +78,12 @@
                     </span>
                 </div>
                 <div class="flex justify-between text-[13px] mb-2">
+                    <span class="text-gray-500">Batas Pembayaran</span>
+                    <span class="font-bold text-red-600">
+                        {{ \Carbon\Carbon::parse($booking->created_at)->addHours(24)->translatedFormat('d M Y H:i') }} WIB
+                    </span>
+                </div>
+                <div class="flex justify-between text-[13px] mb-2">
                     <span class="text-gray-500">Kode booking</span>
                     <span class="font-bold text-gray-900 font-mono">{{ $bookingCode }}</span>
                 </div>
