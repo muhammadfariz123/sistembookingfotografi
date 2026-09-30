@@ -25,4 +25,21 @@ class InvoiceController extends Controller
 
         return view('booking.invoice', compact('booking', 'company', 'bookingCode'));
     }
+
+    /**
+     * Tampilkan halaman Tagihan / Invoice
+     */
+    public function tagihan(Booking $booking)
+    {
+        // Load relasi ke layanan, transaksi riwayat, dan data admin/user
+        $booking->load(['serviceType', 'transactions', 'user']);
+
+        // Ambil data profil studio/admin
+        $company = CompanySetting::where('user_id', $booking->user_id)->first();
+
+        // Generate kembali Kode Booking
+        $bookingCode = 'BKG-' . Carbon::parse($booking->created_at)->format('Ymd') . '-' . strtoupper(substr(md5($booking->id), 0, 4));
+
+        return view('booking.tagihan', compact('booking', 'company', 'bookingCode'));
+    }
 }

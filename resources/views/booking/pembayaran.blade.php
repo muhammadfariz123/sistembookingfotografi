@@ -70,7 +70,13 @@
                     </button>
                 </div>
 
-                <h3 class="font-bold text-gray-900 mb-4 text-[16px]">Rincian Pelunasan</h3>
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-gray-900 text-[16px]">Rincian Pelunasan</h3>
+                    <a href="{{ route('tagihan.show', $booking->id) }}" target="_blank" class="text-brand hover:text-orange-600 font-semibold text-[13px] inline-flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        Unduh Tagihan
+                    </a>
+                </div>
                 <div class="space-y-4 text-[14px]">
                     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center border-b border-gray-100 pb-3">
                         <span class="text-gray-500 mb-1 sm:mb-0">Nama</span>
@@ -194,6 +200,10 @@
                         <div>
                             <h2 class="text-lg font-bold text-gray-900 mb-1">Invoice Tagihan</h2>
                             <p class="text-sm text-gray-500 font-mono">{{ $bookingCode }}</p>
+                            <a href="{{ route('tagihan.show', $booking->id) }}" target="_blank" class="text-brand hover:text-orange-600 font-semibold text-[13px] inline-flex items-center gap-1 mt-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                Unduh Tagihan
+                            </a>
                         </div>
                         <div class="text-right">
                             <span class="inline-block px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider 

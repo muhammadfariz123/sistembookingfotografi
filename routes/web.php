@@ -48,6 +48,7 @@ Route::get('/seleksi/{bookingCode}/selesai', [PublicBookingController::class, 's
 
 // Rute Invoice untuk Klien
 Route::get('/invoices/{booking}', [InvoiceController::class, 'show'])->name('invoice.show');
+Route::get('/tagihan/{booking}', [InvoiceController::class, 'tagihan'])->name('tagihan.show');
 
 // Rute Halaman Seleksi Foto Klien
 Route::get('/seleksi/{bookingCode}', [PublicBookingController::class, 'selectionPage'])->name('booking.public.seleksi');
