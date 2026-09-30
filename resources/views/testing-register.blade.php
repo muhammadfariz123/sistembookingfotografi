@@ -30,12 +30,6 @@
         <form action="/buat-akun-tester" method="POST" class="space-y-5">
             @csrf
             <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Nama Usaha / Admin</label>
-                <input type="text" name="name" required value="{{ old('name') }}" placeholder="Contoh: Studio Foto Tester" 
-                    class="w-full h-11 rounded-xl border border-gray-300 px-4 text-sm focus:border-blue-500 focus:ring-blue-500 transition shadow-sm">
-            </div>
-
-            <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-1.5">Email</label>
                 <input type="email" name="email" required value="{{ old('email') }}" placeholder="admin@tester.com" 
                     class="w-full h-11 rounded-xl border border-gray-300 px-4 text-sm focus:border-blue-500 focus:ring-blue-500 transition shadow-sm">

@@ -67,13 +67,15 @@ Route::get('/buat-akun-tester', function () {
 
 Route::post('/buat-akun-tester', function (\Illuminate\Http\Request $request) {
     $request->validate([
-        'name' => 'required|string|max:255',
         'email' => 'required|string|email|max:255|unique:users',
         'password' => 'required|string|min:8',
     ]);
 
+    // Gunakan bagian depan email sebagai nama default
+    $defaultName = explode('@', $request->email)[0];
+
     $user = \App\Models\User::create([
-        'name' => $request->name,
+        'name' => $defaultName,
         'email' => $request->email,
         'password' => \Illuminate\Support\Facades\Hash::make($request->password),
     ]);
