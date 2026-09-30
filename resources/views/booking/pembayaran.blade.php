@@ -189,30 +189,91 @@
                     </div>
                 @endif
 
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-                    <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">
-                        {{ $paymentLabelText }}
-                    </p>
-                    <p class="text-4xl font-extrabold text-brand mb-1">
-                        @if($booking->payment_status === 'Lunas')
-                            LUNAS
-                        @else
-                            Rp {{ number_format($amountToPay, 0, ',', '.') }}
-                        @endif
-                    </p>
-                    <p class="text-xs text-gray-400 mb-6">Kode Booking: {{ $bookingCode }}</p>
-                    
-                    <div class="flex justify-between border-t border-gray-100 pt-5 text-sm">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8 mb-6">
+                    <div class="flex justify-between items-start mb-6">
                         <div>
-                            <p class="text-gray-400 text-[11px] mb-0.5">Nama Klien</p>
-                            <p class="font-semibold text-gray-900">{{ $booking->client_name }}</p>
+                            <h2 class="text-lg font-bold text-gray-900 mb-1">Invoice Tagihan</h2>
+                            <p class="text-sm text-gray-500 font-mono">{{ $bookingCode }}</p>
                         </div>
                         <div class="text-right">
-                            <p class="text-gray-400 text-[11px] mb-0.5">Tanggal Sesi</p>
-                            <p class="font-semibold text-gray-900">
-                                {{ $tglLayanan ? \Carbon\Carbon::parse($tglLayanan)->locale('id')->isoFormat('D MMM YYYY') : '-' }}
+                            <span class="inline-block px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider 
+                                {{ $booking->payment_status === 'Lunas' ? 'bg-green-100 text-green-700' : 
+                                  ($booking->payment_status === 'Tunggu Konfirmasi' ? 'bg-orange-100 text-orange-700' : 'bg-red-100 text-red-700') }}">
+                                {{ $booking->payment_status === 'Down Payment' ? 'DP Terbayar / Menunggu Pelunasan' : $booking->payment_status }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-b border-gray-100 py-4 mb-4 space-y-3 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Nama Klien</span>
+                            <span class="font-bold text-gray-900">{{ $booking->client_name }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Tanggal Sesi</span>
+                            <span class="font-bold text-gray-900">{{ $tglLayanan ? \Carbon\Carbon::parse($tglLayanan)->locale('id')->isoFormat('D MMM YYYY') : '-' }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Paket Layanan</span>
+                            <span class="font-bold text-gray-900 text-right">{{ $booking->serviceType->name ?? '-' }}</span>
+                        </div>
+                        @php
+                            $durasiMenit = intval($booking->serviceType->duration ?? 0);
+                            $durasiTeks = '';
+                            if ($durasiMenit > 0) {
+                                $jam = floor($durasiMenit / 60);
+                                $mnt = $durasiMenit % 60;
+                                if ($jam > 0) $durasiTeks .= $jam . ' Jam ';
+                                if ($mnt > 0) $durasiTeks .= $mnt . ' Mnt';
+                            }
+                        @endphp
+                        @if($durasiMenit > 0)
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Durasi</span>
+                            <span class="font-bold text-gray-900">{{ trim($durasiTeks) }}</span>
+                        </div>
+                        @endif
+                        <div class="flex justify-between pt-2">
+                            <span class="text-gray-500">Harga Paket</span>
+                            <span class="font-bold text-gray-900">Rp {{ number_format($booking->unit_price, 0, ',', '.') }}</span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3 mb-6">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-500">Total Keseluruhan</span>
+                            <span class="font-bold text-gray-900">Rp {{ number_format($booking->total, 0, ',', '.') }}</span>
+                        </div>
+                        @if($booking->paid_amount > 0)
+                        <div class="flex justify-between text-sm text-green-600">
+                            <span>Telah Dibayar (DP)</span>
+                            <span class="font-bold">- Rp {{ number_format($booking->paid_amount, 0, ',', '.') }}</span>
+                        </div>
+                        <div class="flex justify-between text-sm text-red-600">
+                            <span>Sisa Tagihan</span>
+                            <span class="font-bold">Rp {{ number_format($booking->remaining, 0, ',', '.') }}</span>
+                        </div>
+                        @endif
+                    </div>
+
+                    <div class="bg-gray-50 rounded-xl p-5 border border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <div>
+                            <p class="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">
+                                {{ $paymentLabelText }}
+                            </p>
+                            <p class="text-3xl font-extrabold text-brand">
+                                @if($booking->payment_status === 'Lunas')
+                                    LUNAS
+                                @else
+                                    Rp {{ number_format($amountToPay, 0, ',', '.') }}
+                                @endif
                             </p>
                         </div>
+                        @if($booking->payment_status !== 'Lunas')
+                        <div class="text-xs text-gray-500 max-w-[200px] sm:text-right">
+                            Transfer tepat sesuai nominal tagihan.
+                        </div>
+                        @endif
                     </div>
                 </div>
 
