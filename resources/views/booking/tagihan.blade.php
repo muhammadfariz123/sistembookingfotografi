@@ -158,8 +158,8 @@
                     <tr class="border-b border-gray-200">
                         <td class="py-4 px-4">
                             <p class="font-bold text-gray-900">{{ $booking->serviceType->name ?? '-' }}</p>
-                            @if($durasiJam > 0)
-                                <p class="text-[12px] font-semibold text-gray-500 mt-0.5">Durasi {{ $durasiJam }} jam</p>
+                            @if(isset($durasiMenit) && $durasiMenit > 0)
+                                <p class="text-[12px] font-semibold text-gray-500 mt-0.5">Durasi {{ trim($durasiTeks) }}</p>
                             @endif
                         </td>
                         <td class="py-4 px-4 text-center">1</td>
