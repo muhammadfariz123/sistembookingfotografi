@@ -11,6 +11,9 @@
     {{-- Flatpickr CSS --}}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     
+    {{-- Leaflet CSS --}}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         body { font-family: 'Inter', sans-serif; }
@@ -300,9 +303,14 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">Alamat Acara / Nama Gedung <span class="text-red-500">*</span></label>
                         <input type="text" name="client_address" x-model="clientAddress" required placeholder="Ketik nama gedung atau alamat lengkap..." class="w-full h-11 rounded-lg border border-gray-300 px-4 text-sm focus:border-brand focus:ring-brand shadow-sm">
                     </div>
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Link Google Maps <span class="text-red-500">*</span></label>
-                        <input type="url" name="link_gmaps" x-model="linkGmaps" required placeholder="https://maps.app.goo.gl/..." class="w-full h-11 rounded-lg border border-gray-300 px-4 text-sm focus:border-brand focus:ring-brand shadow-sm text-blue-600">
+                    <div class="mb-4" wire:ignore>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Titik Lokasi (Map) <span class="text-red-500">*</span></label>
+                        <p class="text-[11px] text-gray-400 mb-2">Geser peta untuk menentukan titik akurat lokasi Anda.</p>
+                        
+                        <div id="mapContainer" class="w-full h-56 md:h-64 rounded-xl border border-gray-300 shadow-sm relative z-0 mb-3"></div>
+                        
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Link Google Maps <span class="text-gray-400 font-normal">(Otomatis/Manual)</span> <span class="text-red-500">*</span></label>
+                        <input type="url" name="link_gmaps" id="link_gmaps_input" x-model="linkGmaps" required placeholder="https://maps.google.com/..." class="w-full h-11 rounded-lg border border-gray-300 px-4 text-sm focus:border-brand focus:ring-brand shadow-sm text-blue-600 bg-gray-50">
                         <p class="text-[11px] text-gray-400 mt-1.5">Membantu tim kami tiba di lokasi lebih akurat.</p>
                     </div>
                     <div class="mb-5">
@@ -429,6 +437,9 @@
     {{-- Script Flatpickr --}}
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     
+    {{-- Script Leaflet --}}
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
     <script>
         function bookingWizard(initialId = '', initialPrice = 0, initialName = '', initialCategory = '', initialDuration = 0, bookedSlots = {}) {
             return {
@@ -439,6 +450,9 @@
                 selectedServiceName: initialName,
                 selectedServiceDuration: Number(initialDuration),
                 multiDay: false, bookingDate: '', startDate: '', endDate: '',
+                
+                map: null,
+                marker: null,
 
                 init() {
                     const checkSlots = () => {
@@ -470,6 +484,47 @@
 
                 // Data Jam Booking Yang Sudah Terisi
                 bookedTimeSlots: bookedSlots,
+                
+                initMap() {
+                    if (this.map) {
+                        this.map.invalidateSize();
+                        return;
+                    }
+                    
+                    const defaultLoc = [-7.4243, 109.2302]; // Purwokerto
+
+                    this.map = L.map('mapContainer').setView(defaultLoc, 13);
+                    
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; OpenStreetMap'
+                    }).addTo(this.map);
+
+                    this.marker = L.marker(defaultLoc, {draggable: true}).addTo(this.map);
+
+                    const updateGmapsLink = (latlng) => {
+                        this.linkGmaps = `https://maps.google.com/?q=${latlng.lat},${latlng.lng}`;
+                        const input = document.getElementById('link_gmaps_input');
+                        if (input) input.value = this.linkGmaps;
+                    };
+
+                    this.marker.on('dragend', (e) => {
+                        updateGmapsLink(this.marker.getLatLng());
+                    });
+
+                    this.map.on('click', (e) => {
+                        this.marker.setLatLng(e.latlng);
+                        updateGmapsLink(e.latlng);
+                    });
+                    
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition((pos) => {
+                            const userLoc = [pos.coords.latitude, pos.coords.longitude];
+                            this.map.setView(userLoc, 15);
+                            this.marker.setLatLng(userLoc);
+                            updateGmapsLink({lat: userLoc[0], lng: userLoc[1]});
+                        });
+                    }
+                },
 
                 get todayDate() {
                     const d = new Date();
@@ -643,7 +698,13 @@
                         return; 
                     }
                     
-                    this.errorMsg = ''; this.step++; window.scrollTo({ top: 0, behavior: 'smooth' });
+                    this.errorMsg = ''; 
+                    this.step++; 
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    
+                    if (this.step === 3) {
+                        setTimeout(() => this.initMap(), 300);
+                    }
                 },
                 
                 prevStep() { if (this.step > 1) { this.step--; this.errorMsg = ''; window.scrollTo({ top: 0, behavior: 'smooth' }); } },
